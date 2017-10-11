@@ -165,6 +165,7 @@ Download-File -sourceUrl "${scriptPath}Setup$style.ps1"       -destinationFile $
 Download-File -sourceUrl "${scriptPath}SetupNavContainer.ps1" -destinationFile $setupNavContainerScript
 Download-File -sourceUrl "${scriptPath}SetupVm.ps1"           -destinationFile $setupVmScript
 Download-File -sourceUrl "${scriptPath}SetupStart.ps1"        -destinationFile $setupStartScript
+Download-File -sourceUrl "${scriptPath}Install-VS2017Community.ps1" -destinationFile "C:\DEMO\Install-VS2017Community.ps1"
 
 if ($licenseFileUri -ne "") {
     Download-File -sourceUrl $licenseFileUri -destinationFile "c:\demo\license.flf"
