@@ -264,7 +264,7 @@ function refresh()
 }
 </script>
 </head>
-<body onload="JavaScript:timeRefresh(10000);">
+<body onload="JavaScript:timeRefresh(30000);">
   <table>
     <colgroup>
        <col span="1" style="width: 14%;">
