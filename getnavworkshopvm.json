@@ -35,22 +35,22 @@
         },
         "vmAdminUsername": {
             "type": "string",
-            "defaultValue": "student",
+            "defaultValue": "vmadmin",
             "metadata": {
-                "Description": "Specify VM Admin user name"
+                "Description": "Specify administrator user name for connecting to the VM"
             }
         },
         "navAdminUsername": {
             "type": "string",
-            "defaultValue": "student",
+            "defaultValue": "admin",
             "metadata": {
-                "Description": "Specify NAV Administrator user name"
+                "Description": "Specify administrator user name for NAV"
             }
         },
         "adminPassword": {
             "type": "securestring",
             "metadata": {
-                "Description": "Specify VM Admin Password"
+                "Description": "Specify administrator password for VM, NAV and SQL (if applicable)"
             }
         },
         "navDockerImage": {
