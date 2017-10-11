@@ -98,10 +98,11 @@ if ($LastExitCode -ne 0) {
 Log "Waiting for container to become ready, this will only take a few minutes"
 $cnt = 150
 do {
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 5
     $logs = docker logs $containerName 
     $log = [string]::Join(" ",$logs)
 } while ($cnt-- -gt 0 -and !($log.Contains("Ready for connections!")))
+Start-Sleep -Seconds 60
 
 # Copy .vsix and Certificate to C:\Demo
 Log "Copying .vsix and Certificate to C:\Demo"
