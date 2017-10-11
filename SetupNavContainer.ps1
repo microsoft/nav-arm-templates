@@ -95,12 +95,13 @@ if ($LastExitCode -ne 0) {
     throw "Docker run error"
 }
 
-Log "Waiting for container to become healthy, this shouldn't take more than 2 minutes"
+Log "Waiting for container to become ready, this will only take a few minutes"
+$cnt = 150
 do {
     Start-Sleep -Seconds 2
-    $status = (docker ps -a --filter Name=$containerName --format '{{.Status}}')
-    $healthy = $status.Contains('healthy')
-} while (!$healthy)
+    $logs = docker logs $containerName 
+    $log = [string]::Join(" ",$logs)
+} while ($cnt-- -gt 0 -and !($log.Contains("Ready for connections!")))
 
 # Copy .vsix and Certificate to C:\Demo
 Log "Copying .vsix and Certificate to C:\Demo"
@@ -114,7 +115,7 @@ if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
 }"
 [System.IO.File]::WriteAllText("C:\Demo\$containerName\Version.txt",$navVersion)
 [System.IO.File]::WriteAllText("C:\Demo\$containerName\Country.txt", $country)
-$certFile = Get-Item "C:\Demo\*.cer"
+$certFile = Get-Item "C:\Demo\$containerName\*.cer"
 
 # Install Certificate on host
 if ($certFile) {
@@ -127,14 +128,6 @@ if ($certFile) {
     $store.add($pfx) 
     $store.close()
 }
-
-Log "Waiting for container to become ready, this will only take a few minutes"
-$cnt = 150
-do {
-    Start-Sleep -Seconds 2
-    $logs = docker logs $containerName 
-    $log = [string]::Join(" ",$logs)
-} while ($cnt-- -gt 0 -and !($log.Contains("Ready for connections!")))
 
 Log -color Green "Container output"
 docker logs $containerName | % { log $_ }
