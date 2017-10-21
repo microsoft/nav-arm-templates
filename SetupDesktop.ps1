@@ -111,7 +111,7 @@ New-DesktopShortcut -Name "$containerName Command Prompt" -TargetPath "CMD.EXE" 
 New-DesktopShortcut -Name "$containerName PowerShell Prompt" -TargetPath "CMD.EXE" -IconLocation "C:\Program Files\Docker\docker.exe, 0" -Arguments "/C docker.exe exec -it $containerName powershell -noexit c:\run\prompt.ps1"
 New-DesktopShortcut -Name "PowerShell ISE" -TargetPath "C:\Windows\system32\WindowsPowerShell\v1.0\powershell_ise.exe" -WorkingDirectory "c:\demo"
 New-DesktopShortcut -Name "Command Prompt" -TargetPath "C:\Windows\system32\cmd.exe" -WorkingDirectory "c:\demo"
-New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "powershell.exe" -Arguments "-noexit ""& {import-module navcontainerhelper -disablenamechecking}""" -WorkingDirectory c:\demo
+New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "powershell.exe" -Arguments "-noexit ""& { Write-NavContainerHelperWelcomeText }""" -WorkingDirectory c:\demo
 
 if ($firsttime) {
 
@@ -119,9 +119,6 @@ if ($firsttime) {
     if (Test-Path $setupScript) {
         . $setupScript
     }
-
-    Start-Process "http://${publicDnsName}"
-    Start-Process "http://aka.ms/moderndevtools"
 }
 
 Log -color Green "Desktop setup complete!"
