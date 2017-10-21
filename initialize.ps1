@@ -156,7 +156,7 @@ if ($vmAdminUsername -ne $navAdminUsername) {
     Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ignore' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
 }
 
-Log "Getting Nav Container Helper from http://www.github.com/Microsoft/navcontainerhelper"
+Log "Install Nav Container Helper from PowerShell Gallery"
 Install-Module -Name navcontainerhelper -RequiredVersion 0.1.0.1 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
