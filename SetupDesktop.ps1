@@ -44,11 +44,11 @@ if ($firsttime) {
     [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
     [System.IO.Compression.ZipFile]::ExtractToDirectory($filename, $folder)
     
-    $alFolder = "C:\Users\$([Environment]::UserName)\Documents\AL"
+    $alFolder = "$([Environment]::GetFolderPath("MyDocuments"))\AL"
     Remove-Item -Path "$alFolder\Samples" -Recurse -Force -ErrorAction Ignore | Out-Null
     New-Item -Path "$alFolder\Samples" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
-    Copy-Item -Path (Join-Path $PSScriptRoot "samples\*") -Destination "$alFolder\samples" -Recurse -ErrorAction Ignore
-    Copy-Item -Path (Join-Path $PSScriptRoot "snippets\*") -Destination "$alFolder\snippets" -Recurse -ErrorAction Ignore
+    Copy-Item -Path "$folder\AL-master\samples\*" -Destination "$alFolder\samples" -Recurse -ErrorAction Ignore
+    Copy-Item -Path "$folder\AL-master\snippets\*" -Destination "$alFolder\snippets" -Recurse -ErrorAction Ignore
 }
 
 $vsixFileName = (Get-Item "C:\Demo\$containerName\*.vsix").FullName
