@@ -5,7 +5,7 @@
     }
 }
 
-Import-Module (Join-Path $PSScriptRoot "NavContainerHelper.psm1") -DisableNameChecking
+Import-Module -name navcontainerhelper -DisableNameChecking
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
@@ -44,11 +44,11 @@ if ($firsttime) {
     [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
     [System.IO.Compression.ZipFile]::ExtractToDirectory($filename, $folder)
     
-    $alFolder = "C:\Users\$([Environment]::UserName)\Documents\AL"
+    $alFolder = "$([Environment]::GetFolderPath("MyDocuments"))\AL"
     Remove-Item -Path "$alFolder\Samples" -Recurse -Force -ErrorAction Ignore | Out-Null
     New-Item -Path "$alFolder\Samples" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
-    Copy-Item -Path (Join-Path $PSScriptRoot "samples\*") -Destination "$alFolder\samples" -Recurse -ErrorAction Ignore
-    Copy-Item -Path (Join-Path $PSScriptRoot "snippets\*") -Destination "$alFolder\snippets" -Recurse -ErrorAction Ignore
+    Copy-Item -Path "$folder\AL-master\samples\*" -Destination "$alFolder\samples" -Recurse -ErrorAction Ignore
+    Copy-Item -Path "$folder\AL-master\snippets\*" -Destination "$alFolder\snippets" -Recurse -ErrorAction Ignore
 }
 
 $vsixFileName = (Get-Item "C:\Demo\$containerName\*.vsix").FullName
@@ -111,7 +111,7 @@ New-DesktopShortcut -Name "$containerName Command Prompt" -TargetPath "CMD.EXE" 
 New-DesktopShortcut -Name "$containerName PowerShell Prompt" -TargetPath "CMD.EXE" -IconLocation "C:\Program Files\Docker\docker.exe, 0" -Arguments "/C docker.exe exec -it $containerName powershell -noexit c:\run\prompt.ps1"
 New-DesktopShortcut -Name "PowerShell ISE" -TargetPath "C:\Windows\system32\WindowsPowerShell\v1.0\powershell_ise.exe" -WorkingDirectory "c:\demo"
 New-DesktopShortcut -Name "Command Prompt" -TargetPath "C:\Windows\system32\cmd.exe" -WorkingDirectory "c:\demo"
-New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "powershell.exe" -Arguments "-noexit c:\Demo\NavContainerHelper.ps1" -WorkingDirectory c:\demo
+New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "powershell.exe" -Arguments "-noexit ""& { Write-NavContainerHelperWelcomeText }""" -WorkingDirectory c:\demo
 
 if ($firsttime) {
 
@@ -119,9 +119,6 @@ if ($firsttime) {
     if (Test-Path $setupScript) {
         . $setupScript
     }
-
-    Start-Process "http://${publicDnsName}"
-    Start-Process "http://aka.ms/moderndevtools"
 }
 
 Log -color Green "Desktop setup complete!"
