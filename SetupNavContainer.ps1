@@ -5,7 +5,7 @@
     }
 }
 
-Import-Module (Join-Path $PSScriptRoot "NavContainerHelper.psm1") -DisableNameChecking
+Import-Module -name navcontainerhelper -DisableNameChecking
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
