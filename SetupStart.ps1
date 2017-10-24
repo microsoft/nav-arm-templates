@@ -1,4 +1,8 @@
-﻿function Log([string]$line, [string]$color = "Gray") {
+﻿if (Get-ScheduledTask -TaskName setupStart -ErrorAction Ignore) {
+    schtasks /DELETE /TN setupStart /F | Out-Null
+}
+
+function Log([string]$line, [string]$color = "Gray") {
     ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt"
 }
 
@@ -6,14 +10,13 @@
 
 Log "Launching SetupVm"
 
-if (Get-ScheduledTask -TaskName setupStart -ErrorAction Ignore) {
-    schtasks /DELETE /TN setupStart /F | Out-Null
-}
-
+$key = Get-Content -Path "c:\demo\aes.key"
+$securePassword = ConvertTo-SecureString -String $adminPassword -Key $key
+$plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "c:\demo\setupVm.ps1"
 Register-ScheduledTask -TaskName SetupVm `
                        -Action $onceAction `
                        -RunLevel Highest `
                        -User $vmAdminUsername `
-                       -Password $adminPassword | Out-Null
+                       -Password $plainPassword | Out-Null
 Start-ScheduledTask -TaskName SetupVm

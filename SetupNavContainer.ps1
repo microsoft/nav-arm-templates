@@ -59,7 +59,8 @@ if (Test-Path -Path 'c:\demo\license.flf' -PathType Leaf) {
                               --publish  7046-7049:7046-7049 `
                               --env      publicFileSharePort=8080 `
                               --env      username="$navAdminUsername" `
-                              --env      password="$adminPassword" `
+                              --env      securepassword="$adminPassword" `
+                              --env      keyFile="c:\demo\aes.key" `
                               --env      useSSL=Y `
                               --env      clickOnce=$clickonce `
                               --env      locale=$locale `
@@ -80,7 +81,8 @@ if (Test-Path -Path 'c:\demo\license.flf' -PathType Leaf) {
                               --publish  7046-7049:7046-7049 `
                               --env      publicFileSharePort=8080 `
                               --env      username="$navAdminUsername" `
-                              --env      password="$adminPassword" `
+                              --env      securepassword="$adminPassword" `
+                              --env      keyFile="c:\demo\aes.key" `
                               --env      useSSL=Y `
                               --env      clickOnce=$clickonce `
                               --env      locale=$locale `

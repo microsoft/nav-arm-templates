@@ -6,7 +6,7 @@ param
        [string]$hostName               = "",
        [string]$vmAdminUsername        = "vmadmin",
        [string]$navAdminUsername       = "admin",
-       [string]$adminPassword          = "P@ssword1",
+       [string]$adminPassword     = "P@ssword1",
        [string]$navDockerImage         = "navdocker.azurecr.io/dynamics-nav:devpreview-finus",
        [string]$registryUsername       = "7cc3c660-fc3d-41c6-b7dd-dd260148fff7",
        [string]$registryPassword       = "G/7gwmfohn5bacdf4ooPUjpDOwHIxXspLIFrUsGN+sU=",
@@ -55,7 +55,6 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "containerName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "vmAdminUsername"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "navAdminUsername"       | Add-Content $settingsScript
-    Get-VariableDeclaration -name "adminPassword"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "navDockerImage"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryUsername"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryPassword"       | Add-Content $settingsScript
@@ -66,6 +65,17 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "publicDnsName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "workshopFilesUrl"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "style"                  | Add-Content $settingsScript
+
+    $KeyFile = "c:\demo\aes.key"
+    $Key = New-Object Byte[] 16
+    [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($Key)
+    Set-Content -Path $KeyFile -Value $Key
+    get-item -Path $keyFile | % { $_.Attributes = "Hidden" }
+
+    $securePassword = ConvertTo-SecureString -String $adminPassword -AsPlainText -Force
+    $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $key
+
+    ('$adminPassword = "'+$encPassword+'"') | Add-Content $settingsScript
 }
 
 #

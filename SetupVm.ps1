@@ -1,4 +1,9 @@
-﻿function Log([string]$line, [string]$color = "Gray") {
+﻿if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
+    Remove-item -Path (Join-Path $PSScriptRoot "setupStart.ps1") -Force -ErrorAction Ignore
+    schtasks /DELETE /TN SetupVm /F | Out-Null
+}
+
+function Log([string]$line, [string]$color = "Gray") {
     ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt" 
 }
 
@@ -40,7 +45,3 @@ $navDockerImage.Split(',') | % {
 
 . "c:\demo\SetupNavContainer.ps1"
 . "c:\demo\SetupDesktop.ps1"
-
-if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
-    schtasks /DELETE /TN SetupVm /F | Out-Null
-}
