@@ -66,15 +66,14 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "workshopFilesUrl"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "style"                  | Add-Content $settingsScript
 
-    $KeyFile = "c:\demo\aes.key"
-    $Key = New-Object Byte[] 16
-    [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($Key)
-    Set-Content -Path $KeyFile -Value $Key
-    get-item -Path $keyFile | % { $_.Attributes = "Hidden" }
+    $passwordKeyFile = "c:\demo\aes.key"
+    $passwordKey = New-Object Byte[] 16
+    [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
+    Set-Content -Path $passwordKeyFile -Value $passwordKey
+    get-item -Path $passwordKeyFile | % { $_.Attributes = "Hidden" }
 
     $securePassword = ConvertTo-SecureString -String $adminPassword -AsPlainText -Force
-    $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $key
-
+    $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $passwordKey
     ('$adminPassword = "'+$encPassword+'"') | Add-Content $settingsScript
 }
 
