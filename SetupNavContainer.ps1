@@ -66,6 +66,7 @@ if (Test-Path -Path 'c:\demo\license.flf' -PathType Leaf) {
                               --env      clickOnce=$clickonce `
                               --env      locale=$locale `
                               --env      licenseFile="c:\demo\license.flf" `
+                              --env      ExitOnError=N `
                               --volume   c:\demo:c:\demo `
                               --volume   c:\myfolder:c:\run\my `
                               --volume   "C:\Program Files (x86)\Microsoft Dynamics NAV:C:\navpfiles" `
@@ -88,6 +89,7 @@ if (Test-Path -Path 'c:\demo\license.flf' -PathType Leaf) {
                               --env      useSSL=Y `
                               --env      clickOnce=$clickonce `
                               --env      locale=$locale `
+                              --env      ExitOnError=N `
                               --volume   c:\demo:c:\demo `
                               --volume   c:\myfolder:c:\run\my `
                               --volume   "C:\Program Files (x86)\Microsoft Dynamics NAV:C:\navpfiles" `
