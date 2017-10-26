@@ -6,7 +6,7 @@ param
        [string]$hostName               = "",
        [string]$vmAdminUsername        = "vmadmin",
        [string]$navAdminUsername       = "admin",
-       [string]$adminPassword          = "P@ssword1",
+       [string]$adminPassword     = "P@ssword1",
        [string]$navDockerImage         = "navdocker.azurecr.io/dynamics-nav:devpreview-finus",
        [string]$registryUsername       = "7cc3c660-fc3d-41c6-b7dd-dd260148fff7",
        [string]$registryPassword       = "G/7gwmfohn5bacdf4ooPUjpDOwHIxXspLIFrUsGN+sU=",
@@ -55,7 +55,6 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "containerName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "vmAdminUsername"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "navAdminUsername"       | Add-Content $settingsScript
-    Get-VariableDeclaration -name "adminPassword"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "navDockerImage"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryUsername"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryPassword"       | Add-Content $settingsScript
@@ -66,6 +65,16 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "publicDnsName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "workshopFilesUrl"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "style"                  | Add-Content $settingsScript
+
+    $passwordKeyFile = "c:\demo\aes.key"
+    $passwordKey = New-Object Byte[] 16
+    [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
+    Set-Content -Path $passwordKeyFile -Value $passwordKey
+    get-item -Path $passwordKeyFile | % { $_.Attributes = "Hidden" }
+
+    $securePassword = ConvertTo-SecureString -String $adminPassword -AsPlainText -Force
+    $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $passwordKey
+    ('$adminPassword = "'+$encPassword+'"') | Add-Content $settingsScript
 }
 
 #
@@ -152,12 +161,16 @@ if ($vmAdminUsername -ne $navAdminUsername) {
     '. "c:\run\SetupWindowsUsers.ps1"
     Write-Host "Creating Host Windows user"
     $hostUsername = "'+$vmAdminUsername+'"
-    New-LocalUser -AccountNeverExpires -FullName $hostUsername -Name $hostUsername -Password (ConvertTo-SecureString -AsPlainText -String $password -Force) -ErrorAction Ignore | Out-Null
+    if (!($securePassword)) {
+        # old version of the generic nav container
+        $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
+    }
+    New-LocalUser -AccountNeverExpires -FullName $hostUsername -Name $hostUsername -Password $securePassword -ErrorAction Ignore | Out-Null
     Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ignore' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.1.0.3 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.1.1.2 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript

@@ -1,8 +1,11 @@
 ﻿. "C:\Run\SetupNavUsers.ps1"
 
 if ($DatabaseName.StartsWith("Financials")) {
-    $securePassword = ConvertTo-SecureString -Force -AsPlainText -String $password
-    
+    if (!($securePassword)) {
+        # old version of the generic nav container
+        $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
+    }
+
     Write-Host "Creating Users and Entitlements"
     # CSPAdmin might have been created as admin of container
     if (!(Get-NavServerUser 'NAV' | Where-Object { $_.UserName -eq 'CSPADMIN' })) {
