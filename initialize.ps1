@@ -161,6 +161,10 @@ if ($vmAdminUsername -ne $navAdminUsername) {
     '. "c:\run\SetupWindowsUsers.ps1"
     Write-Host "Creating Host Windows user"
     $hostUsername = "'+$vmAdminUsername+'"
+    if (!($securePassword)) {
+        # old version of the generic nav container
+        $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
+    }
     New-LocalUser -AccountNeverExpires -FullName $hostUsername -Name $hostUsername -Password $securePassword -ErrorAction Ignore | Out-Null
     Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ignore' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
 }
