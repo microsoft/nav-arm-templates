@@ -39,7 +39,7 @@ $navDockerImage.Split(',') | % {
         Log "Logging in to $registry"
         docker login "$registry" -u "$registryUsername" -p "$registryPassword"
     }
-    Log "Pulling $_ (this might take a while)"
+    Log "Pulling $_ (this might take ~30 minutes)"
     docker pull "$_"
 }
 
