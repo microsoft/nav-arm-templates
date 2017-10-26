@@ -170,7 +170,7 @@ if ($vmAdminUsername -ne $navAdminUsername) {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.1.1.1 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.1.1.2 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
