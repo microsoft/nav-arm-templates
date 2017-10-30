@@ -126,8 +126,7 @@ switch ($style) {
         $title = 'Dynamics 365 "Tenerife" Developer VM'
     }
     "demo" {
-        # calculate version string
-        $title = 'Dynamics 365 "Tenerife" Demo VM'
+        $title = 'Dynamics NAV Demo VM'
     }
 }
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
