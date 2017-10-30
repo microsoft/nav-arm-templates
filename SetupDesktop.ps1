@@ -24,10 +24,6 @@ if ($firsttime) {
     if (!(Test-Path $Filename)) {
         $sourceUrl = "https://go.microsoft.com/fwlink/?Linkid=852157"
 
-        # Due to a bug in v16 - take v15
-        #$sourceUrl = "https://vscode-update.azurewebsites.net/1.15.1/win32-x64/stable"
-        #$disableVsCodeUpdate = $true
-
         Download-File -SourceUrl $sourceUrl -destinationFile $Filename
     }
     
