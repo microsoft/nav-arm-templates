@@ -55,9 +55,9 @@
         },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "navdocker.azurecr.io/dynamics-nav:devpreview-finus",
+            "defaultValue": "microsoft/dynamics-nav",
             "metadata": {
-                "Description": "Select the NAV Docker Image to deploy. Replace -finus with -finca or -fingb to get other Financials localizations. Remove -finus to get W1."
+                "Description": "Select the NAV Docker Image to deploy. See https://hub.docker.com/r/microsoft/dynamics-nav/ for a list of public images."
             }
         },
         "LicenseFileUri": {
