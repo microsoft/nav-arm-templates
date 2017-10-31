@@ -35,7 +35,7 @@ if ($style -eq "devpreview") {
 
 $navDockerImage.Split(',') | % {
     $registry = $_.Split('/')[0]
-    if (($registryUsername -ne "") -and ($registryPassword -ne "")) {
+    if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
         Log "Logging in to $registry"
         docker login "$registry" -u "$registryUsername" -p "$registryPassword"
     }
