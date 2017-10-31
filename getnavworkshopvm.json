@@ -55,7 +55,7 @@
         },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "navdocker.azurecr.io/dynamics-nav:devpreview-finus",
+            "defaultValue": "microsoft/dynamics-nav:devpreview-finus",
             "metadata": {
                 "Description": "Select the NAV Docker Image to deploy. Replace -finus with -finca or -fingb to get other Financials localizations."
             }
