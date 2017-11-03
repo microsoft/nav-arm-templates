@@ -325,7 +325,7 @@
             "copy": {
 				"name": "vmcopy",
 				"count": "[parameters('count')]"
-			}
+			},
 			"resources": []
         },
         {
