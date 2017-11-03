@@ -83,7 +83,6 @@
         "vmStorageAccountContainerName": "vhds",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
-        "dnsName": "[tolower(parameters('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
         "subnetPrefix": "10.0.0.0/24",
@@ -114,12 +113,12 @@
             "properties": {
                 "publicIPAllocationMethod": "Dynamic",
                 "dnsSettings": {
-                    "domainNameLabel": "[variables('dnsName')]"
+                    "domainNameLabel": "[concat(tolower(parameters('vmName')), copyIndex())]"
                 }
             },
 			"copy": {
 				"name": "pipcopy",
-				"count": 2
+				"count": parameters('count')
 			}
         },
         {
@@ -254,10 +253,10 @@
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkInterfaces",
-            "name": "[variables('nic1Name')]",
+            "name": "[concat(parameters('vmName'),copyIndex(),'_nic')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/', parameters('vmName'), '1_pip')]",
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('vmName'), copyIndex(), '_pip')]",
                 "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
             ],
             "properties": {
@@ -267,7 +266,7 @@
                         "properties": {
                             "privateIPAllocationMethod": "Dynamic",
                             "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('vmName'), '1_pip')]"
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('vmName'), copyIndex(), '_pip')]"
                             },
                             "subnet": {
                                 "id": "[variables('subnetRef')]"
@@ -275,7 +274,11 @@
                         }
                     }
                 ]
-            }
+            },
+			"copy": {
+				"name": "niccopy",
+				"count": parameters('count')
+			}
         },
         {
             "apiVersion": "2015-06-15",
