@@ -332,7 +332,7 @@
         {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(tolower(parameters('vmName')),copyIndex(),'/vmextension1')]",
+            "name": "[concat(tolower(parameters('vmName')),'/vmextension',copyIndex())]",
             "location": "[resourceGroup().location]",
             "tags": {
                 "displayName": "PowerShellScript2"
