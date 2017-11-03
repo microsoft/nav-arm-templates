@@ -89,8 +89,7 @@
         "virtualNetworkName": "virtualnetwork",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-        "accountid": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "ScriptCommandToExecute": "powershell.exe -File  "
+        "accountid": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
     },
     "resources": [
         {
@@ -332,10 +331,10 @@
         {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(tolower(parameters('vmName')),'/vmextension',copyIndex())]",
+            "name": "[concat('extension',copyIndex())]",
             "location": "[resourceGroup().location]",
             "tags": {
-                "displayName": "PowerShellScript2"
+                "displayName": "PowerShellScript"
             },
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/',tolower(parameters('vmName')),copyIndex())]"
@@ -343,15 +342,16 @@
             "properties": {
                 "publisher": "Microsoft.Compute",
                 "type": "CustomScriptExtension",
-                "typeHandlerVersion": "1.4",
+                "typeHandlerVersion": "1.9",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
-                    ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), copyIndex(), '_pip')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"devpreview\"')]"
+                    ]
                 },
-                "protectedSettings": {}
+                "protectedSettings": {
+					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), copyIndex(), '_pip')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"devpreview\"')]"
+				}
             },
 			"copy": {
 				"name" : "copyext",
