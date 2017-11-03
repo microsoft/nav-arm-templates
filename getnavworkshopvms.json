@@ -117,7 +117,7 @@
             },
 			"copy": {
 				"name": "pipcopy",
-				"count": [parameters('count')]
+				"count": "[parameters('count')]"
 			}
         },
         {
@@ -276,7 +276,7 @@
             },
 			"copy": {
 				"name": "niccopy",
-				"count":  [parameters('count')]
+				"count":  "[parameters('count')]"
 			}
         },
         {
