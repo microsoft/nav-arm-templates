@@ -322,11 +322,12 @@
                     ]
                 }
             },
+			"resources": [
+			],
             "copy": {
 				"name": "vmcopy",
 				"count": "[parameters('count')]"
-			},
-			"resources": []
+			}
         },
         {
             "apiVersion": "2015-06-15",
