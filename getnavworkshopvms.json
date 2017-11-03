@@ -88,7 +88,6 @@
         "subnetPrefix": "10.0.0.0/24",
         "virtualNetworkName": "virtualnetwork",
         "server1Name": "[tolower(parameters('vmName'))]",
-        "nic1Name": "[concat(parameters('vmName'),'_nic')]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
         "accountid": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
@@ -118,7 +117,7 @@
             },
 			"copy": {
 				"name": "pipcopy",
-				"count": parameters('count')
+				"count": 2
 			}
         },
         {
@@ -253,7 +252,7 @@
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkInterfaces",
-            "name": "[concat(parameters('vmName'),copyIndex(),'_nic')]",
+            "name": "[concat(parameters('vmName'), copyIndex(), '_nic')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIPAddresses/', parameters('vmName'), copyIndex(), '_pip')]",
@@ -277,7 +276,7 @@
             },
 			"copy": {
 				"name": "niccopy",
-				"count": parameters('count')
+				"count": 2
 			}
         },
         {
@@ -287,7 +286,7 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-                "[concat('Microsoft.Network/networkInterfaces/', variables('nic1Name'))]"
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('vmName'),'1_nic')]"
             ],
             "properties": {
                 "hardwareProfile": {
@@ -320,7 +319,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nic1Name'))]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',parameters('vmName'),'1_nic')]"
                         }
                     ]
                 }
