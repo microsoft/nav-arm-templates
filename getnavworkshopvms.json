@@ -35,14 +35,14 @@
         },
         "vmAdminUsername": {
             "type": "string",
-            "defaultValue": "vmadmin",
+            "defaultValue": "student",
             "metadata": {
                 "Description": "Specify administrator user name for connecting to the VM"
             }
         },
         "navAdminUsername": {
             "type": "string",
-            "defaultValue": "admin",
+            "defaultValue": "student",
             "metadata": {
                 "Description": "Specify administrator user name for NAV"
             }
@@ -55,7 +55,7 @@
         },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "microsoft/dynamics-nav:devpreview",
+            "defaultValue": "microsoft/dynamics-nav:devpreview-finus",
             "metadata": {
                 "Description": "Select the NAV Docker Image to deploy. See https://hub.docker.com/r/microsoft/dynamics-nav/ for a list of public images."
             }
@@ -64,7 +64,7 @@
             "type": "int",
             "defaultValue": 2,
             "metadata": {
-                "Description": "Select the number of Workshop VMs you want to create"
+                "Description": "Select the number of Workshop VMs you want to create ()"
             }
         },
         "LicenseFileUri": {
@@ -72,6 +72,20 @@
             "defaultValue": "",
             "metadata": {
                 "Description": "Optional: Specify a secure Url of your NAV Partner License File for the developer preview. If you do not specify a license file Url here, you will have to upload the license manually later."
+            }
+        },
+        "WorkshopFilesUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a Url to a .zip file containing the content of C:/WORKSHOPFILES on the VM."
+            }
+        },
+        "FinalSetupScriptUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a Url to a PowerShell script that should be executed on the VM to do the final setup of the VM."
             }
         }
     },
@@ -350,7 +364,7 @@
                     ]
                 },
                 "protectedSettings": {
-					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), copyIndex(), '_pip')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"devpreview\"')]"
+					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), copyIndex(), '_pip')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\"')]"
 				}
             },
 			"copy": {
