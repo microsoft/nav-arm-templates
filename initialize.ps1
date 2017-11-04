@@ -191,6 +191,7 @@ if ($licenseFileUri -ne "") {
 if ($workshopFilesUrl -ne "") {
     $workshopFilesFolder = "c:\WorkshopFiles"
     $workshopFilesFile = "C:\DOWNLOAD\WorkshopFiles.zip"
+    New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
     New-Item -Path $workshopFilesFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 	Download-File -sourceUrl $workshopFilesUrl -destinationFile $workshopFilesFile
     Log "Unpacking Workshop Files to $WorkshopFilesFolder"
