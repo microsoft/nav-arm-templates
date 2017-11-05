@@ -146,12 +146,12 @@
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[concat(parameters('vmName'), string(copyIndex()+parameters('offset')), '_pip')]",
+            "name": "[concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')]",
             "location": "[resourceGroup().location]",
             "properties": {
                 "publicIPAllocationMethod": "Dynamic",
                 "dnsSettings": {
-                    "domainNameLabel": "[concat(tolower(parameters('vmName')), string(copyIndex()+parameters('offset')))]"
+                    "domainNameLabel": "[concat(tolower(parameters('vmName')), string(add(copyIndex(),parameters('offset'))))]"
                 }
             },
 			"copy": {
@@ -291,10 +291,10 @@
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkInterfaces",
-            "name": "[concat(parameters('vmName'), string(copyIndex()+parameters('offset')), '_nic')]",
+            "name": "[concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_nic')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/', parameters('vmName'), string(copyIndex()+parameters('offset')), '_pip')]",
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')]",
                 "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
             ],
             "properties": {
@@ -304,7 +304,7 @@
                         "properties": {
                             "privateIPAllocationMethod": "Dynamic",
                             "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('vmName'), string(copyIndex()+parameters('offset')), '_pip'))]"
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip'))]"
                             },
                             "subnet": {
                                 "id": "[variables('subnetRef')]"
@@ -321,18 +321,18 @@
         {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines",
-            "name": "[concat(tolower(parameters('vmName')),string(copyIndex()+parameters('offset')))]",
+            "name": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-                "[concat('Microsoft.Network/networkInterfaces/', parameters('vmName'),string(copyIndex()+parameters('offset')),'_nic')]"
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('vmName'),string(add(copyIndex(),parameters('offset'))),'_nic')]"
             ],
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "[parameters('vmSize')]"
                 },
                 "osProfile": {
-                    "computerName": "[concat(tolower(parameters('vmName')),string(copyIndex()+parameters('offset')))]",
+                    "computerName": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]",
                     "adminUsername": "[parameters('vmAdminUsername')]",
                     "adminPassword": "[parameters('adminPassword')]",
                     "windowsConfiguration": {
@@ -349,7 +349,7 @@
                     "osDisk": {
                         "name": "osdisk",
                         "vhd": {
-                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',tolower(parameters('vmName')),string(copyIndex()+parameters('offset')),'.vhd')]"
+                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))),'.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
@@ -358,7 +358,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),string(copyIndex()+parameters('offset')),'_nic'))]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),string(add(copyIndex(),parameters('offset'))),'_nic'))]"
                         }
                     ]
                 }
@@ -373,13 +373,13 @@
         {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(tolower(parameters('vmName')),string(copyIndex()+parameters('offset')),'/extension',string(copyIndex()+parameters('offset')))]",
+            "name": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))),'/extension',string(add(copyIndex(),parameters('offset'))))]",
             "location": "[resourceGroup().location]",
             "tags": {
                 "displayName": "PowerShellScript"
             },
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/',tolower(parameters('vmName')),string(copyIndex()+parameters('offset')))]"
+                "[concat('Microsoft.Compute/virtualMachines/',tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]"
             ],
             "properties": {
                 "publisher": "Microsoft.Compute",
@@ -392,7 +392,7 @@
                     ]
                 },
                 "protectedSettings": {
-					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(copyIndex()+parameters('offset')), '_pip')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(copyIndex()+parameters('offset'))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\"')]"
+					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\"')]"
 				}
             },
 			"copy": {
