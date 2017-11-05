@@ -111,9 +111,10 @@ New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "powershell.exe" -A
 
 if ($firsttime) {
 
-    $setupScript = (Join-Path $PSScriptRoot "Setup$style.ps1")
-    if (Test-Path $setupScript) {
-        . $setupScript
+    $finalSetupScript = (Join-Path $PSScriptRoot "FinalSetupScript.ps1")
+    if (Test-Path $finalSetupScript) {
+        Log "Running FinalSetupScript"
+        . $finalSetupScript
     }
 }
 

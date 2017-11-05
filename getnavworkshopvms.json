@@ -35,14 +35,14 @@
         },
         "vmAdminUsername": {
             "type": "string",
-            "defaultValue": "vmadmin",
+            "defaultValue": "student",
             "metadata": {
                 "Description": "Specify administrator user name for connecting to the VM"
             }
         },
         "navAdminUsername": {
             "type": "string",
-            "defaultValue": "admin",
+            "defaultValue": "student",
             "metadata": {
                 "Description": "Specify administrator user name for NAV"
             }
@@ -55,7 +55,7 @@
         },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "microsoft/dynamics-nav:devpreview",
+            "defaultValue": "microsoft/dynamics-nav:devpreview-finus",
             "metadata": {
                 "Description": "Select the NAV Docker Image to deploy. See https://hub.docker.com/r/microsoft/dynamics-nav/ for a list of public images."
             }
@@ -64,7 +64,14 @@
             "type": "int",
             "defaultValue": 2,
             "metadata": {
-                "Description": "Select the number of Workshop VMs you want to create"
+                "Description": "Select the number of Workshop VMs you want to create ()"
+            }
+        },
+        "offset": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "Description": "Select the offset of the VM numbering"
             }
         },
         "LicenseFileUri": {
@@ -72,6 +79,41 @@
             "defaultValue": "",
             "metadata": {
                 "Description": "Optional: Specify a secure Url of your NAV Partner License File for the developer preview. If you do not specify a license file Url here, you will have to upload the license manually later."
+            }
+        },
+        "WorkshopFilesUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a Url to a .zip file containing the content of C:/WORKSHOPFILES on the VM."
+            }
+        },
+        "FinalSetupScriptUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a Url to a PowerShell script that should be executed on the VM to do the final setup of the VM."
+            }
+        },
+        "CertificatePfxUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a secure Url of your Certificate Pfx File. If you do not specify a certificate, you will get a Self Signed Certificate."
+            }
+        },
+        "CertificatePfxPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Password for Certificate Pfx File. If you do not specify a certificate password, you will get a Self Signed Certificate."
+            }
+        },
+        "PublicDnsName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Public DNS Name (CNAME record pointing to your VM). A # in the name will be replaced by the VM number. If you do not specify a public DNS name, you will get a Self Signed Certificate."
             }
         }
     },
@@ -104,12 +146,12 @@
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[concat(parameters('vmName'), copyIndex(), '_pip')]",
+            "name": "[concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')]",
             "location": "[resourceGroup().location]",
             "properties": {
                 "publicIPAllocationMethod": "Dynamic",
                 "dnsSettings": {
-                    "domainNameLabel": "[concat(tolower(parameters('vmName')), copyIndex())]"
+                    "domainNameLabel": "[concat(tolower(parameters('vmName')), string(add(copyIndex(),parameters('offset'))))]"
                 }
             },
 			"copy": {
@@ -249,10 +291,10 @@
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkInterfaces",
-            "name": "[concat(parameters('vmName'), copyIndex(), '_nic')]",
+            "name": "[concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_nic')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/', parameters('vmName'), copyIndex(), '_pip')]",
+                "[concat('Microsoft.Network/publicIPAddresses/', parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')]",
                 "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
             ],
             "properties": {
@@ -262,7 +304,7 @@
                         "properties": {
                             "privateIPAllocationMethod": "Dynamic",
                             "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('vmName'), copyIndex(), '_pip'))]"
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip'))]"
                             },
                             "subnet": {
                                 "id": "[variables('subnetRef')]"
@@ -279,18 +321,18 @@
         {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines",
-            "name": "[concat(tolower(parameters('vmName')),copyIndex())]",
+            "name": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-                "[concat('Microsoft.Network/networkInterfaces/', parameters('vmName'),copyIndex(),'_nic')]"
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('vmName'),string(add(copyIndex(),parameters('offset'))),'_nic')]"
             ],
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "[parameters('vmSize')]"
                 },
                 "osProfile": {
-                    "computerName": "[concat(tolower(parameters('vmName')),copyIndex())]",
+                    "computerName": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]",
                     "adminUsername": "[parameters('vmAdminUsername')]",
                     "adminPassword": "[parameters('adminPassword')]",
                     "windowsConfiguration": {
@@ -307,7 +349,7 @@
                     "osDisk": {
                         "name": "osdisk",
                         "vhd": {
-                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',tolower(parameters('vmName')),copyIndex(),'.vhd')]"
+                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))),'.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
@@ -316,7 +358,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),copyIndex(),'_nic'))]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),string(add(copyIndex(),parameters('offset'))),'_nic'))]"
                         }
                     ]
                 }
@@ -331,13 +373,13 @@
         {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(tolower(parameters('vmName')),copyIndex(),'/extension',copyIndex())]",
+            "name": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))),'/extension',string(add(copyIndex(),parameters('offset'))))]",
             "location": "[resourceGroup().location]",
             "tags": {
                 "displayName": "PowerShellScript"
             },
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/',tolower(parameters('vmName')),copyIndex())]"
+                "[concat('Microsoft.Compute/virtualMachines/',tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]"
             ],
             "properties": {
                 "publisher": "Microsoft.Compute",
@@ -350,7 +392,7 @@
                     ]
                 },
                 "protectedSettings": {
-					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), copyIndex(), '_pip')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"devpreview\"')]"
+					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\"')]"
 				}
             },
 			"copy": {
