@@ -1,12 +1,12 @@
 #usage initialize.ps1
 param
 (
-       [string]$templateLink           = "https://raw.githubusercontent.com/NAVDEMO/DOCKER/master/navdeveloperpreview.json",
+       [string]$templateLink           = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
        [string]$containerName          = "navserver",
        [string]$hostName               = "",
        [string]$vmAdminUsername        = "vmadmin",
        [string]$navAdminUsername       = "admin",
-       [string]$adminPassword     = "P@ssword1",
+       [string]$adminPassword          = "P@ssword1",
        [string]$navDockerImage         = "microsoft/dynamics-nav:devpreview-finus",
        [string]$registryUsername       = "",
        [string]$registryPassword       = "",
@@ -16,6 +16,7 @@ param
        [string]$certificatePfxPassword = "",
        [string]$publicDnsName          = "",
 	   [string]$workshopFilesUrl       = "",
+	   [string]$finalSetupScriptUrl    = "",
        [string]$style                  = "devpreview"
 )
 
@@ -60,8 +61,6 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "registryPassword"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "clickonce"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "licenseFileUri"         | Add-Content $settingsScript
-    Get-VariableDeclaration -name "certificatePfxUrl"      | Add-Content $settingsScript
-    Get-VariableDeclaration -name "certificatePfxPassword" | Add-Content $settingsScript
     Get-VariableDeclaration -name "publicDnsName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "workshopFilesUrl"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "style"                  | Add-Content $settingsScript
@@ -126,7 +125,7 @@ switch ($style) {
         $title = 'Dynamics 365 "Tenerife" Developer VM'
     }
     "demo" {
-        $title = 'Dynamics NAV Demo VM'
+        $title = 'Dynamics 365 "Tenerife" Demo VM'
     }
 }
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
@@ -149,7 +148,6 @@ Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Componen
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
 
 $setupDesktopScript = "c:\demo\SetupDesktop.ps1"
-$setupStyleScript = "c:\demo\Setup$style.ps1"
 $setupStartScript = "c:\demo\SetupStart.ps1"
 $setupVmScript = "c:\demo\SetupVm.ps1"
 $setupNavContainerScript = "c:\demo\SetupNavContainer.ps1"
@@ -168,16 +166,17 @@ if ($vmAdminUsername -ne $navAdminUsername) {
     Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ignore' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
 }
 
-Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.1.1.3 -Force
-Import-Module -Name navcontainerhelper -DisableNameChecking
-
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
-Download-File -sourceUrl "${scriptPath}Setup$style.ps1"       -destinationFile $setupStyleScript
 Download-File -sourceUrl "${scriptPath}SetupNavContainer.ps1" -destinationFile $setupNavContainerScript
 Download-File -sourceUrl "${scriptPath}SetupVm.ps1"           -destinationFile $setupVmScript
 Download-File -sourceUrl "${scriptPath}SetupStart.ps1"        -destinationFile $setupStartScript
 Download-File -sourceUrl "${scriptPath}Install-VS2017Community.ps1" -destinationFile "C:\DEMO\Install-VS2017Community.ps1"
+
+if ($finalSetupScriptUrl) {
+    $finalSetupScript = "c:\demo\FinalSetupScript.ps1"
+    Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
+}
+
 
 if ($licenseFileUri -ne "") {
     Download-File -sourceUrl $licenseFileUri -destinationFile "c:\demo\license.flf"
@@ -186,6 +185,7 @@ if ($licenseFileUri -ne "") {
 if ($workshopFilesUrl -ne "") {
     $workshopFilesFolder = "c:\WorkshopFiles"
     $workshopFilesFile = "C:\DOWNLOAD\WorkshopFiles.zip"
+    New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
     New-Item -Path $workshopFilesFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 	Download-File -sourceUrl $workshopFilesUrl -destinationFile $workshopFilesFile
     Log "Unpacking Workshop Files to $WorkshopFilesFolder"
@@ -213,6 +213,10 @@ Remove-Item $certificatePfxFile -force
 Remove-Item "c:\run\my\SetupCertificate.ps1" -force
 ') | Add-Content "c:\myfolder\SetupCertificate.ps1"
 }
+
+Log "Install Nav Container Helper from PowerShell Gallery"
+Install-Module -Name navcontainerhelper -RequiredVersion 0.1.1.3 -Force
+Import-Module -Name navcontainerhelper -DisableNameChecking
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
