@@ -64,14 +64,14 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify username for private Docker Registry"
+                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:tag)"
             }
         },
         "registryPassword": {
             "type": "securestring",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify password for private Docker Registry"
+                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:tag)"
             }
         },
         "LicenseFileUri": {
