@@ -215,7 +215,7 @@ Remove-Item "c:\run\my\SetupCertificate.ps1" -force
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.1.1.3 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.1.1.4 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
