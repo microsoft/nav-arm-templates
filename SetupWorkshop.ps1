@@ -18,3 +18,9 @@ try {
 } catch {
     Log -color Red -line ($Error[0].ToString() + " (" + ($Error[0].ScriptStackTrace -split '\r\n')[0] + ")")
 }
+
+# Install Windows Updates
+Log "Installing Windows Updates"
+install-module PSWindowsUpdate -force
+Get-WUInstall -install -acceptall -autoreboot | % { Log ($_.Status + " " + $_.KB + " " +$_.Title) }
+Log "Windows updates installed"
