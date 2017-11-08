@@ -45,3 +45,9 @@ $navDockerImage.Split(',') | % {
 
 . "c:\demo\SetupNavContainer.ps1"
 . "c:\demo\SetupDesktop.ps1"
+
+$finalSetupScript = (Join-Path $PSScriptRoot "FinalSetupScript.ps1")
+if (Test-Path $finalSetupScript) {
+    Log "Running FinalSetupScript"
+    . $finalSetupScript
+}

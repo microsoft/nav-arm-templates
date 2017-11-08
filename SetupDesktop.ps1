@@ -109,13 +109,4 @@ New-DesktopShortcut -Name "PowerShell ISE" -TargetPath "C:\Windows\system32\Wind
 New-DesktopShortcut -Name "Command Prompt" -TargetPath "C:\Windows\system32\cmd.exe" -WorkingDirectory "c:\demo"
 New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "powershell.exe" -Arguments "-noexit ""& { Write-NavContainerHelperWelcomeText }""" -WorkingDirectory c:\demo
 
-if ($firsttime) {
-
-    $finalSetupScript = (Join-Path $PSScriptRoot "FinalSetupScript.ps1")
-    if (Test-Path $finalSetupScript) {
-        Log "Running FinalSetupScript"
-        . $finalSetupScript
-    }
-}
-
 Log -color Green "Desktop setup complete!"
