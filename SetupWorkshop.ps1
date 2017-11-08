@@ -18,3 +18,7 @@ try {
 } catch {
     Log -color Red -line ($Error[0].ToString() + " (" + ($Error[0].ScriptStackTrace -split '\r\n')[0] + ")")
 }
+
+# Install Windows Updates
+install-module PSWindowsUpdate -force
+Start-Process "powershell.exe" -ArgumentList "Get-WUInstall -install -acceptall -autoreboot" -PassThru
