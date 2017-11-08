@@ -20,5 +20,6 @@ try {
 }
 
 # Install Windows Updates
+Log "Installing Windows Updates (this happens in the background and the machine might reboot when done)"
 install-module PSWindowsUpdate -force
 Start-Process "powershell.exe" -ArgumentList "Get-WUInstall -install -acceptall -autoreboot" -PassThru
