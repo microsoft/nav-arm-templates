@@ -111,7 +111,7 @@
         },
         "RunWindowsUpdate": {
 		    "type": "string",
-            "defaultValue": "No",
+            "defaultValue": "Yes",
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
                 "Description": "Run Windows Update after Deployment (might take significant time)"
