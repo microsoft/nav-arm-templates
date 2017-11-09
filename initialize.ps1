@@ -17,7 +17,8 @@ param
        [string]$publicDnsName          = "",
 	   [string]$workshopFilesUrl       = "",
 	   [string]$finalSetupScriptUrl    = "",
-       [string]$style                  = "devpreview"
+       [string]$style                  = "devpreview",
+       [string]$RunWindowsUpdate       = "No"
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -64,6 +65,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "publicDnsName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "workshopFilesUrl"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "style"                  | Add-Content $settingsScript
+    Get-VariableDeclaration -name "RunWindowsUpdate"       | Add-Content $settingsScript
 
     $passwordKeyFile = "c:\demo\aes.key"
     $passwordKey = New-Object Byte[] 16
@@ -215,7 +217,7 @@ Remove-Item "c:\run\my\SetupCertificate.ps1" -force
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.1.1.8 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.1.2.0 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript

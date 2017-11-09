@@ -109,6 +109,14 @@
                 "Description": "Optional: Specify a Url to a PowerShell script that should be executed on the VM to do the final setup of the VM."
             }
         },
+        "RunWindowsUpdate": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Run Windows Update after Deployment (might take significant time)"
+            }
+        },
         "CertificatePfxUrl": {
             "type": "string",
             "defaultValue": "",
@@ -406,7 +414,7 @@
                     ]
                 },
                 "protectedSettings": {
-					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\"')]"
+					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\"')]"
 				}
             },
 			"copy": {
