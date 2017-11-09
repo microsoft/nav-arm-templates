@@ -66,6 +66,14 @@
             "metadata": {
                 "Description": "Optional: Specify a secure Url of your NAV Partner License File for the developer preview. If you do not specify a license file Url here, you will have to upload the license manually later."
             }
+        },
+        "RunWindowsUpdate": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Run Windows Update after Deployment (might take significant time)"
+            }
         }
     },
     "variables": {
@@ -334,7 +342,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\"')]"
                 },
                 "protectedSettings": {}
             }

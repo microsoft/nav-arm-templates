@@ -62,6 +62,7 @@ if (Test-Path -Path 'c:\demo\license.flf' -PathType Leaf) {
                               --env      securepassword="$adminPassword" `
                               --env      passwordKeyFile="c:\demo\aes.key" `
                               --env      RemovePasswordKeyFile=N `
+                              --env      enableSymbolLoading=Y `
                               --env      useSSL=Y `
                               --env      clickOnce=$clickonce `
                               --env      locale=$locale `
@@ -86,6 +87,7 @@ if (Test-Path -Path 'c:\demo\license.flf' -PathType Leaf) {
                               --env      securepassword="$adminPassword" `
                               --env      passwordKeyFile="c:\demo\aes.key" `
                               --env      RemovePasswordKeyFile=N `
+                              --env      enableSymbolLoading=Y `
                               --env      useSSL=Y `
                               --env      clickOnce=$clickonce `
                               --env      locale=$locale `
