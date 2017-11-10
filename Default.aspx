@@ -426,8 +426,6 @@ You can view the installation status by following this link.
       &nbsp;&nbsp;"serverInstance": "NAV",<br>
       &nbsp;&nbsp;"tenant": "",<br>
       &nbsp;&nbsp;"authentication": "UserPassword",</td></tr>
-    <tr><td colspan="4">app.json settings:</td></tr>
-    <tr><td colspan="4" style="font-family: Courier, Monaco, monospace">&nbsp;&nbsp;"locale": "<%=getCountry() %>",</td></tr>
 <%
     }
   }
