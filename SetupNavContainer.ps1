@@ -34,6 +34,8 @@ $additionalParameters = @("--publish  8080:8080",
                           "--env PublicDnsName=$publicdnsName",
                           "--env RemovePasswordKeyFile=N"
                           )
+$myScripts = @()
+Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
 Log "Running $imageName"
 New-NavContainer -accept_eula `
@@ -50,6 +52,7 @@ $containerFolder = "C:\Demo\Extensions\$containerName"
 Log "Copying .vsix and Certificate to $containerFolder"
 docker exec -it $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force
+copy-item -Path 'C:\Program Files\Microsoft Dynamics NAV\*\Service\CustomSettings.config' -Destination '$containerFolder' -force
 if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
     [System.IO.File]::WriteAllText('$containerFolder\clickonce.txt','http://${publicDnsName}:8080/NAV')
 }"
