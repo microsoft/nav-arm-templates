@@ -45,6 +45,7 @@ New-NavContainer -accept_eula `
                  -doNotExportObjectsToText `
                  -credential $credential `
                  -additionalParameters $additionalParameters `
+                 -myScripts $myscripts `
                  -imageName $imageName
 
 # Copy .vsix and Certificate to container folder
