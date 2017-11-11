@@ -43,6 +43,18 @@ $navDockerImage.Split(',') | % {
     docker pull "$_"
 }
 
+Log "Installing Visual C++ Redist"
+$vcRedistUrl = "https://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x86.exe"
+$vcRedistFile = "C:\DOWNLOAD\vcredist_x86.exe"
+Download-File -sourceUrl $vcRedistUrl -destinationFile $vcRedistFile
+Start-Process $vcRedistFile -argumentList "/q" -wait
+
+Log "Installing SQL Native Client"
+$sqlncliUrl = "https://download.microsoft.com/download/3/A/6/3A632674-A016-4E31-A675-94BE390EA739/ENU/x64/sqlncli.msi"
+$sqlncliFile = "C:\DOWNLOAD\sqlncli.msi"
+Download-File -sourceUrl $sqlncliUrl -destinationFile $sqlncliFile
+Start-Process "C:\Windows\System32\msiexec.exe" -argumentList "/i $sqlncliFile ADDLOCAL=ALL IACCEPTSQLNCLILICENSETERMS=YES /qn" -wait
+
 . "c:\demo\SetupNavContainer.ps1"
 . "c:\demo\SetupDesktop.ps1"
 
