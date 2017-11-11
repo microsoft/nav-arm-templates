@@ -26,7 +26,7 @@ Log "Version $navVersion"
 Log "Locale $locale"
 
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
-$credential = New-Object [System.Management.Automation.PSCredential]($navAdminUsername, $securePassword)
+$credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $additionalParameters = @("--publish  8080:8080",
                           "--publish  443:443", 
                           "--publish  7046-7049:7046-7049", 
@@ -40,22 +40,24 @@ New-NavContainer -accept_eula `
                  -containerName $containerName `
                  -useSSL `
                  -includeCSide `
-                 -dontExportObjectsAsText `
+                 -doNotExportObjectsToText `
                  -credential $credential `
-                 -additionalParameters $additionalParameters
+                 -additionalParameters $additionalParameters `
+                 -imageName $imageName
 
-# Copy .vsix and Certificate to C:\Demo
-Log "Copying .vsix and Certificate to C:\Demo\$containerName"
-docker exec -it $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination 'C:\Demo\$containerName' -force
-copy-item -Path 'C:\Run\*.cer' -Destination 'C:\Demo\$containerName' -force
+# Copy .vsix and Certificate to container folder
+$containerFolder = "C:\Demo\Extensions\$containerName"
+Log "Copying .vsix and Certificate to $containerFolder"
+docker exec -it $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
+copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force
 if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
-    [System.IO.File]::WriteAllText('C:\Demo\$containerName\clickonce.txt','http://${publicDnsName}:8080/NAV')
+    [System.IO.File]::WriteAllText('$containerFolder\clickonce.txt','http://${publicDnsName}:8080/NAV')
 }"
-[System.IO.File]::WriteAllText("C:\Demo\$containerName\Version.txt",$navVersion)
-[System.IO.File]::WriteAllText("C:\Demo\$containerName\Country.txt", $country)
+[System.IO.File]::WriteAllText("$containerFolder\Version.txt",$navVersion)
+[System.IO.File]::WriteAllText("$containerFolder\Country.txt", $country)
 
 # Install Certificate on host
-$certFile = Get-Item "C:\Demo\$containerName\*.cer"
+$certFile = Get-Item "$containerFolder\*.cer"
 if ($certFile) {
     $certFileName = $certFile.FullName
     Log "Importing $certFileName to trusted root"
