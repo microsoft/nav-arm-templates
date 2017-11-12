@@ -10,8 +10,6 @@ function Log([string]$line, [string]$color = "Gray") {
 
 Log "Launching SetupVm"
 
-$passwordKeyFile = "c:\demo\aes.key"
-$passwordKey = Get-Content -Path $passwordKeyFile
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "c:\demo\setupVm.ps1"
