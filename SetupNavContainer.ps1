@@ -37,7 +37,7 @@ $additionalParameters = @("--publish  8080:8080",
 $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
-Log "Running $imageName"
+Log "Running $imageName (this will take a few minutes)"
 New-NavContainer -accept_eula `
                  -containerName $containerName `
                  -useSSL `

@@ -27,7 +27,7 @@ if ($firsttime) {
         Download-File -SourceUrl $sourceUrl -destinationFile $Filename
     }
     
-    Log "Installing Visual Studio Code (this should only take a minute)"
+    Log "Installing Visual Studio Code (this might take a few minutes)"
     $setupParameters = “/VerySilent /CloseApplications /NoCancel /LoadInf=""c:\demo\vscode.inf"" /MERGETASKS=!runcode"
     Start-Process -FilePath $Filename -WorkingDirectory $Folder -ArgumentList $setupParameters -Wait -Passthru | Out-Null
 
