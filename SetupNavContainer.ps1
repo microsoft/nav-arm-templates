@@ -41,6 +41,7 @@ Log "Running $imageName (this will take a few minutes)"
 New-NavContainer -accept_eula `
                  -containerName $containerName `
                  -useSSL `
+                 -auth NavUserPassword `
                  -includeCSide `
                  -doNotExportObjectsToText `
                  -credential $credential `
