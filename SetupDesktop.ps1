@@ -47,16 +47,18 @@ if ($firsttime) {
     Copy-Item -Path "$folder\AL-master\snippets\*" -Destination "$alFolder\snippets" -Recurse -ErrorAction Ignore
 }
 
-$vsixFileName = (Get-Item "C:\Demo\$containerName\*.vsix").FullName
-if ($vsixFileName -ne "") {
-
-    Log "Installing .vsix"
-    & $codeCmd @('--install-extension', $VsixFileName) | Out-Null
-
-    $username = [Environment]::UserName
-    if (Test-Path -path "c:\Users\Default\.vscode" -PathType Container -ErrorAction Ignore) {
-        if (!(Test-Path -path "c:\Users\$username\.vscode" -PathType Container -ErrorAction Ignore)) {
-            Copy-Item -Path "c:\Users\Default\.vscode" -Destination "c:\Users\$username\" -Recurse -Force -ErrorAction Ignore
+if (Test-Path "C:\Demo\Extensions\$containerName\*.vsix") {
+    $vsixFileName = (Get-Item "C:\Demo\Extensions\$containerName\*.vsix").FullName
+    if ($vsixFileName -ne "") {
+    
+        Log "Installing .vsix"
+        & $codeCmd @('--install-extension', $VsixFileName) | Out-Null
+    
+        $username = [Environment]::UserName
+        if (Test-Path -path "c:\Users\Default\.vscode" -PathType Container -ErrorAction Ignore) {
+            if (!(Test-Path -path "c:\Users\$username\.vscode" -PathType Container -ErrorAction Ignore)) {
+                Copy-Item -Path "c:\Users\Default\.vscode" -Destination "c:\Users\$username\" -Recurse -Force -ErrorAction Ignore
+            }
         }
     }
 }
