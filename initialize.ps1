@@ -67,15 +67,12 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "style"                  | Add-Content $settingsScript
     Get-VariableDeclaration -name "RunWindowsUpdate"       | Add-Content $settingsScript
 
-    $passwordKeyFile = "c:\demo\aes.key"
+    $securePassword = ConvertTo-SecureString -String $adminPassword -AsPlainText -Force
     $passwordKey = New-Object Byte[] 16
     [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
-    Set-Content -Path $passwordKeyFile -Value $passwordKey
-    get-item -Path $passwordKeyFile | % { $_.Attributes = "Hidden" }
-
-    $securePassword = ConvertTo-SecureString -String $adminPassword -AsPlainText -Force
     $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $passwordKey
-    ('$adminPassword = "'+$encPassword+'"') | Add-Content $settingsScript
+    ('$adminPassword = "'+$encPassword+'"')                           | Add-Content $settingsScript
+    ('$passwordKey = [byte[]]@('+"$passwordKey".Replace(" ",",")+')') | Add-Content $settingsScript
 }
 
 #
@@ -99,6 +96,8 @@ Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 Log -color Green "Starting initialization"
 Log "TemplateLink: $templateLink"
 $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
+
+New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
 
 #Log "Upgrading Docker Engine"
 #Unregister-PackageSource -ProviderName DockerMsftProvider -Name DockerDefault -Erroraction Ignore
@@ -187,7 +186,6 @@ if ($licenseFileUri -ne "") {
 if ($workshopFilesUrl -ne "") {
     $workshopFilesFolder = "c:\WorkshopFiles"
     $workshopFilesFile = "C:\DOWNLOAD\WorkshopFiles.zip"
-    New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
     New-Item -Path $workshopFilesFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 	Download-File -sourceUrl $workshopFilesUrl -destinationFile $workshopFilesFile
     Log "Unpacking Workshop Files to $WorkshopFilesFolder"
@@ -211,13 +209,11 @@ $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
 if ($dnsidentity.StartsWith("*")) {
     $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
 }
-Remove-Item $certificatePfxFile -force
-Remove-Item "c:\run\my\SetupCertificate.ps1" -force
 ') | Add-Content "c:\myfolder\SetupCertificate.ps1"
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.1.2.1 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.0.1 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript

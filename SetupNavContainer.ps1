@@ -25,108 +25,44 @@ Log "Country $country"
 Log "Version $navVersion"
 Log "Locale $locale"
 
-# Override AdditionalSetup
-# - Clear Modified flag on objects
-'sqlcmd -d $DatabaseName -Q "update [dbo].[Object] SET [Modified] = 0"' | Set-Content -Path "c:\myfolder\AdditionalSetup.ps1"
+$securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
+$credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
+$additionalParameters = @("--publish  8080:8080",
+                          "--publish  443:443", 
+                          "--publish  7046-7049:7046-7049", 
+                          "--env publicFileSharePort=8080",
+                          "--env PublicDnsName=$publicdnsName",
+                          "--env RemovePasswordKeyFile=N"
+                          )
+$myScripts = @()
+Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
-if (Test-Path "C:\Program Files (x86)\Microsoft Dynamics NAV") {
-    Remove-Item "C:\Program Files (x86)\Microsoft Dynamics NAV" -Force -Recurse -ErrorAction Ignore
-}
-New-Item "C:\Program Files (x86)\Microsoft Dynamics NAV" -ItemType Directory -ErrorAction Ignore | Out-Null
+Log "Running $imageName (this will take a few minutes)"
+New-NavContainer -accept_eula `
+                 -containerName $containerName `
+                 -useSSL `
+                 -auth NavUserPassword `
+                 -includeCSide `
+                 -doNotExportObjectsToText `
+                 -credential $credential `
+                 -additionalParameters $additionalParameters `
+                 -myScripts $myscripts `
+                 -imageName $imageName
 
-('Copy-Item -Path "C:\Program Files (x86)\Microsoft Dynamics NAV\*" -Destination "c:\navpfiles" -Recurse -Force -ErrorAction Ignore
-$destFolder = (Get-Item "c:\navpfiles\*\RoleTailored Client").FullName
-$ClientUserSettingsFileName = "$runPath\ClientUserSettings.config"
-[xml]$ClientUserSettings = Get-Content $clientUserSettingsFileName
-$clientUserSettings.SelectSingleNode("//configuration/appSettings/add[@key=""Server""]").value = "'+$containerName+'"
-$clientUserSettings.SelectSingleNode("//configuration/appSettings/add[@key=""ServerInstance""]").value="NAV"
-$clientUserSettings.SelectSingleNode("//configuration/appSettings/add[@key=""ServicesCertificateValidationEnabled""]").value="false"
-$clientUserSettings.SelectSingleNode("//configuration/appSettings/add[@key=""ClientServicesPort""]").value="$publicWinClientPort"
-$clientUserSettings.SelectSingleNode("//configuration/appSettings/add[@key=""ACSUri""]").value = ""
-$clientUserSettings.SelectSingleNode("//configuration/appSettings/add[@key=""DnsIdentity""]").value = "$dnsIdentity"
-$clientUserSettings.SelectSingleNode("//configuration/appSettings/add[@key=""ClientServicesCredentialType""]").value = "$Auth"
-$clientUserSettings.Save("$destFolder\ClientUserSettings.config")
-') | Add-Content -Path "c:\myfolder\AdditionalSetup.ps1"
-
-Log "Running $imageName"
-if (Test-Path -Path 'c:\demo\license.flf' -PathType Leaf) {
-    $containerId = docker run --env      accept_eula=Y `
-                              --hostname $containerName `
-                              --env      PublicDnsName=$publicdnsName `
-                              --name     $containerName `
-                              --publish  8080:8080 `
-                              --publish  443:443 `
-                              --publish  7046-7049:7046-7049 `
-                              --env      publicFileSharePort=8080 `
-                              --env      username="$navAdminUsername" `
-                              --env      securepassword="$adminPassword" `
-                              --env      passwordKeyFile="c:\demo\aes.key" `
-                              --env      RemovePasswordKeyFile=N `
-                              --env      enableSymbolLoading=Y `
-                              --env      useSSL=Y `
-                              --env      clickOnce=$clickonce `
-                              --env      locale=$locale `
-                              --env      licenseFile="c:\demo\license.flf" `
-                              --env      ExitOnError=N `
-                              --volume   c:\demo:c:\demo `
-                              --volume   c:\myfolder:c:\run\my `
-                              --volume   "C:\Program Files (x86)\Microsoft Dynamics NAV:C:\navpfiles" `
-                              --restart  always `
-                              --detach `
-                              $imageName
-} else {
-    $containerId = docker run --env      accept_eula=Y `
-                              --hostname $containerName `
-                              --env      PublicDnsName=$publicdnsName `
-                              --name     $containerName `
-                              --publish  8080:8080 `
-                              --publish  443:443 `
-                              --publish  7046-7049:7046-7049 `
-                              --env      publicFileSharePort=8080 `
-                              --env      username="$navAdminUsername" `
-                              --env      securepassword="$adminPassword" `
-                              --env      passwordKeyFile="c:\demo\aes.key" `
-                              --env      RemovePasswordKeyFile=N `
-                              --env      enableSymbolLoading=Y `
-                              --env      useSSL=Y `
-                              --env      clickOnce=$clickonce `
-                              --env      locale=$locale `
-                              --env      ExitOnError=N `
-                              --volume   c:\demo:c:\demo `
-                              --volume   c:\myfolder:c:\run\my `
-                              --volume   "C:\Program Files (x86)\Microsoft Dynamics NAV:C:\navpfiles" `
-                              --restart  always `
-                              --detach `
-                              $imageName
-}
-if ($LastExitCode -ne 0) {
-    throw "Docker run error"
-}
-
-Log "Waiting for container to become ready, this will only take a few minutes"
-Start-Sleep -Seconds 60
-$cnt = 150
-do {
-    $logs = docker logs $containerName
-    Start-Sleep -Seconds 5
-    $log = [string]::Join(" ",$logs)
-} while ($cnt-- -gt 0 -and !($log.Contains("Ready for connections!")))
-
-# Copy .vsix and Certificate to C:\Demo
-Log "Copying .vsix and Certificate to C:\Demo"
-Remove-Item "C:\Demo\$containerName" -recurse -Force -ErrorAction Ignore
-New-Item "C:\Demo\$containerName" -ItemType Directory -Force -ErrorAction Ignore
-docker exec -it $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination 'C:\Demo\$containerName' -force
-copy-item -Path 'C:\Run\*.cer' -Destination 'C:\Demo\$containerName' -force
-copy-item -Path 'C:\Program Files\Microsoft Dynamics NAV\*\Service\CustomSettings.config' -Destination 'C:\Demo\$containerName' -force
+# Copy .vsix and Certificate to container folder
+$containerFolder = "C:\Demo\Extensions\$containerName"
+Log "Copying .vsix and Certificate to $containerFolder"
+docker exec -it $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
+copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force
+copy-item -Path 'C:\Program Files\Microsoft Dynamics NAV\*\Service\CustomSettings.config' -Destination '$containerFolder' -force
 if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
-    [System.IO.File]::WriteAllText('C:\Demo\$containerName\clickonce.txt','http://${publicDnsName}:8080/NAV')
+    [System.IO.File]::WriteAllText('$containerFolder\clickonce.txt','http://${publicDnsName}:8080/NAV')
 }"
-[System.IO.File]::WriteAllText("C:\Demo\$containerName\Version.txt",$navVersion)
-[System.IO.File]::WriteAllText("C:\Demo\$containerName\Country.txt", $country)
-$certFile = Get-Item "C:\Demo\$containerName\*.cer"
+[System.IO.File]::WriteAllText("$containerFolder\Version.txt",$navVersion)
+[System.IO.File]::WriteAllText("$containerFolder\Country.txt", $country)
 
 # Install Certificate on host
+$certFile = Get-Item "$containerFolder\*.cer"
 if ($certFile) {
     $certFileName = $certFile.FullName
     Log "Importing $certFileName to trusted root"
