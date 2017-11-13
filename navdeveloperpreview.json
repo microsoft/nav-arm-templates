@@ -128,6 +128,20 @@
             "properties": {
                 "securityRules": [
                     {
+                        "name": "RDP",
+                        "properties": {
+                            "description": "Remote Desktop Access",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+					{
                         "name": "HTTP",
                         "properties": {
                             "description": "Http access",
@@ -137,7 +151,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 100,
+                            "priority": 105,
                             "direction": "Inbound"
                         }
                     },
