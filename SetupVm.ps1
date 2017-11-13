@@ -55,6 +55,12 @@ $sqlncliFile = "C:\DOWNLOAD\sqlncli.msi"
 Download-File -sourceUrl $sqlncliUrl -destinationFile $sqlncliFile
 Start-Process "C:\Windows\System32\msiexec.exe" -argumentList "/i $sqlncliFile ADDLOCAL=ALL IACCEPTSQLNCLILICENSETERMS=YES /qn" -wait
 
+Log "Installing OpenXML 2.5"
+$openXmlUrl = "https://download.microsoft.com/download/5/5/3/553C731E-9333-40FB-ADE3-E02DC9643B31/OpenXMLSDKV25.msi"
+$openXmlFile = "C:\DOWNLOAD\OpenXMLSDKV25.msi"
+Download-File -sourceUrl $openXmlUrl -destinationFile $openXmlFile
+Start-Process $openXmlFile -argumentList "/qn /q /passive" -wait
+
 . "c:\demo\SetupNavContainer.ps1"
 . "c:\demo\SetupDesktop.ps1"
 
