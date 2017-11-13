@@ -132,7 +132,7 @@
                         "properties": {
                             "description": "Http access",
                             "protocol": "Tcp",
-                            "sourcePortRange": "80",
+                            "sourcePortRange": "*",
                             "destinationPortRange": "80",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
@@ -146,7 +146,7 @@
                         "properties": {
                             "description": "File access",
                             "protocol": "Tcp",
-                            "sourcePortRange": "8080",
+                            "sourcePortRange": "*",
                             "destinationPortRange": "8080",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
@@ -160,7 +160,7 @@
                         "properties": {
                             "description": "Http access over Secure Socket Layer",
                             "protocol": "Tcp",
-                            "sourcePortRange": "443",
+                            "sourcePortRange": "*",
                             "destinationPortRange": "443",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
@@ -174,7 +174,7 @@
                         "properties": {
                             "description": "Access for Windows Client",
                             "protocol": "Tcp",
-                            "sourcePortRange": "7046",
+                            "sourcePortRange": "*",
                             "destinationPortRange": "7046",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
@@ -188,7 +188,7 @@
                         "properties": {
                             "description": "Access to Soap Web Services",
                             "protocol": "Tcp",
-                            "sourcePortRange": "7047",
+                            "sourcePortRange": "*",
                             "destinationPortRange": "7047",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
@@ -202,7 +202,7 @@
                         "properties": {
                             "description": "Access to OData Services",
                             "protocol": "Tcp",
-                            "sourcePortRange": "7048",
+                            "sourcePortRange": "*",
                             "destinationPortRange": "7048",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
@@ -216,7 +216,7 @@
                         "properties": {
                             "description": "Access to Developer Services",
                             "protocol": "Tcp",
-                            "sourcePortRange": "7049",
+                            "sourcePortRange": "*",
                             "destinationPortRange": "7049",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
@@ -243,7 +243,10 @@
                     {
                         "name": "[variables('subnetName')]",
                         "properties": {
-                            "addressPrefix": "[variables('subnetPrefix')]"
+                            "addressPrefix": "[variables('subnetPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                            }
                         }
                     }
                 ]
@@ -272,7 +275,8 @@
                             }
                         }
                     }
-                ]
+                ],
+
             }
         },
         {
