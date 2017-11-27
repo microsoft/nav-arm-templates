@@ -47,8 +47,8 @@ if ($firsttime) {
     Copy-Item -Path "$folder\AL-master\snippets\*" -Destination "$alFolder\snippets" -Recurse -ErrorAction Ignore
 }
 
-if (Test-Path "C:\Demo\Extensions\$containerName\*.vsix") {
-    $vsixFileName = (Get-Item "C:\Demo\Extensions\$containerName\*.vsix").FullName
+if (Test-Path "C:\ProgramData\navcontainerhelper\Extensions\$containerName\*.vsix") {
+    $vsixFileName = (Get-Item "C:\ProgramData\navcontainerhelper\Extensions\$containerName\*.vsix").FullName
     if ($vsixFileName -ne "") {
     
         Log "Installing .vsix"
@@ -75,6 +75,6 @@ New-DesktopShortcut -Name "Landing Page" -TargetPath "http://${publicDnsName}" -
 New-DesktopShortcut -Name "Visual Studio Code" -TargetPath $codeExe
 New-DesktopShortcut -Name "PowerShell ISE" -TargetPath "C:\Windows\system32\WindowsPowerShell\v1.0\powershell_ise.exe" -WorkingDirectory "c:\demo"
 New-DesktopShortcut -Name "Command Prompt" -TargetPath "C:\Windows\system32\cmd.exe" -WorkingDirectory "c:\demo"
-New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "powershell.exe" -Arguments "-noexit ""& { Write-NavContainerHelperWelcomeText }""" -WorkingDirectory c:\demo
+New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "powershell.exe" -Arguments "-noexit ""& { Write-NavContainerHelperWelcomeText }""" -WorkingDirectory "C:\ProgramData\navcontainerhelper"
 
 Log -color Green "Desktop setup complete!"

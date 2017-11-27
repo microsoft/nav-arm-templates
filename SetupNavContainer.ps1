@@ -50,7 +50,7 @@ New-NavContainer -accept_eula `
                  -imageName $imageName
 
 # Copy .vsix and Certificate to container folder
-$containerFolder = "C:\Demo\Extensions\$containerName"
+$containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
 Log "Copying .vsix and Certificate to $containerFolder"
 docker exec -it $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force

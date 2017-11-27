@@ -213,7 +213,7 @@ if ($dnsidentity.StartsWith("*")) {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.0.1 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.1.0 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
