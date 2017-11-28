@@ -13,7 +13,7 @@ private string getHostname()
 
 private string getClickOnceUrl()
 {
-  return System.IO.File.ReadAllText(@"c:\demo\extensions\navserver\clickonce.txt");
+  return System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\clickonce.txt");
 }
 
 private string getProduct()
@@ -39,9 +39,9 @@ private string createQrForLandingPage()
 
 private string getCountry()
 {
-  if (System.IO.File.Exists(@"c:\demo\extensions\navserver\country.txt"))
+  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\country.txt"))
   {
-    var ct = System.IO.File.ReadAllText(@"c:\demo\extensions\navserver\country.txt").ToUpperInvariant().Trim();
+    var ct = System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\country.txt").ToUpperInvariant().Trim();
     if (string.IsNullOrEmpty(ct)) {
       return "W1";
     }
@@ -55,9 +55,9 @@ private string getCountry()
 
 private string getBuildNumber()
 {
-  if (System.IO.File.Exists(@"c:\demo\extensions\navserver\version.txt"))
+  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt"))
   {
-    var version = System.IO.File.ReadAllText(@"c:\demo\extensions\navserver\version.txt").Trim();
+    var version = System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt").Trim();
     var idx = version.IndexOf("-");
     if (idx < 0) { return version; }
     return version.Substring(0, idx);
@@ -69,10 +69,10 @@ private XmlDocument customSettings = null;
 
 private bool GetCustomSettings()
 {
-  if ((this.customSettings == null) && (System.IO.File.Exists(@"c:\demo\extensions\navserver\CustomSettings.config")))
+  if ((this.customSettings == null) && (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\CustomSettings.config")))
   {
     customSettings = new XmlDocument();
-    customSettings.Load(@"c:\demo\extensions\navserver\CustomSettings.config");
+    customSettings.Load(@"c:\programdata\navcontainerhelper\extensions\navserver\CustomSettings.config");
   }
   return this.customSettings != null;
 }
@@ -287,7 +287,7 @@ function refresh()
     </tr>
     <tr><td colspan="4"><img src="line.png" width="100%" height="14"></td></tr>
 <%
-  if (File.Exists(@"c:\demo\extensions\navserver\Certificate.cer")) {
+  if (File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\Certificate.cer")) {
 %>
     <tr><td colspan="4"><h3>Download Self Signed Certificate</h3></td></tr>
     <tr>
@@ -369,7 +369,7 @@ You can view the installation status by following this link.
       </tr>
 <%
   }
-  if (System.IO.Directory.Exists(@"c:\demo\extensions\navserver")) {
+  if (System.IO.Directory.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver")) {
 %>
     <tr><td colspan="4"><h3>Access the <%=getProduct() %> using UserName/Password Authentication</h3></td></tr>
 <%
@@ -412,7 +412,7 @@ You can view the installation status by following this link.
     </tr>
 
 <%
-    var vsix = System.IO.Directory.GetFiles(@"c:\demo\extensions\navserver", "*.vsix");
+    var vsix = System.IO.Directory.GetFiles(@"c:\programdata\navcontainerhelper\extensions\navserver", "*.vsix");
     if (vsix.Length == 1) {
 %>    
     <tr><td colspan="4"><h3>Access the <%=getProduct() %> using Visual Studio Code</h3></td></tr>
