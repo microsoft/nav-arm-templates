@@ -18,6 +18,9 @@ private string getClickOnceUrl()
 
 private string getProduct()
 {
+  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\title.txt")) {
+    return System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\title.txt");
+  }
   return System.IO.File.ReadAllText(Server.MapPath(".")+@"\title.txt");
 }
 
@@ -55,12 +58,25 @@ private string getCountry()
 
 private string getBuildNumber()
 {
+  var ct = "";
+  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\country.txt"))
+  {
+    ct = System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\country.txt").Trim();
+  }
+  var cu = "";
+  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\cu.txt"))
+  {
+    cu = System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\cu.txt").Trim();
+  }
   if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt"))
   {
     var version = System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt").Trim();
-    var idx = version.IndexOf("-");
-    if (idx < 0) { return version; }
-    return version.Substring(0, idx);
+    if (cu != "") { 
+      version += " ("+cu+", "+ct+")"; 
+    } else { 
+      version += " ("+ct+")"; 
+    }
+    return version;
   }
   return "";
 }
@@ -287,7 +303,7 @@ function refresh()
     </tr>
     <tr><td colspan="4"><img src="line.png" width="100%" height="14"></td></tr>
 <%
-  if (File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\Certificate.cer")) {
+    if (GetCustomSettings() && File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\Certificate.cer")) {
 %>
     <tr><td colspan="4"><h3>Download Self Signed Certificate</h3></td></tr>
     <tr>
@@ -369,7 +385,7 @@ You can view the installation status by following this link.
       </tr>
 <%
   }
-  if (System.IO.Directory.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver")) {
+  if (GetCustomSettings()) {
 %>
     <tr><td colspan="4"><h3>Access the <%=getProduct() %> using UserName/Password Authentication</h3></td></tr>
 <%
