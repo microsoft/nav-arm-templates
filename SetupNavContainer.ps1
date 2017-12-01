@@ -16,9 +16,20 @@ docker ps --filter name=$containerName -a -q | % {
     docker rm $_ -f | Out-Null
 }
 
-$country = Get-NavContainerCountry -containerOrImageName $imageName
-$navVersion = Get-NavContainerNavVersion -containerOrImageName $imageName
+$inspect = docker inspect $imageName | ConvertFrom-Json
+$country = $inspect.Config.Labels.country
+$navVersion = $inspect.Config.Labels.version
+$nav = $inspect.Config.Labels.nav
+$cu = $inspect.Config.Labels.cu
 $locale = Get-LocaleFromCountry $country
+
+if ($nav -eq "devpreview") {
+    $title = "Dynamics 365 ""Tenerife"" Preview Environment"
+} elseif ($nav -eq "main") {
+    $title = "Dynamics 365 ""Tenerife"" Preview Environment"
+} else {
+    $title = "Dynamics NAV $nav Demonstration Environment"
+}
 
 Log "Using image $imageName"
 Log "Country $country"
@@ -50,7 +61,7 @@ New-NavContainer -accept_eula `
                  -imageName $imageName
 
 # Copy .vsix and Certificate to container folder
-$containerFolder = "C:\Demo\Extensions\$containerName"
+$containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
 Log "Copying .vsix and Certificate to $containerFolder"
 docker exec -it $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force
@@ -59,7 +70,9 @@ if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
     [System.IO.File]::WriteAllText('$containerFolder\clickonce.txt','http://${publicDnsName}:8080/NAV')
 }"
 [System.IO.File]::WriteAllText("$containerFolder\Version.txt",$navVersion)
+[System.IO.File]::WriteAllText("$containerFolder\Cu.txt",$cu)
 [System.IO.File]::WriteAllText("$containerFolder\Country.txt", $country)
+[System.IO.File]::WriteAllText("$containerFolder\Title.txt",$title)
 
 # Install Certificate on host
 $certFile = Get-Item "$containerFolder\*.cer"
