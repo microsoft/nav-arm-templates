@@ -114,21 +114,7 @@ Download-File -sourceUrl "${scriptPath}line.png"                -destinationFile
 Download-File -sourceUrl "${scriptPath}Microsoft.png"           -destinationFile "C:\inetpub\wwwroot\Microsoft.png"
 Download-File -sourceUrl "${scriptPath}web.config"              -destinationFile "C:\inetpub\wwwroot\web.config"
 
-$title = 'Dynamics 365 "Tenerife" Developer Preview'
-switch ($style) {
-    "sandbox" {
-        $title = 'Dynamics 365 "Tenerife" Sandbox VM'
-    }
-    "workshop" {
-        $title = 'Dynamics 365 "Tenerife" Workshop VM'
-    }
-    "developer" {
-        $title = 'Dynamics 365 "Tenerife" Developer VM'
-    }
-    "demo" {
-        $title = 'Dynamics 365 "Tenerife" Demo VM'
-    }
-}
+$title = 'Dynamics NAV Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
 
@@ -213,7 +199,7 @@ if ($dnsidentity.StartsWith("*")) {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.0.1 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.1.3 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
