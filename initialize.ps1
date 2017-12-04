@@ -179,6 +179,10 @@ if ($workshopFilesUrl -ne "") {
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
 
+Log "Install Nav Container Helper from PowerShell Gallery"
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.1.3 -Force
+Import-Module -Name navcontainerhelper -DisableNameChecking
+
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
     Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"
 
@@ -197,10 +201,6 @@ if ($dnsidentity.StartsWith("*")) {
 }
 ') | Add-Content "c:\myfolder\SetupCertificate.ps1"
 }
-
-Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.1.3 -Force
-Import-Module -Name navcontainerhelper -DisableNameChecking
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
