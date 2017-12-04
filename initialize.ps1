@@ -180,10 +180,10 @@ if ($workshopFilesUrl -ne "") {
 }
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
-    Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\demo\certificate.pfx"
+    Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"
 
 ('$certificatePfxPassword = "'+$certificatePfxPassword+'"
-$certificatePfxFile = "c:\demo\certificate.pfx"
+$certificatePfxFile = "c:\programdata\navcontainerhelper\certificate.pfx"
 $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
 $certificateThumbprint = $cert.Thumbprint
 Write-Host "Certificate File Thumbprint $certificateThumbprint"
