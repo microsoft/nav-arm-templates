@@ -60,6 +60,12 @@ New-NavContainer -accept_eula `
                  -myScripts $myscripts `
                  -imageName $imageName
 
+if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
+    Log "Importing c:\demo\objects.fob to container"
+    $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
+    Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $sqlCredential
+}
+
 # Copy .vsix and Certificate to container folder
 $containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
 Log "Copying .vsix and Certificate to $containerFolder"

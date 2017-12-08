@@ -15,6 +15,7 @@ param
        [string]$certificatePfxUrl      = "",
        [string]$certificatePfxPassword = "",
        [string]$publicDnsName          = "",
+	   [string]$fobFileUrl             = "",
 	   [string]$workshopFilesUrl       = "",
 	   [string]$finalSetupScriptUrl    = "",
        [string]$style                  = "devpreview",
@@ -167,6 +168,10 @@ if ($finalSetupScriptUrl) {
 
 if ($licenseFileUri -ne "") {
     Download-File -sourceUrl $licenseFileUri -destinationFile "c:\demo\license.flf"
+}
+
+if ($fobFileUrl -ne "") {
+    Download-File -sourceUrl $fobFileUrl -destinationFile "c:\demo\objects.fob"
 }
 
 if ($workshopFilesUrl -ne "") {
