@@ -55,16 +55,52 @@
         },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "microsoft/dynamics-nav",
+            "defaultValue": "microsoft/dynamics-nav:devpreview-finus",
             "metadata": {
-                "Description": "Select the NAV Docker Image to deploy. See https://hub.docker.com/r/microsoft/dynamics-nav/ for a list of public images."
+                "Description": "Select the NAV Docker Image to deploy. Replace -finus with -finca or -fingb to get other Financials localizations. Remove -finus to get W1."
+            }
+        },
+        "registryUsername": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:tag)"
+            }
+        },
+        "registryPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:tag)"
             }
         },
         "LicenseFileUri": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Optional: Specify a secure Url of your NAV Partner License File for the developer preview. If you do not specify a license file Url here, you will have to upload the license manually later."
+                "Description": "Optional: Specify a secure Url of your NAV Partner License File for NAV. If you do not specify a license file Url here, you will have to upload the license manually later."
+            }
+        },
+        "AppBacpacUri": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a secure Url of the app bacpac you want to use for the Docker image. If you do not specify an app bacpac, you will be using the NAV database in the Docker image."
+            }
+        },
+        "TenantBacpacUri": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a secure Url of the tenant bacpac you want to use for the Docker image. If you do not specify an tenant bacpac, you will be using the NAV database in the Docker image."
+            }
+        },
+        "Multitenant": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Should NAV be setup for multi tenancy"
             }
         },
         "RunWindowsUpdate": {
@@ -362,7 +398,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"demo\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -Multitenant \"',parameters('Multitenant'),'\"')]"
                 },
                 "protectedSettings": {}
             }
