@@ -45,6 +45,16 @@ $additionalParameters = @("--publish  8080:8080",
                           "--env PublicDnsName=$publicdnsName",
                           "--env RemovePasswordKeyFile=N"
                           )
+if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
+    $additionalParameters += @("--env appbacpac=$appBacpacUri",
+                               "--env tenantbacpac=$tenantBacpacUri")
+}
+
+$mt = $false
+if ($multitenant -eq "Yes") {
+    $mt = $true
+}
+
 $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
@@ -58,7 +68,8 @@ New-NavContainer -accept_eula `
                  -credential $credential `
                  -additionalParameters $additionalParameters `
                  -myScripts $myscripts `
-                 -imageName $imageName
+                 -imageName $imageName `
+                 -multitenant:$mt
 
 if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
     Log "Importing c:\demo\objects.fob to container"

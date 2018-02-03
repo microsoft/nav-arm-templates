@@ -10,6 +10,8 @@ param
        [string]$navDockerImage         = "microsoft/dynamics-nav:devpreview-finus",
        [string]$registryUsername       = "",
        [string]$registryPassword       = "",
+       [string]$appBacpacUri           = "",
+       [string]$tenantBacpacUri        = "",
        [string]$clickonce              = "Y",
        [string]$licenseFileUri         = "",
        [string]$certificatePfxUrl      = "",
@@ -19,7 +21,8 @@ param
 	   [string]$workshopFilesUrl       = "",
 	   [string]$finalSetupScriptUrl    = "",
        [string]$style                  = "devpreview",
-       [string]$RunWindowsUpdate       = "No"
+       [string]$RunWindowsUpdate       = "No",
+       [string]$Multitenant            = "No"
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -61,12 +64,15 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "navDockerImage"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryUsername"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryPassword"       | Add-Content $settingsScript
+    Get-VariableDeclaration -name "appBacpacUri"           | Add-Content $settingsScript
+    Get-VariableDeclaration -name "tenantBacpacri"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "clickonce"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "licenseFileUri"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "publicDnsName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "workshopFilesUrl"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "style"                  | Add-Content $settingsScript
     Get-VariableDeclaration -name "RunWindowsUpdate"       | Add-Content $settingsScript
+    Get-VariableDeclaration -name "Multitenant"            | Add-Content $settingsScript
 
     $securePassword = ConvertTo-SecureString -String $adminPassword -AsPlainText -Force
     $passwordKey = New-Object Byte[] 16
@@ -185,7 +191,7 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.2.2 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.5.0 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
