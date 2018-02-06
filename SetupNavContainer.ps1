@@ -16,6 +16,14 @@ docker ps --filter name=$containerName -a -q | % {
     docker rm $_ -f | Out-Null
 }
 
+$exist = $false
+docker images -q --no-trunc | % {
+    $inspect = docker inspect $_ | ConvertFrom-Json
+    if ($inspect.RepoTags | Where-Object { "$_" -eq "$imageName" -or "$_" -eq "${imageName}:latest"}) { $exist = $true }
+}
+if (!$exist) {
+    docker pull $imageName
+}
 $inspect = docker inspect $imageName | ConvertFrom-Json
 $country = $inspect.Config.Labels.country
 $navVersion = $inspect.Config.Labels.version

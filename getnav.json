@@ -74,6 +74,14 @@
             "metadata": {
                 "Description": "Run Windows Update after Deployment (might take significant time)"
             }
+        },
+        "RemoteDesktopAccess": {
+		    "type": "string",
+            "defaultValue": "Allow",
+            "allowedValues": [ "Allow", "Deny" ],
+            "metadata": {
+                "Description": "Is Remote Desktop Access (port 3389) allowed for the Virtual Machine"
+            }
         }
     },
     "variables": {
@@ -136,7 +144,7 @@
                             "destinationPortRange": "3389",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
-                            "access": "Allow",
+                            "access": "[parameters('RemoteDesktopAccess')]",
                             "priority": 100,
                             "direction": "Inbound"
                         }
