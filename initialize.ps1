@@ -210,7 +210,51 @@ $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
 if ($dnsidentity.StartsWith("*")) {
     $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
 }
-') | Add-Content "c:\myfolder\SetupCertificate.ps1"
+') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
+} else {
+
+# Lets encrypt
+Install-Module -Name ACMESharp -AllowClobber -force -ErrorAction SilentlyContinue
+Install-Module -Name ACMESharp.Providers.IIS -force -ErrorAction SilentlyContinue
+Import-Module ACMESharp
+Enable-ACMEExtensionModule -ModuleName ACMESharp.Providers.IIS -ErrorAction SilentlyContinue
+
+Initialize-ACMEVault
+
+New-ACMERegistration -Contacts mailto:fk@freddy.dk -AcceptTos
+
+$dnsAlias = "dnsAlias"
+New-ACMEIdentifier -Dns $publicDnsName -Alias $dnsAlias
+Complete-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01 -Handler iis -HandlerParameters @{ WebSiteRef = 'Default Web Site' }
+Submit-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01
+sleep -s 60
+Update-ACMEIdentifier -IdentifierRef $dnsAlias
+
+$certAlias = "certAlias"
+$certPassword = [GUID]::NewGuid().ToString()
+$certFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
+New-ACMECertificate -Generate -IdentifierRef $dnsAlias -Alias $certAlias
+Submit-ACMECertificate -CertificateRef $certAlias
+Update-ACMECertificate -CertificateRef $certAlias
+Remove-Item -Path $certFilename
+Get-ACMECertificate -CertificateRef $certAlias -ExportPkcs12 $certFilename -CertificatePassword $certPassword
+
+('$certificatePfxPassword = "'+$certPassword+'"
+$certificatePfxFile = "'+$certFilename+'"
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+$certificateThumbprint = $cert.Thumbprint
+Write-Host "Certificate File Thumbprint $certificateThumbprint"
+if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+    Write-Host "Import Certificate to LocalMachine\my"
+    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
+}
+$dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+if ($dnsidentity.StartsWith("*")) {
+    $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
+}
+') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
 }
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
