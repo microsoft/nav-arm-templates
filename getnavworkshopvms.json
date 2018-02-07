@@ -144,6 +144,14 @@
             "metadata": {
                 "Description": "Public DNS Name (CNAME record pointing to your VM). A # in the name will be replaced by the VM number. If you do not specify a public DNS name, you will get a Self Signed Certificate."
             }
+        },
+        "RemoteDesktopAccess": {
+		    "type": "string",
+            "defaultValue": "Allow",
+            "allowedValues": [ "Allow", "Deny" ],
+            "metadata": {
+                "Description": "Is Remote Desktop Access (port 3389) allowed for the Virtual Machine"
+            }
         }
     },
     "variables": {
@@ -204,7 +212,7 @@
                             "destinationPortRange": "3389",
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
-                            "access": "Allow",
+                            "access": "[parameters('RemoteDesktopAccess')]",
                             "priority": 100,
                             "direction": "Inbound"
                         }
