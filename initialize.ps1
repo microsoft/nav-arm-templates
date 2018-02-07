@@ -223,7 +223,7 @@ if ($dnsidentity.StartsWith("*")) {
     
     Initialize-ACMEVault
     
-    New-ACMERegistration -Contacts "mailto:${vmAdminUsername}@${publicDnsName} -AcceptTos
+    New-ACMERegistration -Contacts "mailto:${vmAdminUsername}@${publicDnsName}" -AcceptTos
     
     $dnsAlias = "dnsAlias"
     New-ACMEIdentifier -Dns $publicDnsName -Alias $dnsAlias
