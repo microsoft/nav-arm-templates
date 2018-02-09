@@ -80,7 +80,7 @@
             "defaultValue": "SelfSigned",
             "allowedValues": [ "SelfSigned", "LetsEncrypt" ],
             "metadata": {
-                "Description": "Choosing LetsEncrypt will use https://letsencrypt.org/ to generate a secure SSL certificate, which is valid for a few months. By selecting LetsEncrypt you accept the Terms og Service here https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf"
+                "Description": "Specifies whether you want to use Lets Encrypt to generate a secure SSL certificate, which is valid for a 3 months. By selecting LetsEncrypt you implicit accept the subscriber agreement here https://letsencrypt.org/repository/"
             }
         },
         "RemoteDesktopAccess": {
@@ -378,7 +378,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -CertificateIssuer \"',parameters('CertificateIssuer'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
                 },
                 "protectedSettings": {}
             }
