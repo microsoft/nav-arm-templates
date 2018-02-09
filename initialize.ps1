@@ -1,29 +1,30 @@
 #usage initialize.ps1
 param
 (
-       [string]$templateLink           = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
-       [string]$containerName          = "navserver",
-       [string]$hostName               = "",
-       [string]$vmAdminUsername        = "vmadmin",
-       [string]$navAdminUsername       = "admin",
-       [string]$adminPassword          = "P@ssword1",
-       [string]$navDockerImage         = "microsoft/dynamics-nav:devpreview-finus",
-       [string]$registryUsername       = "",
-       [string]$registryPassword       = "",
-       [string]$appBacpacUri           = "",
-       [string]$tenantBacpacUri        = "",
-       [string]$clickonce              = "Y",
-       [string]$licenseFileUri         = "",
-       [string]$certificatePfxUrl      = "",
-       [string]$certificatePfxPassword = "",
-       [string]$publicDnsName          = "",
-	   [string]$fobFileUrl             = "",
-	   [string]$workshopFilesUrl       = "",
-	   [string]$finalSetupScriptUrl    = "",
-       [string]$style                  = "devpreview",
-       [string]$RunWindowsUpdate       = "No",
-       [string]$Multitenant            = "No",
-       [string]$CertificateIssuer      = "SelfSigned"
+       [string]$templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
+       [string]$containerName             = "navserver",
+       [string]$hostName                  = "",
+       [string]$vmAdminUsername           = "vmadmin",
+       [string]$navAdminUsername          = "admin",
+       [string]$adminPassword             = "P@ssword1",
+       [string]$navDockerImage            = "microsoft/dynamics-nav:devpreview-finus",
+       [string]$registryUsername          = "",
+       [string]$registryPassword          = "",
+       [string]$appBacpacUri              = "",
+       [string]$tenantBacpacUri           = "",
+       [string]$clickonce                 = "Y",
+       [string]$licenseFileUri            = "",
+       [string]$certificatePfxUrl         = "",
+       [string]$certificatePfxPassword    = "",
+       [string]$publicDnsName             = "",
+	   [string]$fobFileUrl                = "",
+	   [string]$workshopFilesUrl          = "",
+	   [string]$finalSetupScriptUrl       = "",
+       [string]$style                     = "devpreview",
+       [string]$RunWindowsUpdate          = "No",
+       [string]$Multitenant               = "No",
+       [string]$UseLetsEncryptCertificate = "No",
+       [string]$ContactEMailForLetsEncrypt= ""
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -213,49 +214,68 @@ if ($dnsidentity.StartsWith("*")) {
 }
 ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
 
-} elseif ($CertificateIssuer -eq "LetsEncrypt") {
+} elseif ($UseLetsEncryptCertificate -eq "Yes") {
 
-    # Lets encrypt
-    Install-Module -Name ACMESharp -AllowClobber -force -ErrorAction SilentlyContinue
-    Install-Module -Name ACMESharp.Providers.IIS -force -ErrorAction SilentlyContinue
-    Import-Module ACMESharp
-    Enable-ACMEExtensionModule -ModuleName ACMESharp.Providers.IIS -ErrorAction SilentlyContinue
-    
-    Initialize-ACMEVault
-    
-    New-ACMERegistration -Contacts "mailto:${vmAdminUsername}@${publicDnsName}" -AcceptTos
-    
-    $dnsAlias = "dnsAlias"
-    New-ACMEIdentifier -Dns $publicDnsName -Alias $dnsAlias
-    Complete-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01 -Handler iis -HandlerParameters @{ WebSiteRef = 'Default Web Site' }
-    Submit-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01
-    sleep -s 60
-    Update-ACMEIdentifier -IdentifierRef $dnsAlias
-    
-    $certAlias = "certAlias"
-    $certPassword = [GUID]::NewGuid().ToString()
-    $certFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
-    New-ACMECertificate -Generate -IdentifierRef $dnsAlias -Alias $certAlias
-    Submit-ACMECertificate -CertificateRef $certAlias
-    Update-ACMECertificate -CertificateRef $certAlias
-    Remove-Item -Path $certFilename
-    Get-ACMECertificate -CertificateRef $certAlias -ExportPkcs12 $certFilename -CertificatePassword $certPassword
-    
-    ('$certificatePfxPassword = "'+$certPassword+'"
-    $certificatePfxFile = "'+$certFilename+'"
-    $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
-    $certificateThumbprint = $cert.Thumbprint
-    Write-Host "Certificate File Thumbprint $certificateThumbprint"
-    if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
-        Write-Host "Import Certificate to LocalMachine\my"
-        Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
-    }
-    $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
-    if ($dnsidentity.StartsWith("*")) {
-        $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
-    }
-    ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+    if ("$ContactEMailForLetsEncrypt" -eq "") {
+        Log -color Red "Contact EMail not specified for Lets Encrypt, subscriber agreement not accepted, reverting to Self Signed"
+    } else {
 
+        Log "Using Lets Encrypt certificate"
+
+        # Use Lets encrypt
+        # If rate limits are hit, log an error and revert to Self Signed
+
+        try {
+            Log "Installing ACMESharp PowerShell modules"
+            Install-Module -Name ACMESharp -AllowClobber -force -ErrorAction SilentlyContinue
+            Install-Module -Name ACMESharp.Providers.IIS -force -ErrorAction SilentlyContinue
+            Import-Module ACMESharp
+            Enable-ACMEExtensionModule -ModuleName ACMESharp.Providers.IIS -ErrorAction SilentlyContinue
+            
+            Log "Initializing ACMEVault"
+            Initialize-ACMEVault
+            
+            Log "Register $ContactEMailForLetsEncrypt and accept Terms Of Service"
+            New-ACMERegistration -Contacts "mailto:$ContactEMailForLetsEncrypt" -AcceptTos
+            
+            Log "Creating new dns Identifier"
+            $dnsAlias = "dnsAlias"
+            New-ACMEIdentifier -Dns $publicDnsName -Alias $dnsAlias
+
+            Log "Performing Lets Encrypt challenge to default web site"
+            Complete-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01 -Handler iis -HandlerParameters @{ WebSiteRef = 'Default Web Site' }
+            Submit-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01
+            sleep -s 60
+            Update-ACMEIdentifier -IdentifierRef $dnsAlias
+            
+            Log "Requesting certificate"
+            $certAlias = "certAlias"
+            $certPassword = [GUID]::NewGuid().ToString()
+            $certFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
+            Remove-Item -Path $certFilename -Force -ErrorAction Ignore
+            New-ACMECertificate -Generate -IdentifierRef $dnsAlias -Alias $certAlias
+            Submit-ACMECertificate -CertificateRef $certAlias
+            Update-ACMECertificate -CertificateRef $certAlias
+            Get-ACMECertificate -CertificateRef $certAlias -ExportPkcs12 $certFilename -CertificatePassword $certPassword
+            
+            ('$certificatePfxPassword = "'+$certPassword+'"
+            $certificatePfxFile = "'+$certFilename+'"
+            $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+            $certificateThumbprint = $cert.Thumbprint
+            Write-Host "Certificate File Thumbprint $certificateThumbprint"
+            if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+                Write-Host "Import Certificate to LocalMachine\my"
+                Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
+            }
+            $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+            if ($dnsidentity.StartsWith("*")) {
+                $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
+            }
+            ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+        } catch {
+            Log -color Red $_.ErrorDetails.Message
+        }
+    }
 }
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
