@@ -217,7 +217,7 @@ if ($dnsidentity.StartsWith("*")) {
 } elseif ($UseLetsEncryptCertificate -eq "Yes") {
 
     if ("$ContactEMailForLetsEncrypt" -eq "") {
-        Log -color Red "Contact EMail not specified for Lets Encrypt, subscriber agreement not accepted, reverting to Self Signed"
+        Log -color Red "Contact EMail not specified for Lets Encrypt, subscriber agreement not accepted, reverting to Self Signed Certificate"
     } else {
 
         Log "Using Lets Encrypt certificate"
@@ -274,6 +274,7 @@ if ($dnsidentity.StartsWith("*")) {
             ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
         } catch {
             Log -color Red $_.ErrorDetails.Message
+            Log -color Red "Reverting to Self Signed Certificate"
         }
     }
 }
