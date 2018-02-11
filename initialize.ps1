@@ -235,7 +235,7 @@ if ($dnsidentity.StartsWith("*")) {
             Log "Initializing ACMEVault"
             Initialize-ACMEVault
             
-            Log "Register $ContactEMailForLetsEncrypt and accept Terms Of Service"
+            Log "Register Contact EMail address and accept Terms Of Service"
             New-ACMERegistration -Contacts "mailto:$ContactEMailForLetsEncrypt" -AcceptTos
             
             Log "Creating new dns Identifier"
