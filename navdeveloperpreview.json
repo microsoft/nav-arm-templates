@@ -75,12 +75,19 @@
                 "Description": "Run Windows Update after Deployment (might take significant time)"
             }
         },
-        "CertificateIssuer": {
+        "UseLetsEncryptCertificate": {
 		    "type": "string",
-            "defaultValue": "SelfSigned",
-            "allowedValues": [ "SelfSigned", "LetsEncrypt" ],
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
             "metadata": {
-                "Description": "Specifies whether you want to use Lets Encrypt to generate a secure SSL certificate, which is valid for a 3 months. By selecting LetsEncrypt you implicit accept the subscriber agreement here https://letsencrypt.org/repository/"
+                "Description": "Specifies whether you want to use Lets Encrypt to generate a secure SSL certificate, which is valid for a 3 months. You also need to specify an email address of the person accepting the subscriber agreement for LetsEncrypt."
+            }
+        },
+        "ContactEMailForLetsEncrypt": {
+		    "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Specify the email address of the person accepting subscriber agreement for LetsEncrypt here https://letsencrypt.org/repository/"
             }
         },
         "RemoteDesktopAccess": {
