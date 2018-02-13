@@ -111,6 +111,13 @@
             "metadata": {
                 "Description": "Is Remote Desktop Access (port 3389) allowed for the Virtual Machine"
             }
+        },
+        "RemoteDesktopSourceAddrPrefix": {
+		    "type": "string",
+            "defaultValue": "*",
+            "metadata": {
+                "Description": "Provide an IP address or an address range using CIDR notation, e.g. 192.168.99.0/24"
+            }
         }
     },
     "variables": {
@@ -171,7 +178,7 @@
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "3389",
-                            "sourceAddressPrefix": "*",
+                            "sourceAddressPrefix": "[parameters('RemoteDesktopSourceAddrPrefix')]",
                             "destinationAddressPrefix": "*",
                             "access": "[parameters('RemoteDesktopAccess')]",
                             "priority": 100,

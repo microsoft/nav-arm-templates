@@ -155,11 +155,11 @@
                 "Description": "Is Remote Desktop Access (port 3389) allowed for the Virtual Machine"
             }
         },
-        "RemoteDesktopSourceAddressPrefix": {
+        "RemoteDesktopSourceAddrPrefix": {
 		    "type": "string",
             "defaultValue": "*",
             "metadata": {
-                "Description": "Provide an address range using CIDR notation, e.g. 192.168.99.0/24; an IP address; or a list of address ranges or IP addresses."
+                "Description": "Provide an IP address or an address range using CIDR notation, e.g. 192.168.99.0/24"
             }
         }
     },
@@ -178,6 +178,9 @@
         "subnetPrefix": "10.0.0.0/24",
         "virtualNetworkName": "virtualnetwork",
         "server1Name": "[tolower(parameters('vmName'))]",
+		"delimiters": [ ",", ";" ],
+		"RdpSourceAddressPrefix": "[split(parameters('RemoteDesktopSourceAddrPrefix'),variables('delimiters'))]"
+		"NoOfAddresses": "[length(variables('RdpSourceAddressPrefix'))]"
         "nic1Name": "[concat(parameters('vmName'),'_nic')]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
@@ -221,12 +224,16 @@
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "3389",
-                            "sourceAddressPrefix": "[parameters('RemoteDesktopSourceAddressPrefix')]",
+                            "sourceAddressPrefix": "[parameters('RemoteDesktopSourceAddrPrefix')]",
                             "destinationAddressPrefix": "*",
                             "access": "[parameters('RemoteDesktopAccess')]",
-                            "priority": 100,
+                            "priority": "[add(copyIndex(),100)]",
                             "direction": "Inbound"
-                        }
+                        },
+						"copy": {
+							"name": "rdpcopy",
+							"count": "2"
+						}
                     },
 					{
                         "name": "HTTP",
@@ -238,7 +245,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 105,
+                            "priority": 200,
                             "direction": "Inbound"
                         }
                     },
@@ -252,7 +259,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 110,
+                            "priority": 210,
                             "direction": "Inbound"
                         }
                     },
@@ -266,7 +273,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 200,
+                            "priority": 220,
                             "direction": "Inbound"
                         }
                     },
@@ -280,7 +287,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 300,
+                            "priority": 230,
                             "direction": "Inbound"
                         }
                     },
@@ -294,7 +301,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 400,
+                            "priority": 240,
                             "direction": "Inbound"
                         }
                     },
@@ -308,7 +315,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 500,
+                            "priority": 250,
                             "direction": "Inbound"
                         }
                     },
@@ -322,7 +329,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 600,
+                            "priority": 260,
                             "direction": "Inbound"
                         }
                     }
