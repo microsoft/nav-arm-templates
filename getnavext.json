@@ -179,6 +179,9 @@
         "virtualNetworkName": "virtualnetwork",
         "server1Name": "[tolower(parameters('vmName'))]",
         "nic1Name": "[concat(parameters('vmName'),'_nic')]",
+		"delimiters": [ ",", ";" ],
+		"rdpSourceAddressPrefix": "[split(parameters('RemoteDesktopSourceAddrPrefix'),variables('delimiters'))]",
+		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
         "accountid": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
@@ -315,6 +318,66 @@
                 ]
             }
         },
+		{
+			"apiVersion": "2015-01-01",
+			"type": "Microsoft.Resources/deployments",
+			"name": "loop-0",
+			"dependsOn": [
+				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
+			],
+			"properties": {
+				"mode":"Incremental",
+				"parameters":{},
+				"template": {
+					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"parameters": {},
+					"variables": {},
+					"resources": [],
+					"outputs": {}
+				}
+			}
+		},       
+		{
+			"apiVersion": "2015-01-01",
+			"type": "Microsoft.Resources/deployments",
+			"name": "[concat('loop-', copyIndex(1))]",
+			"dependsOn": [
+				"[concat('loop-', copyIndex())]"
+			],
+			"copy": {
+				"name": "iterator",
+				"count": "[variables('noOfAddresses')]"
+			},
+			"properties": {
+				"mode": "Incremental",
+				"template": {
+					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+				"parameters": {},
+					"variables": {},
+					"resources": [
+						{
+						"name": "[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'),'RDP',copyIndex())]"
+						"type": "Microsoft.Network/networkSecurityGroups/securityRules",
+						"apiVersion": "2016-09-01",
+						"location":"[resourceGroup().location]",
+						"properties":{
+                            "description": "Remote Desktop Access",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "[variables('rdpSourceAddressPrefix')[copyIndex()]]",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": "[add(copyIndex(),100)]",
+                            "direction": "Inbound"
+                        }
+					}
+				],
+				"outputs": {}
+			}
+		},
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/virtualNetworks",
