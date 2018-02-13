@@ -104,19 +104,11 @@
                 "Description": "Specify the email address of the person accepting subscriber agreement for LetsEncrypt here https://letsencrypt.org/repository/"
             }
         },
-        "RemoteDesktopAccess": {
-		    "type": "string",
-            "defaultValue": "Allow",
-            "allowedValues": [ "Allow", "Deny" ],
-            "metadata": {
-                "Description": "Is Remote Desktop Access (port 3389) allowed for the Virtual Machine"
-            }
-        },
         "RemoteDesktopSourceAddrPrefix": {
 		    "type": "string",
             "defaultValue": "*",
             "metadata": {
-                "Description": "Provide an IP address or an address range using CIDR notation, e.g. 192.168.99.0/24"
+                "Description": "Provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
             }
         }
     },
@@ -136,6 +128,9 @@
         "virtualNetworkName": "virtualnetwork",
         "server1Name": "[tolower(parameters('vmName'))]",
         "nic1Name": "[concat(parameters('vmName'),'_nic')]",
+		"delimiters": [ ",", ";" ],
+		"rdpSourceAddressPrefix": "[split(parameters('RemoteDesktopSourceAddrPrefix'),variables('delimiters'))]",
+		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
         "accountid": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
@@ -171,20 +166,6 @@
             "location": "[resourceGroup().location]",
             "properties": {
                 "securityRules": [
-                    {
-                        "name": "RDP",
-                        "properties": {
-                            "description": "Remote Desktop Access",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "3389",
-                            "sourceAddressPrefix": "[parameters('RemoteDesktopSourceAddrPrefix')]",
-                            "destinationAddressPrefix": "*",
-                            "access": "[parameters('RemoteDesktopAccess')]",
-                            "priority": 100,
-                            "direction": "Inbound"
-                        }
-                    },
 					{
                         "name": "HTTP",
                         "properties": {
@@ -195,7 +176,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 105,
+                            "priority": 200,
                             "direction": "Inbound"
                         }
                     },
@@ -209,7 +190,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 110,
+                            "priority": 210,
                             "direction": "Inbound"
                         }
                     },
@@ -223,7 +204,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 200,
+                            "priority": 220,
                             "direction": "Inbound"
                         }
                     },
@@ -237,7 +218,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 300,
+                            "priority": 230,
                             "direction": "Inbound"
                         }
                     },
@@ -251,7 +232,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 400,
+                            "priority": 240,
                             "direction": "Inbound"
                         }
                     },
@@ -265,7 +246,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 500,
+                            "priority": 250,
                             "direction": "Inbound"
                         }
                     },
@@ -279,13 +260,74 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 600,
+                            "priority": 260,
                             "direction": "Inbound"
                         }
                     }
                 ]
             }
         },
+		{
+			"apiVersion": "2015-01-01",
+			"type": "Microsoft.Resources/deployments",
+			"name": "rdp-0",
+			"dependsOn": [
+				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
+			],
+			"properties": {
+				"mode":"Incremental",
+				"parameters":{},
+				"template": {
+					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"parameters": {},
+					"variables": {},
+					"resources": [],
+					"outputs": {}
+				}
+			}
+		},       
+		{
+			"apiVersion": "2015-01-01",
+			"type": "Microsoft.Resources/deployments",
+			"name": "[concat('rdp-', copyIndex(1))]",
+			"dependsOn": [
+				"[concat('rdp-', copyIndex())]"
+			],
+			"copy": {
+				"name": "iterator",
+				"count": "[variables('noOfAddresses')]"
+			},
+			"properties": {
+				"mode": "Incremental",
+				"template": {
+					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"parameters": {},
+					"variables": {},
+					"resources": [
+						{
+							"apiVersion": "2016-09-01",
+							"name": "[concat(variables('networkSecurityGroupName'),'/Rdp',copyIndex())]",
+							"type": "Microsoft.Network/networkSecurityGroups/securityRules",
+							"location":"[resourceGroup().location]",
+							"properties":{
+								"description": "Remote Desktop Access",
+								"protocol": "Tcp",
+								"sourcePortRange": "*",
+								"destinationPortRange": "3389",
+								"sourceAddressPrefix": "[variables('rdpSourceAddressPrefix')[copyIndex()]]",
+								"destinationAddressPrefix": "*",
+								"access": "Allow",
+								"priority": "[add(copyIndex(),100)]",
+								"direction": "Inbound"
+							}
+						}
+					],
+					"outputs": {}
+				}
+			}
+		},
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/virtualNetworks",

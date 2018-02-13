@@ -147,19 +147,11 @@
                 "Description": "Specify the email address of the person accepting subscriber agreement for LetsEncrypt here https://letsencrypt.org/repository/"
             }
         },
-        "RemoteDesktopAccess": {
-		    "type": "string",
-            "defaultValue": "Allow",
-            "allowedValues": [ "Allow", "Deny" ],
-            "metadata": {
-                "Description": "Is Remote Desktop Access (port 3389) allowed for the Virtual Machine"
-            }
-        },
         "RemoteDesktopSourceAddrPrefix": {
 		    "type": "string",
             "defaultValue": "*",
             "metadata": {
-                "Description": "Provide an IP address or an address range using CIDR notation, e.g. 192.168.99.0/24"
+                "Description": "Provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
             }
         }
     },
@@ -321,7 +313,7 @@
 		{
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
-			"name": "loop-0",
+			"name": "rdp-0",
 			"dependsOn": [
 				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
 			],
@@ -341,9 +333,9 @@
 		{
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
-			"name": "[concat('loop-', copyIndex(1))]",
+			"name": "[concat('rdp-', copyIndex(1))]",
 			"dependsOn": [
-				"[concat('loop-', copyIndex())]"
+				"[concat('rdp-', copyIndex())]"
 			],
 			"copy": {
 				"name": "iterator",
@@ -359,7 +351,7 @@
 					"resources": [
 						{
 							"apiVersion": "2016-09-01",
-							"name": "[concat(variables('networkSecurityGroupName'),'/RDP',copyIndex())]",
+							"name": "[concat(variables('networkSecurityGroupName'),'/Rdp',copyIndex())]",
 							"type": "Microsoft.Network/networkSecurityGroups/securityRules",
 							"location":"[resourceGroup().location]",
 							"properties":{
