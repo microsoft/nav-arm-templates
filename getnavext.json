@@ -354,28 +354,29 @@
 				"template": {
 					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
 					"contentVersion": "1.0.0.0",
-				"parameters": {},
-				"variables": {},
-				"resources": [
-					{
-						"apiVersion": "2016-09-01",
-						"name": "[variables('networkSecurityGroupName')]",
-						"type": "Microsoft.Network/networkSecurityGroups/securityRules",
-						"location":"[resourceGroup().location]",
-						"properties":{
-							"description": "Remote Desktop Access",
-							"protocol": "Tcp",
-							"sourcePortRange": "*",
-							"destinationPortRange": "3389",
-							"sourceAddressPrefix": "[variables('rdpSourceAddressPrefix')[copyIndex()]]",
-							"destinationAddressPrefix": "*",
-							"access": "Allow",
-							"priority": "[add(copyIndex(),100)]",
-							"direction": "Inbound"
+					"parameters": {},
+					"variables": {},
+					"resources": [
+						{
+							"apiVersion": "2016-09-01",
+							"name": "[variables('networkSecurityGroupName')]",
+							"type": "Microsoft.Network/networkSecurityGroups/securityRules",
+							"location":"[resourceGroup().location]",
+							"properties":{
+								"description": "Remote Desktop Access",
+								"protocol": "Tcp",
+								"sourcePortRange": "*",
+								"destinationPortRange": "3389",
+								"sourceAddressPrefix": "[variables('rdpSourceAddressPrefix')[copyIndex()]]",
+								"destinationAddressPrefix": "*",
+								"access": "Allow",
+								"priority": "[add(copyIndex(),100)]",
+								"direction": "Inbound"
+							}
 						}
-					}
-				],
-				"outputs": {}
+					],
+					"outputs": {}
+				}
 			}
 		},
         {
