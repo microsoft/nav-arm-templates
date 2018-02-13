@@ -179,8 +179,8 @@
         "virtualNetworkName": "virtualnetwork",
         "server1Name": "[tolower(parameters('vmName'))]",
 		"delimiters": [ ",", ";" ],
-		"RdpSourceAddressPrefix": "[split(parameters('RemoteDesktopSourceAddrPrefix'),variables('delimiters'))]"
-		"NoOfAddresses": "[length(variables('RdpSourceAddressPrefix'))]"
+		"RdpSourceAddressPrefix": "[split(parameters('RemoteDesktopSourceAddrPrefix'),variables('delimiters'))]",
+		"NoOfAddresses": "[length(variables('RdpSourceAddressPrefix'))]",
         "nic1Name": "[concat(parameters('vmName'),'_nic')]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
