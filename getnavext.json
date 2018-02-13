@@ -359,7 +359,7 @@
 					"resources": [
 						{
 							"apiVersion": "2016-09-01",
-							"name": "[variables('networkSecurityGroupName')]",
+							"name": "[concat(variables('networkSecurityGroupName'),'/RDP',copyIndex())]",
 							"type": "Microsoft.Network/networkSecurityGroups/securityRules",
 							"location":"[resourceGroup().location]",
 							"properties":{
