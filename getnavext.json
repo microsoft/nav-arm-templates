@@ -8,7 +8,7 @@
                 "Description": "Select the name of the deployment"
             }
         },
-        "RemoteDesktopSourceAddrPrefix": {
+        "RemoteDesktopAccess": {
 		    "type": "string",
             "minLength": 1,
             "metadata": {
@@ -201,8 +201,8 @@
         "server1Name": "[tolower(parameters('vmName'))]",
         "nic1Name": "[concat(parameters('vmName'),'_nic')]",
 		"delimiters": [ ",", ";" ],
-		"allowRdp": "[if(equals(parameters('RemoteDesktopSourceAddrPrefix'),'-'),'Deny','Allow')]",
-		"RdpAddresses": "[if(equals(parameters('RemoteDesktopSourceAddrPrefix'),'-'),'*',parameters('RemoteDesktopSourceAddrPrefix'))]",
+		"allowRdp": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'Deny','Allow')]",
+		"RdpAddresses": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'*',parameters('RemoteDesktopAccess'))]",
 		"rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
 		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
