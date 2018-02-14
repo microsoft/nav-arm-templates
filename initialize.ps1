@@ -12,6 +12,7 @@ param
        [string]$registryPassword          = "",
        [string]$appBacpacUri              = "",
        [string]$tenantBacpacUri           = "",
+       [string]$includeAppUris            = "",
        [string]$clickonce                 = "Y",
        [string]$licenseFileUri            = "",
        [string]$certificatePfxUrl         = "",
@@ -24,7 +25,10 @@ param
        [string]$RunWindowsUpdate          = "No",
        [string]$Multitenant               = "No",
        [string]$UseLetsEncryptCertificate = "No",
-       [string]$ContactEMailForLetsEncrypt= ""
+       [string]$ContactEMailForLetsEncrypt= "",
+       [string]$Office365UserName         = "",
+       [string]$Office365Password         = "",
+       [string]$Office365CreatePortal     = ""
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -63,11 +67,14 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "containerName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "vmAdminUsername"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "navAdminUsername"       | Add-Content $settingsScript
+    Get-VariableDeclaration -name "Office365Username"      | Add-Content $settingsScript
+    Get-VariableDeclaration -name "Office365CreatePortal"  | Add-Content $settingsScript
     Get-VariableDeclaration -name "navDockerImage"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryUsername"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryPassword"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "appBacpacUri"           | Add-Content $settingsScript
-    Get-VariableDeclaration -name "tenantBacpacri"         | Add-Content $settingsScript
+    Get-VariableDeclaration -name "tenantBacpacUri"        | Add-Content $settingsScript
+    Get-VariableDeclaration -name "includeAppUris"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "clickonce"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "licenseFileUri"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "publicDnsName"          | Add-Content $settingsScript
@@ -76,12 +83,18 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "RunWindowsUpdate"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "Multitenant"            | Add-Content $settingsScript
 
-    $securePassword = ConvertTo-SecureString -String $adminPassword -AsPlainText -Force
     $passwordKey = New-Object Byte[] 16
     [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
-    $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $passwordKey
-    ('$adminPassword = "'+$encPassword+'"')                           | Add-Content $settingsScript
     ('$passwordKey = [byte[]]@('+"$passwordKey".Replace(" ",",")+')') | Add-Content $settingsScript
+
+    $securePassword = ConvertTo-SecureString -String $adminPassword -AsPlainText -Force
+    $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $passwordKey
+    ('$adminPassword = "'+$encPassword+'"') | Add-Content $settingsScript
+
+    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -AsPlainText -Force
+    $encOffice365Password = ConvertFrom-SecureString -SecureString $secureOffice365Password -Key $passwordKey
+    ('Office365Password = "'+$encOffice365Password+'"') | Add-Content $settingsScript
+
 }
 
 #
