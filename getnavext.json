@@ -201,8 +201,7 @@
         "server1Name": "[tolower(parameters('vmName'))]",
         "nic1Name": "[concat(parameters('vmName'),'_nic')]",
 		"delimiters": [ ",", ";" ],
-		"allowRdp": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'Deny','Allow')]",
-		"RdpAddresses": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'*',parameters('RemoteDesktopAccess'))]",
+		"RdpAddresses": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'',parameters('RemoteDesktopAccess'))]",
 		"rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
 		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
@@ -392,7 +391,7 @@
 								"destinationPortRange": "3389",
 								"sourceAddressPrefix": "[variables('rdpSourceAddressPrefix')[copyIndex()]]",
 								"destinationAddressPrefix": "*",
-								"access": "[variables('allowRdp')]",
+								"access": "Allow",
 								"priority": "[add(copyIndex(),100)]",
 								"direction": "Inbound"
 							}
