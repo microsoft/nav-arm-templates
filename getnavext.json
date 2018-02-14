@@ -8,6 +8,13 @@
                 "Description": "Select the name of the deployment"
             }
         },
+        "RemoteDesktopSourceAddrPrefix": {
+		    "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "Description": "Specify * (star) to allow all remote desktop access, specify - (minus) to deny all remote desktop access or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
+            }
+		},
         "vmSize": {
             "type": "string",
             "defaultValue": "Standard_D2_v3",
@@ -95,6 +102,13 @@
                 "Description": "Optional: Specify a secure Url of the tenant bacpac you want to use for the Docker image. If you do not specify an tenant bacpac, you will be using the NAV database in the Docker image."
             }
         },
+        "IncludeAppUris": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a list of secure Urls of apps to be published and installed."
+            }
+        },
         "Multitenant": {
 		    "type": "string",
             "defaultValue": "No",
@@ -147,12 +161,27 @@
                 "Description": "Specify the email address of the person accepting subscriber agreement for LetsEncrypt here https://letsencrypt.org/repository/"
             }
         },
-        "RemoteDesktopSourceAddrPrefix": {
-		    "type": "string",
-            "defaultValue": "*",
-            "metadata": {
-                "Description": "Provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
-            }
+		"Office365UserName": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"Description": "Enter Office 365 Administrator Email (leave empty to skip Office 365 integration)"
+			}
+		},
+		"Office365Password": {
+			"type": "securestring",
+			"defaultValue": "",
+			"metadata": {
+				"Description": "Enter Office 365 Administrator Password (leave empty if no Office 365 integration)"
+			}
+		},
+		"Office365CreatePortal": {
+			"type": "string",
+			"defaultValue": "Yes",
+			"allowedValues": [ "Yes", "No" ],
+			"metadata": {
+				"Description": "Create SharePoint Portal with NAV content (only if Office 365 Integration is installed)"
+			}
         }
     },
     "variables": {
@@ -172,7 +201,9 @@
         "server1Name": "[tolower(parameters('vmName'))]",
         "nic1Name": "[concat(parameters('vmName'),'_nic')]",
 		"delimiters": [ ",", ";" ],
-		"rdpSourceAddressPrefix": "[split(parameters('RemoteDesktopSourceAddrPrefix'),variables('delimiters'))]",
+		"allowRdp": "[if(equals(parameters('RemoteDesktopSourceAddrPrefix'),'-'),'Deny','Allow')]",
+		"RdpAddresses": "[if(equals(parameters('RemoteDesktopSourceAddrPrefix'),'-'),'*',parameters('RemoteDesktopSourceAddrPrefix'))]",
+		"rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
 		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
@@ -361,7 +392,7 @@
 								"destinationPortRange": "3389",
 								"sourceAddressPrefix": "[variables('rdpSourceAddressPrefix')[copyIndex()]]",
 								"destinationAddressPrefix": "*",
-								"access": "Allow",
+								"access": "[variables('allowRdp')]",
 								"priority": "[add(copyIndex(),100)]",
 								"direction": "Inbound"
 							}
@@ -491,7 +522,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',parameters('PublicDnsName'),'\" -Multitenant \"',parameters('Multitenant'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -IncludeAppUris \"',parameters('IncludeAppUris'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',parameters('PublicDnsName'),'\" -Multitenant \"',parameters('Multitenant'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -Office365CreatePortal \"',parameters('Office365CreatePortal'),'\"')]"
                 },
                 "protectedSettings": {}
             }
