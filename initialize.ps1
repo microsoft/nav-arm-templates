@@ -13,7 +13,7 @@ param
        [string]$appBacpacUri              = "",
        [string]$tenantBacpacUri           = "",
        [string]$includeAppUris            = "",
-       [string]$clickonce                 = "Y",
+       [string]$clickonce                 = "No",
        [string]$licenseFileUri            = "",
        [string]$certificatePfxUrl         = "",
        [string]$certificatePfxPassword    = "",
@@ -93,7 +93,7 @@ if (Test-Path $settingsScript) {
 
     $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -AsPlainText -Force
     $encOffice365Password = ConvertFrom-SecureString -SecureString $secureOffice365Password -Key $passwordKey
-    ('Office365Password = "'+$encOffice365Password+'"') | Add-Content $settingsScript
+    ('$Office365Password = "'+$encOffice365Password+'"') | Add-Content $settingsScript
 
 }
 
@@ -206,7 +206,7 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.5.1 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.6.2 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {

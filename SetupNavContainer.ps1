@@ -57,6 +57,9 @@ if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
     $additionalParameters += @("--env appbacpac=$appBacpacUri",
                                "--env tenantbacpac=$tenantBacpacUri")
 }
+if ("$clickonce" -eq "Yes") {
+    $additionalParameters += @("--env clickonce=Y")
+}
 
 $mt = $false
 if ($multitenant -eq "Yes") {
@@ -66,13 +69,19 @@ if ($multitenant -eq "Yes") {
 $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
+$auth = "NavUserPassword"
+if ($Office365UserName -ne "" -and $Office365Password -ne "") {
+    $auth = "AAD"
+}
+
 Log "Running $imageName (this will take a few minutes)"
 New-NavContainer -accept_eula `
                  -containerName $containerName `
                  -useSSL `
-                 -auth NavUserPassword `
+                 -auth $Auth `
                  -includeCSide `
                  -doNotExportObjectsToText `
+                 -authenticationEMail $Office365UserName `
                  -credential $credential `
                  -additionalParameters $additionalParameters `
                  -myScripts $myscripts `
@@ -98,6 +107,17 @@ if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
 [System.IO.File]::WriteAllText("$containerFolder\Cu.txt",$cu)
 [System.IO.File]::WriteAllText("$containerFolder\Country.txt", $country)
 [System.IO.File]::WriteAllText("$containerFolder\Title.txt",$title)
+
+if ($Office365UserName -ne "" -and $Office365Password -ne "") {
+    Log "Creating Aad Apps for Office 365 integration"
+    $CustomConfigFile =  Join-Path $containerFolder "CustomSettings.config"
+    $CustomConfig = [xml](Get-Content $CustomConfigFile)
+    $publicWebBaseUrl = $CustomConfig.SelectSingleNode("//appSettings/add[@key='PublicWebBaseUrl']").Value
+    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
+    $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
+    Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
+    $auth = "AAD"
+}
 
 # Install Certificate on host
 $certFile = Get-Item "$containerFolder\*.cer"

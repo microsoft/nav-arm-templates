@@ -4,12 +4,15 @@
     "parameters": {
         "vmName": {
             "type": "string",
+			"defaultValue": "",
+            "minLength": 3,
             "metadata": {
                 "Description": "Select the name of the deployment"
             }
         },
         "RemoteDesktopAccess": {
 		    "type": "string",
+			"defaultValue": "",
             "minLength": 1,
             "metadata": {
                 "Description": "Specify * (star) to allow all remote desktop access, specify - (minus) to deny all remote desktop access or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
@@ -43,6 +46,7 @@
         "vmAdminUsername": {
             "type": "string",
             "defaultValue": "vmadmin",
+            "minLength": 1,
             "metadata": {
                 "Description": "Specify administrator user name for connecting to the VM"
             }
@@ -50,6 +54,7 @@
         "navAdminUsername": {
             "type": "string",
             "defaultValue": "admin",
+            "minLength": 1,
             "metadata": {
                 "Description": "Specify administrator user name for NAV"
             }
@@ -62,7 +67,8 @@
         },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "microsoft/dynamics-nav:devpreview-finus",
+            "defaultValue": "microsoft/dynamics-nav",
+            "minLength": 1,
             "metadata": {
                 "Description": "Select the NAV Docker Image to deploy. Replace -finus with -finca or -fingb to get other Financials localizations. Remove -finus to get W1."
             }
@@ -107,6 +113,14 @@
             "defaultValue": "",
             "metadata": {
                 "Description": "Optional: Specify a list of secure Urls of apps to be published and installed."
+            }
+        },
+        "ClickOnce": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Include ClickOnce deployed Windows Client"
             }
         },
         "Multitenant": {
