@@ -4,10 +4,20 @@
     "parameters": {
         "vmName": {
             "type": "string",
+			"defaultValue": "",
+            "minLength": 3,
             "metadata": {
                 "Description": "Select the name of the deployment"
             }
         },
+        "RemoteDesktopAccess": {
+		    "type": "string",
+			"defaultValue": "",
+            "minLength": 1,
+            "metadata": {
+                "Description": "Specify * (star) to allow all remote desktop access, specify - (minus) to deny all remote desktop access or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
+            }
+		},
         "vmSize": {
             "type": "string",
             "defaultValue": "Standard_D2_v3",
@@ -36,6 +46,7 @@
         "vmAdminUsername": {
             "type": "string",
             "defaultValue": "student",
+            "minLength": 1,
             "metadata": {
                 "Description": "Specify administrator user name for connecting to the VM"
             }
@@ -43,6 +54,7 @@
         "navAdminUsername": {
             "type": "string",
             "defaultValue": "student",
+            "minLength": 1,
             "metadata": {
                 "Description": "Specify administrator user name for NAV"
             }
@@ -56,6 +68,7 @@
         "navDockerImage": {
             "type": "string",
             "defaultValue": "microsoft/dynamics-nav:devpreview-finus",
+            "minLength": 1,
             "metadata": {
                 "Description": "Select the NAV Docker Image to deploy. See https://hub.docker.com/r/microsoft/dynamics-nav/ for a list of public images."
             }
@@ -159,13 +172,6 @@
             "metadata": {
                 "Description": "Specify the email address of the person accepting subscriber agreement for LetsEncrypt here https://letsencrypt.org/repository/"
             }
-        },
-        "RemoteDesktopSourceAddrPrefix": {
-		    "type": "string",
-            "defaultValue": "*",
-            "metadata": {
-                "Description": "Provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
-            }
         }
     },
     "variables": {
@@ -181,7 +187,8 @@
         "subnetPrefix": "10.0.0.0/24",
         "virtualNetworkName": "virtualnetwork",
 		"delimiters": [ ",", ";" ],
-		"rdpSourceAddressPrefix": "[split(parameters('RemoteDesktopSourceAddrPrefix'),variables('delimiters'))]",
+		"RdpAddresses": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'',parameters('RemoteDesktopAccess'))]",
+		"rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
 		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
