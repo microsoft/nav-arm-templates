@@ -80,6 +80,36 @@
                 "Description": "Optional: Specify a secure Url of your NAV Partner License File for the developer preview. If you do not specify a license file Url here, you will have to upload the license manually later."
             }
         },
+        "ClickOnce": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Include ClickOnce deployed Windows Client"
+            }
+        },
+		"Office365UserName": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"Description": "Enter Office 365 Administrator Email (leave empty to skip Office 365 integration)"
+			}
+		},
+		"Office365Password": {
+			"type": "securestring",
+			"defaultValue": "",
+			"metadata": {
+				"Description": "Enter Office 365 Administrator Password (leave empty if no Office 365 integration)"
+			}
+		},
+		"Office365CreatePortal": {
+			"type": "string",
+			"defaultValue": "Yes",
+			"allowedValues": [ "Yes", "No" ],
+			"metadata": {
+				"Description": "Create SharePoint Portal with NAV content (only if Office 365 Integration is installed)"
+			}
+        },
         "RunWindowsUpdate": {
 		    "type": "string",
             "defaultValue": "No",
@@ -441,7 +471,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"demo\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -Office365CreatePortal \"',parameters('Office365CreatePortal'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
                 },
                 "protectedSettings": {}
             }

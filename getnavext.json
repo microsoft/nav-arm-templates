@@ -131,13 +131,27 @@
                 "Description": "Should NAV be setup for multi tenancy"
             }
         },
-        "RunWindowsUpdate": {
-		    "type": "string",
-            "defaultValue": "No",
-            "allowedValues": [ "Yes", "No" ],
-            "metadata": {
-                "Description": "Run Windows Update after Deployment (might take significant time)"
-            }
+		"Office365UserName": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"Description": "Enter Office 365 Administrator Email (leave empty to skip Office 365 integration)"
+			}
+		},
+		"Office365Password": {
+			"type": "securestring",
+			"defaultValue": "",
+			"metadata": {
+				"Description": "Enter Office 365 Administrator Password (leave empty if no Office 365 integration)"
+			}
+		},
+		"Office365CreatePortal": {
+			"type": "string",
+			"defaultValue": "Yes",
+			"allowedValues": [ "Yes", "No" ],
+			"metadata": {
+				"Description": "Create SharePoint Portal with NAV content (only if Office 365 Integration is installed)"
+			}
         },
         "CertificatePfxUrl": {
             "type": "string",
@@ -160,6 +174,14 @@
                 "Description": "Public DNS Name (CNAME record pointing to your VM). A # in the name will be replaced by the VM number. If you do not specify a public DNS name, you will get a Self Signed Certificate."
             }
         },
+        "RunWindowsUpdate": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Run Windows Update after Deployment (might take significant time)"
+            }
+        },
         "UseLetsEncryptCertificate": {
 		    "type": "string",
             "defaultValue": "No",
@@ -174,28 +196,6 @@
             "metadata": {
                 "Description": "Specify the email address of the person accepting subscriber agreement for LetsEncrypt here https://letsencrypt.org/repository/"
             }
-        },
-		"Office365UserName": {
-			"type": "string",
-			"defaultValue": "",
-			"metadata": {
-				"Description": "Enter Office 365 Administrator Email (leave empty to skip Office 365 integration)"
-			}
-		},
-		"Office365Password": {
-			"type": "securestring",
-			"defaultValue": "",
-			"metadata": {
-				"Description": "Enter Office 365 Administrator Password (leave empty if no Office 365 integration)"
-			}
-		},
-		"Office365CreatePortal": {
-			"type": "string",
-			"defaultValue": "Yes",
-			"allowedValues": [ "Yes", "No" ],
-			"metadata": {
-				"Description": "Create SharePoint Portal with NAV content (only if Office 365 Integration is installed)"
-			}
         }
     },
     "variables": {
@@ -535,7 +535,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -IncludeAppUris \"',parameters('IncludeAppUris'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',parameters('PublicDnsName'),'\" -Multitenant \"',parameters('Multitenant'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -Office365CreatePortal \"',parameters('Office365CreatePortal'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -IncludeAppUris \"',parameters('IncludeAppUris'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',parameters('PublicDnsName'),'\" -Multitenant \"',parameters('Multitenant'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -Office365CreatePortal \"',parameters('Office365CreatePortal'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
                 },
                 "protectedSettings": {}
             }
