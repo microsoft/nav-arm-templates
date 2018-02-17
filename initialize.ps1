@@ -28,7 +28,7 @@ param
        [string]$ContactEMailForLetsEncrypt= "",
        [string]$Office365UserName         = "",
        [string]$Office365Password         = "",
-       [string]$Office365CreatePortal     = ""
+       [string]$Office365CreatePortal     = "No"
 )
 
 function Get-VariableDeclaration([string]$name) {
