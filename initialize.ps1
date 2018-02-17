@@ -175,6 +175,14 @@ if ($vmAdminUsername -ne $navAdminUsername) {
     Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ignore' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
 }
 
+'. "c:\run\SetupConfiguration.ps1"
+if ($auth -eq "AccessControlService") {
+    Write-Host "Changing Server config to NavUserPassword to enable basic web services"
+    $customConfig.SelectSingleNode("//appSettings/add[@key=''ClientServicesCredentialType'']").Value = "NavUserPassword"
+    $CustomConfig.Save($CustomConfigFile)
+}
+' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
+
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
 Download-File -sourceUrl "${scriptPath}SetupNavContainer.ps1" -destinationFile $setupNavContainerScript
 Download-File -sourceUrl "${scriptPath}SetupVm.ps1"           -destinationFile $setupVmScript
