@@ -272,15 +272,19 @@ if ($dnsidentity.StartsWith("*")) {
             Log "Requesting certificate"
             $certAlias = "certAlias"
             $certPassword = [GUID]::NewGuid().ToString()
-            $certFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
-            Remove-Item -Path $certFilename -Force -ErrorAction Ignore
+            $certPfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
+            Remove-Item -Path $certPfxFilename -Force -ErrorAction Ignore
             New-ACMECertificate -Generate -IdentifierRef $dnsAlias -Alias $certAlias
             Submit-ACMECertificate -CertificateRef $certAlias
             Update-ACMECertificate -CertificateRef $certAlias
-            Get-ACMECertificate -CertificateRef $certAlias -ExportPkcs12 $certFilename -CertificatePassword $certPassword
+            Get-ACMECertificate -CertificateRef $certAlias -ExportPkcs12 $certPfxFilename -CertificatePassword $certPassword
             
+            $certPemFilename = "c:\ProgramData\navcontainerhelper\certificate.pem"
+            Remove-Item -Path $certPemFilename -Force -ErrorAction Ignore
+            Get-ACMECertificate -CertificateRef $certAlias -ExportKeyPEM $certPemFilename
+
             ('$certificatePfxPassword = "'+$certPassword+'"
-            $certificatePfxFile = "'+$certFilename+'"
+            $certificatePfxFile = "'+$certPfxFilename+'"
             $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
             $certificateThumbprint = $cert.Thumbprint
             Write-Host "Certificate File Thumbprint $certificateThumbprint"
