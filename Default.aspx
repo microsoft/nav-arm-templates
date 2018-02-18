@@ -387,30 +387,28 @@ You can view the installation status by following this link.
   }
   if (GetCustomSettings()) {
 %>
-    <tr><td colspan="4"><h3>Access the <%=getProduct() %> using UserName/Password Authentication</h3></td></tr>
-<%
-    if (isHttps()) {
-%>
-    <tr>
-      <td colspan="2">If you have installed the Microsoft Dynamics NAV Universal App on your phone, tablet or desktop computer and want to configure the app to connect to this <%=getProduct() %>, choose this link.</td>
-      <td></td>  
-      <td style="white-space: nowrap"><a href="ms-dynamicsnav://<% =getHostname() %>/nav">Configure App</a></td>
-    </tr>
-<%
-    }
-%>
+    <tr><td colspan="4"><h3>Access the <%=getProduct() %></h3></td></tr>
     <tr>
       <td colspan="2">Choose these links to access the <%=getProduct() %> using the Web Client.</td>
       <td></td>  
       <td><a href="<% =getWebBaseUrl() %>" target="_blank">Web&nbsp;Client</a></td>
     </tr>
 <%
-    if (Directory.Exists(Server.MapPath(".") + @"\clickonce.txt")) {
+    if (File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\clickonce.txt")) {
 %>
     <tr>
       <td colspan="2">The <%=getProduct() %> supports running the Microsoft Dynamics NAV Windows client over the internet. Choose this link to install the Microsoft Dynamics NAV Windows client using ClickOnce.</td>
       <td></td>  
       <td style="white-space: nowrap"><a href="<%=getClickOnceUrl() %>" target="_blank">Install Windows Client</a></td>
+    </tr>
+<%
+    }
+    if (isHttps()) {
+%>
+    <tr>
+      <td colspan="2">If you have installed the Microsoft Dynamics NAV Universal App on your phone, tablet or desktop computer and want to configure the app to connect to this <%=getProduct() %>, choose this link.</td>
+      <td></td>  
+      <td style="white-space: nowrap"><a href="ms-dynamicsnav://<% =getHostname() %>/nav">Configure App</a></td>
     </tr>
 <%
     }
