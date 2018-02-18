@@ -1,28 +1,34 @@
 #usage initialize.ps1
 param
 (
-       [string]$templateLink           = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
-       [string]$containerName          = "navserver",
-       [string]$hostName               = "",
-       [string]$vmAdminUsername        = "vmadmin",
-       [string]$navAdminUsername       = "admin",
-       [string]$adminPassword          = "P@ssword1",
-       [string]$navDockerImage         = "microsoft/dynamics-nav:devpreview-finus",
-       [string]$registryUsername       = "",
-       [string]$registryPassword       = "",
-       [string]$appBacpacUri           = "",
-       [string]$tenantBacpacUri        = "",
-       [string]$clickonce              = "Y",
-       [string]$licenseFileUri         = "",
-       [string]$certificatePfxUrl      = "",
-       [string]$certificatePfxPassword = "",
-       [string]$publicDnsName          = "",
-	   [string]$fobFileUrl             = "",
-	   [string]$workshopFilesUrl       = "",
-	   [string]$finalSetupScriptUrl    = "",
-       [string]$style                  = "devpreview",
-       [string]$RunWindowsUpdate       = "No",
-       [string]$Multitenant            = "No"
+       [string]$templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
+       [string]$containerName             = "navserver",
+       [string]$hostName                  = "",
+       [string]$vmAdminUsername           = "vmadmin",
+       [string]$navAdminUsername          = "admin",
+       [string]$adminPassword             = "P@ssword1",
+       [string]$navDockerImage            = "microsoft/dynamics-nav:devpreview-finus",
+       [string]$registryUsername          = "",
+       [string]$registryPassword          = "",
+       [string]$appBacpacUri              = "",
+       [string]$tenantBacpacUri           = "",
+       [string]$includeAppUris            = "",
+       [string]$clickonce                 = "No",
+       [string]$licenseFileUri            = "",
+       [string]$certificatePfxUrl         = "",
+       [string]$certificatePfxPassword    = "",
+       [string]$publicDnsName             = "",
+	   [string]$fobFileUrl                = "",
+	   [string]$workshopFilesUrl          = "",
+	   [string]$finalSetupScriptUrl       = "",
+       [string]$style                     = "devpreview",
+       [string]$RunWindowsUpdate          = "No",
+       [string]$Multitenant               = "No",
+       [string]$UseLetsEncryptCertificate = "No",
+       [string]$ContactEMailForLetsEncrypt= "",
+       [string]$Office365UserName         = "",
+       [string]$Office365Password         = "",
+       [string]$Office365CreatePortal     = "No"
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -61,11 +67,14 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "containerName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "vmAdminUsername"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "navAdminUsername"       | Add-Content $settingsScript
+    Get-VariableDeclaration -name "Office365Username"      | Add-Content $settingsScript
+    Get-VariableDeclaration -name "Office365CreatePortal"  | Add-Content $settingsScript
     Get-VariableDeclaration -name "navDockerImage"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryUsername"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryPassword"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "appBacpacUri"           | Add-Content $settingsScript
-    Get-VariableDeclaration -name "tenantBacpacri"         | Add-Content $settingsScript
+    Get-VariableDeclaration -name "tenantBacpacUri"        | Add-Content $settingsScript
+    Get-VariableDeclaration -name "includeAppUris"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "clickonce"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "licenseFileUri"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "publicDnsName"          | Add-Content $settingsScript
@@ -74,12 +83,18 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "RunWindowsUpdate"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "Multitenant"            | Add-Content $settingsScript
 
-    $securePassword = ConvertTo-SecureString -String $adminPassword -AsPlainText -Force
     $passwordKey = New-Object Byte[] 16
     [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
-    $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $passwordKey
-    ('$adminPassword = "'+$encPassword+'"')                           | Add-Content $settingsScript
     ('$passwordKey = [byte[]]@('+"$passwordKey".Replace(" ",",")+')') | Add-Content $settingsScript
+
+    $securePassword = ConvertTo-SecureString -String $adminPassword -AsPlainText -Force
+    $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $passwordKey
+    ('$adminPassword = "'+$encPassword+'"') | Add-Content $settingsScript
+
+    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -AsPlainText -Force
+    $encOffice365Password = ConvertFrom-SecureString -SecureString $secureOffice365Password -Key $passwordKey
+    ('$Office365Password = "'+$encOffice365Password+'"') | Add-Content $settingsScript
+
 }
 
 #
@@ -160,6 +175,14 @@ if ($vmAdminUsername -ne $navAdminUsername) {
     Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ignore' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
 }
 
+'. "c:\run\SetupConfiguration.ps1"
+if ($auth -eq "AccessControlService") {
+    Write-Host "Changing Server config to NavUserPassword to enable basic web services"
+    $customConfig.SelectSingleNode("//appSettings/add[@key=''ClientServicesCredentialType'']").Value = "NavUserPassword"
+    $CustomConfig.Save($CustomConfigFile)
+}
+' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
+
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
 Download-File -sourceUrl "${scriptPath}SetupNavContainer.ps1" -destinationFile $setupNavContainerScript
 Download-File -sourceUrl "${scriptPath}SetupVm.ps1"           -destinationFile $setupVmScript
@@ -191,7 +214,7 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.5.1 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.6.4 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
@@ -210,7 +233,75 @@ $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
 if ($dnsidentity.StartsWith("*")) {
     $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
 }
-') | Add-Content "c:\myfolder\SetupCertificate.ps1"
+') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
+} elseif ($UseLetsEncryptCertificate -eq "Yes") {
+
+    if ("$ContactEMailForLetsEncrypt" -eq "") {
+        Log -color Red "Contact EMail not specified for Lets Encrypt, subscriber agreement not accepted, reverting to Self Signed Certificate"
+    } else {
+
+        Log "Using Lets Encrypt certificate"
+
+        # Use Lets encrypt
+        # If rate limits are hit, log an error and revert to Self Signed
+
+        try {
+            Log "Installing ACMESharp PowerShell modules"
+            Install-Module -Name ACMESharp -AllowClobber -force -ErrorAction SilentlyContinue
+            Install-Module -Name ACMESharp.Providers.IIS -force -ErrorAction SilentlyContinue
+            Import-Module ACMESharp
+            Enable-ACMEExtensionModule -ModuleName ACMESharp.Providers.IIS -ErrorAction SilentlyContinue
+            
+            Log "Initializing ACMEVault"
+            Initialize-ACMEVault
+            
+            Log "Register Contact EMail address and accept Terms Of Service"
+            New-ACMERegistration -Contacts "mailto:$ContactEMailForLetsEncrypt" -AcceptTos
+            
+            Log "Creating new dns Identifier"
+            $dnsAlias = "dnsAlias"
+            New-ACMEIdentifier -Dns $publicDnsName -Alias $dnsAlias
+
+            Log "Performing Lets Encrypt challenge to default web site"
+            Complete-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01 -Handler iis -HandlerParameters @{ WebSiteRef = 'Default Web Site' }
+            Submit-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01
+            sleep -s 60
+            Update-ACMEIdentifier -IdentifierRef $dnsAlias
+            
+            Log "Requesting certificate"
+            $certAlias = "certAlias"
+            $certPassword = [GUID]::NewGuid().ToString()
+            $certPfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
+            Remove-Item -Path $certPfxFilename -Force -ErrorAction Ignore
+            New-ACMECertificate -Generate -IdentifierRef $dnsAlias -Alias $certAlias
+            Submit-ACMECertificate -CertificateRef $certAlias
+            Update-ACMECertificate -CertificateRef $certAlias
+            Get-ACMECertificate -CertificateRef $certAlias -ExportPkcs12 $certPfxFilename -CertificatePassword $certPassword
+            
+            $certPemFilename = "c:\ProgramData\navcontainerhelper\certificate.pem"
+            Remove-Item -Path $certPemFilename -Force -ErrorAction Ignore
+            Get-ACMECertificate -CertificateRef $certAlias -ExportKeyPEM $certPemFilename
+
+            ('$certificatePfxPassword = "'+$certPassword+'"
+            $certificatePfxFile = "'+$certPfxFilename+'"
+            $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+            $certificateThumbprint = $cert.Thumbprint
+            Write-Host "Certificate File Thumbprint $certificateThumbprint"
+            if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+                Write-Host "Import Certificate to LocalMachine\my"
+                Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
+            }
+            $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+            if ($dnsidentity.StartsWith("*")) {
+                $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
+            }
+            ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+        } catch {
+            Log -color Red $_.ErrorDetails.Message
+            Log -color Red "Reverting to Self Signed Certificate"
+        }
+    }
 }
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
