@@ -214,7 +214,7 @@
         "virtualNetworkName": "virtualnetwork",
         "server1Name": "[tolower(parameters('vmName'))]",
         "nic1Name": "[concat(parameters('vmName'),'_nic')]",
-		"useAzureSql": "0",
+		"useAzureSql": 0,
 		"delimiters": [ ",", ";" ],
 		"RdpAddresses": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'',parameters('RemoteDesktopAccess'))]",
 		"rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
