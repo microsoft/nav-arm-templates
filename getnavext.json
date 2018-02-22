@@ -286,7 +286,7 @@
 							"type": "extensions",
 							"apiVersion": "2014-04-01-preview",
 							"dependsOn": [
-								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Demo Database NAV (11-0)')]"
+								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/App')]"
 							],
 							"tags": {
 								"displayName": "Import"
@@ -325,7 +325,7 @@
 							"type": "extensions",
 							"apiVersion": "2014-04-01-preview",
 							"dependsOn": [
-								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Tenant Template')]"
+								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Tenant')]"
 							],
 							"tags": {
 								"displayName": "Import"
