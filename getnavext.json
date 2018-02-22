@@ -63,7 +63,7 @@
 			"type": "string",
 			"defaultValue": "sqladmin",
 			"metadata": {
-				"Description": "Specify SQL Administrator user name"
+				"Description": "Specify SQL Administrator user name (only used if you select Azure SQL as your SQL Server)"
 			}
 		},
         "adminPassword": {
@@ -84,14 +84,14 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:tag)"
+                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:<tag>)"
             }
         },
         "registryPassword": {
             "type": "securestring",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:tag)"
+                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:<tag>)"
             }
         },
         "LicenseFileUri": {
@@ -113,6 +113,14 @@
             "defaultValue": "",
             "metadata": {
                 "Description": "Optional: Specify a secure Url of the tenant bacpac you want to use for the Docker image. If you do not specify an tenant bacpac, you will be using the NAV database in the Docker image."
+            }
+        },
+        "SQLServer": {
+		    "type": "string",
+            "defaultValue": "SQLExpress",
+            "allowedValues": [ "SQLExpress", "AzureSQL Standard S0", "AzureSQL Standard S1", "AzureSQL Standard S2", "AzureSQL Standard S3", "AzureSQL Standard S4", "AzureSQL Standard S6", "AzureSQL Standard S7", "AzureSQL Standard S9", "AzureSQL Standard S12", "AzureSQL Premium P1", "AzureSQL Premium P2", "AzureSQL Premium P4", "AzureSQL Premium P6", "AzureSQL Premium P11", "AzureSQL Premium P15" ]
+            "metadata": {
+                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of NAV Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost."
             }
         },
         "IncludeAppUris": {
@@ -207,6 +215,9 @@
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
 		"sqlServerName": "[concat('sql', replace(tolower(parameters('vmName')),'-',''))]",
+		"sqlType": "[if(equals(parameters('SQLServer'),'SQLExpress'),'SQLExpress','AzureSQL']",,
+		"sqlEdition": "[if(equals(parameters('SQLServer'),'SQLExpress'),'',split(parameters('SQLServer',' '))[1]]",
+		"sqlPerfLevel": "[if(equals(parameters('SQLServer'),'SQLExpress'),'',split(parameters('SQLServer',' '))[2]]",
         "dnsName": "[tolower(parameters('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
@@ -214,7 +225,6 @@
         "virtualNetworkName": "virtualnetwork",
         "server1Name": "[tolower(parameters('vmName'))]",
         "nic1Name": "[concat(parameters('vmName'),'_nic')]",
-		"useAzureSql": 0,
 		"delimiters": [ ",", ";" ],
 		"RdpAddresses": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'',parameters('RemoteDesktopAccess'))]",
 		"rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
@@ -226,6 +236,114 @@
         "ScriptCommandToExecute": "powershell.exe -File  "
     },
     "resources": [
+		{
+			"name": "[variables('sqlserverName')]",
+			"type": "Microsoft.Sql/servers",
+			"location": "[resourceGroup().location]",
+			"condition": "[equals(variables('sqlType','AzureSQL')]",
+			"tags": {
+				"displayName": "SqlServer"
+			},
+			"apiVersion": "2014-04-01-preview",
+			"properties": {
+				"administratorLogin": "[parameters('sqlAdminUsername')]",
+				"administratorLoginPassword": "[parameters('adminPassword')]",
+				"version": "12.0"
+			},
+			"resources": [
+				{
+					"type": "firewallrules",
+					"apiVersion": "2014-04-01-preview",
+					"dependsOn": [
+						"[variables('sqlserverName')]"
+					],
+					"location": "[resourceGroup().location]",
+					"name": "AllowAllAzureIps",
+					"properties": {
+						"endIpAddress": "0.0.0.0",
+						"startIpAddress": "0.0.0.0"
+					}
+				},
+				{
+					"name": "App",
+					"type": "databases",
+					"location": "[resourceGroup().location]",
+					"apiVersion": "2014-04-01-preview",
+					"dependsOn": [
+						"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
+					],
+					"tags": {
+						"displayName": "App Database"
+					},
+					"properties": {
+						"collation": "[variables('SqlCollation')]",
+						"edition": "Standard",
+						"maxSizeBytes": "1073741824",
+						"requestedServiceObjectiveName": "S0"
+					},
+					"resources": [
+						{
+							"name": "Import",
+							"type": "extensions",
+							"apiVersion": "2014-04-01-preview",
+							"dependsOn": [
+								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Demo Database NAV (11-0)')]"
+							],
+							"tags": {
+								"displayName": "Import"
+							},
+							"properties": {
+								"storageKeyType": "SharedAccessKey",
+								"storageUri": "[split(parameters('AppBacpacUri'),'?')[0]]",
+								"storageKey": "[concat('?',split(parameters('AppBacpacUri'),'?')[1])]",
+								"administratorLogin": "[parameters('sqlAdminUsername')]",
+								"administratorLoginPassword": "[parameters('adminPassword')]",
+								"operationMode": "Import"
+							}
+						}
+					]
+				},
+				{
+					"name": "Tenant",
+					"type": "databases",
+					"location": "[resourceGroup().location]",
+					"apiVersion": "2014-04-01-preview",
+					"dependsOn": [
+						"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
+					],
+					"tags": {
+						"displayName": "Tenant Template"
+					},
+					"properties": {
+						"collation": "[variables('SqlCollation')]",
+						"edition": "Standard",
+						"maxSizeBytes": "1073741824",
+						"requestedServiceObjectiveName": "S0"
+					},
+					"resources": [
+						{
+							"name": "Import",
+							"type": "extensions",
+							"apiVersion": "2014-04-01-preview",
+							"dependsOn": [
+								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Tenant Template')]"
+							],
+							"tags": {
+								"displayName": "Import"
+							},
+							"properties": {
+								"storageKeyType": "SharedAccessKey",
+								"storageUri": "[split(parameters('TenantBacpacUri'),'?')[0]]",
+								"storageKey": "[concat('?',split(parameters('TenantBacpacUri'),'?')[1])]",
+								"administratorLogin": "[parameters('sqlAdminUsername')]",
+								"administratorLoginPassword": "[parameters('adminPassword')]",
+								"operationMode": "Import"
+							}
+						}
+					]
+				}
+			]
+		},
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Storage/storageAccounts",
@@ -410,157 +528,6 @@
 								"priority": "[add(copyIndex(),100)]",
 								"direction": "Inbound"
 							}
-						}
-					],
-					"outputs": {}
-				}
-			}
-		},
-		{
-			"apiVersion": "2015-01-01",
-			"type": "Microsoft.Resources/deployments",
-			"name": "sql-0",
-			"dependsOn": [
-				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
-			],
-			"properties": {
-				"mode":"Incremental",
-				"parameters":{},
-				"template": {
-					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-					"contentVersion": "1.0.0.0",
-					"parameters": {},
-					"variables": {},
-					"resources": [],
-					"outputs": {}
-				}
-			}
-		},       
-		{
-			"apiVersion": "2015-01-01",
-			"type": "Microsoft.Resources/deployments",
-			"name": "[concat('sql-', copyIndex(1))]",
-			"dependsOn": [
-				"[concat('sql-', copyIndex())]"
-			],
-			"copy": {
-				"name": "iterator",
-				"count": "[variables('useAzureSql')]"
-			},
-			"properties": {
-				"mode": "Incremental",
-				"template": {
-					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-					"contentVersion": "1.0.0.0",
-					"parameters": {},
-					"variables": {},
-					"resources": [
-						{
-							"name": "[variables('sqlserverName')]",
-							"type": "Microsoft.Sql/servers",
-							"location": "[resourceGroup().location]",
-							"tags": {
-								"displayName": "SqlServer"
-							},
-							"apiVersion": "2014-04-01-preview",
-							"properties": {
-								"administratorLogin": "[parameters('sqlAdminUsername')]",
-								"administratorLoginPassword": "[parameters('adminPassword')]",
-								"version": "12.0"
-							},
-							"resources": [
-								{
-									"type": "firewallrules",
-									"apiVersion": "2014-04-01-preview",
-									"dependsOn": [
-										"[variables('sqlserverName')]"
-									],
-									"location": "[resourceGroup().location]",
-									"name": "AllowAllAzureIps",
-									"properties": {
-										"endIpAddress": "0.0.0.0",
-										"startIpAddress": "0.0.0.0"
-									}
-								},
-								{
-									"name": "Demo Database NAV (11-0)",
-									"type": "databases",
-									"location": "[resourceGroup().location]",
-									"apiVersion": "2014-04-01-preview",
-									"dependsOn": [
-										"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
-									],
-									"tags": {
-										"displayName": "Demo Database NAV (11-0)"
-									},
-									"properties": {
-										"collation": "[variables('SqlCollation')]",
-										"edition": "Standard",
-										"maxSizeBytes": "1073741824",
-										"requestedServiceObjectiveName": "S0"
-									},
-									"resources": [
-										{
-											"name": "Import",
-											"type": "extensions",
-											"apiVersion": "2014-04-01-preview",
-											"dependsOn": [
-												"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Demo Database NAV (11-0)')]"
-											],
-											"tags": {
-												"displayName": "Import"
-											},
-											"properties": {
-												"storageKeyType": "SharedAccessKey",
-												"storageUri": "[split(parameters('SqlStorageAppDbUri'),'?')[0]]",
-												"storageKey": "[concat('?',split(parameters('SqlStorageAppDbUri'),'?')[1])]",
-												"administratorLogin": "[parameters('sqlAdminUsername')]",
-												"administratorLoginPassword": "[parameters('adminPassword')]",
-												"operationMode": "Import"
-											}
-										}
-									]
-								},
-								{
-									"name": "Tenant Template",
-									"type": "databases",
-									"location": "[resourceGroup().location]",
-									"apiVersion": "2014-04-01-preview",
-									"dependsOn": [
-										"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
-									],
-									"tags": {
-										"displayName": "Tenant Template"
-									},
-									"properties": {
-										"collation": "[variables('SqlCollation')]",
-										"edition": "Standard",
-										"maxSizeBytes": "1073741824",
-										"requestedServiceObjectiveName": "S0"
-									},
-									"resources": [
-										{
-											"name": "Import",
-											"type": "extensions",
-											"apiVersion": "2014-04-01-preview",
-											"dependsOn": [
-												"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Tenant Template')]"
-											],
-											"tags": {
-												"displayName": "Import"
-											},
-											"properties": {
-												"storageKeyType": "SharedAccessKey",
-												"storageUri": "[split(parameters('SqlStorageTenantDbUri'),'?')[0]]",
-												"storageKey": "[concat('?',split(parameters('SqlStorageTenantDbUri'),'?')[1])]",
-												"administratorLogin": "[parameters('sqlAdminUsername')]",
-												"administratorLoginPassword": "[parameters('adminPassword')]",
-												"operationMode": "Import"
-											}
-										}
-									]
-								}
-							]
 						}
 					],
 					"outputs": {}
