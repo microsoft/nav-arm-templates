@@ -215,7 +215,7 @@
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
 		"sqlServerName": "[concat('sql', replace(tolower(parameters('vmName')),'-',''))]",
-		"sqlType": "[if(equals(parameters('SQLServer'),'SQLExpress'),'SQLExpress','AzureSQL']",,
+		"sqlType": "[if(equals(parameters('SQLServer'),'SQLExpress'),'SQLExpress','AzureSQL']",
         "dnsName": "[tolower(parameters('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
@@ -231,14 +231,15 @@
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
         "accountid": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
         "wadmetricsresourceid": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/', 'Microsoft.Compute/virtualMachines/', variables('server1Name'))]",
-        "ScriptCommandToExecute": "powershell.exe -File  "
+        "ScriptCommandToExecute": "powershell.exe -File  ",
+		"SqlCollation": "Latin1_General_100_CS_AS"
     },
     "resources": [
 		{
 			"name": "[variables('sqlserverName')]",
 			"type": "Microsoft.Sql/servers",
 			"location": "[resourceGroup().location]",
-			"condition": "[equals(variables('sqlType','AzureSQL')]",
+			"condition": "[equals(variables('sqlType','AzureSQL'))]",
 			"tags": {
 				"displayName": "SqlServer"
 			},
