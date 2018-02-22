@@ -120,7 +120,7 @@
             "defaultValue": "SQLExpress",
             "allowedValues": [ "SQLExpress", "AzureSQL" ],
             "metadata": {
-                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of NAV Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost."
+                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of NAV Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost and you will need to specify App and Tenant Bacpac Uris as Azure Storage Shared Access Signature Urls."
             }
         },
         "IncludeAppUris": {
@@ -236,14 +236,14 @@
     },
     "resources": [
 		{
-			"name": "[variables('sqlserverName')]",
+			"apiVersion": "2014-04-01-preview",
 			"type": "Microsoft.Sql/servers",
+			"name": "[variables('sqlserverName')]",
 			"location": "[resourceGroup().location]",
 			"condition": "[equals(variables('sqlType'),'AzureSQL')]",
 			"tags": {
 				"displayName": "SqlServer"
 			},
-			"apiVersion": "2014-04-01-preview",
 			"properties": {
 				"administratorLogin": "[parameters('sqlAdminUsername')]",
 				"administratorLoginPassword": "[parameters('adminPassword')]",
@@ -251,23 +251,25 @@
 			},
 			"resources": [
 				{
-					"type": "firewallrules",
 					"apiVersion": "2014-04-01-preview",
+					"type": "firewallrules",
+					"name": "AllowAllAzureIps",
+					"location": "[resourceGroup().location]",
+					"condition": "[equals(variables('sqlType'),'AzureSQL')]",
 					"dependsOn": [
 						"[variables('sqlserverName')]"
 					],
-					"location": "[resourceGroup().location]",
-					"name": "AllowAllAzureIps",
 					"properties": {
 						"endIpAddress": "0.0.0.0",
 						"startIpAddress": "0.0.0.0"
 					}
 				},
 				{
-					"name": "App",
-					"type": "databases",
-					"location": "[resourceGroup().location]",
 					"apiVersion": "2014-04-01-preview",
+					"type": "databases",
+					"name": "App",
+					"location": "[resourceGroup().location]",
+					"condition": "[equals(variables('sqlType'),'AzureSQL')]",
 					"dependsOn": [
 						"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
 					],
@@ -282,9 +284,10 @@
 					},
 					"resources": [
 						{
-							"name": "Import",
-							"type": "extensions",
 							"apiVersion": "2014-04-01-preview",
+							"type": "extensions",
+							"name": "Import",
+							"condition": "[equals(variables('sqlType'),'AzureSQL')]",
 							"dependsOn": [
 								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/App')]"
 							],
@@ -303,10 +306,11 @@
 					]
 				},
 				{
-					"name": "Tenant",
-					"type": "databases",
-					"location": "[resourceGroup().location]",
 					"apiVersion": "2014-04-01-preview",
+					"type": "databases",
+					"name": "Tenant",
+					"location": "[resourceGroup().location]",
+					"condition": "[equals(variables('sqlType'),'AzureSQL')]",
 					"dependsOn": [
 						"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
 					],
@@ -321,9 +325,10 @@
 					},
 					"resources": [
 						{
-							"name": "Import",
-							"type": "extensions",
 							"apiVersion": "2014-04-01-preview",
+							"type": "extensions",
+							"name": "Import",
+							"condition": "[equals(variables('sqlType'),'AzureSQL')]",
 							"dependsOn": [
 								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Tenant')]"
 							],
