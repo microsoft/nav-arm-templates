@@ -239,7 +239,7 @@
 			"name": "[variables('sqlserverName')]",
 			"type": "Microsoft.Sql/servers",
 			"location": "[resourceGroup().location]",
-			"condition": "[equals(variables('sqlType','AzureSQL'))]",
+			"condition": "[equals(variables('sqlType'),'AzureSQL')]",
 			"tags": {
 				"displayName": "SqlServer"
 			},
