@@ -118,7 +118,7 @@
         "SQLServer": {
 		    "type": "string",
             "defaultValue": "SQLExpress",
-            "allowedValues": [ "SQLExpress", "AzureSQL Standard S0", "AzureSQL Standard S1", "AzureSQL Standard S2", "AzureSQL Standard S3", "AzureSQL Standard S4", "AzureSQL Standard S6", "AzureSQL Standard S7", "AzureSQL Standard S9", "AzureSQL Standard S12", "AzureSQL Premium P1", "AzureSQL Premium P2", "AzureSQL Premium P4", "AzureSQL Premium P6", "AzureSQL Premium P11", "AzureSQL Premium P15" ]
+            "allowedValues": [ "SQLExpress", "AzureSQL" ],
             "metadata": {
                 "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of NAV Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost."
             }
@@ -216,8 +216,6 @@
         "networkSecurityGroupName": "networksecuritygroup",
 		"sqlServerName": "[concat('sql', replace(tolower(parameters('vmName')),'-',''))]",
 		"sqlType": "[if(equals(parameters('SQLServer'),'SQLExpress'),'SQLExpress','AzureSQL']",,
-		"sqlEdition": "[if(equals(parameters('SQLServer'),'SQLExpress'),'',split(parameters('SQLServer',' '))[1]]",
-		"sqlPerfLevel": "[if(equals(parameters('SQLServer'),'SQLExpress'),'',split(parameters('SQLServer',' '))[2]]",
         "dnsName": "[tolower(parameters('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
