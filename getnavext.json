@@ -215,7 +215,7 @@
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
 		"sqlServerName": "[concat('sql', replace(tolower(parameters('vmName')),'-',''))]",
-		"sqlType": "[if(equals(parameters('SQLServer'),'SQLExpress'),'SQLExpress','AzureSQL']",
+		"sqlType": "[if(equals(parameters('SQLServer'),'SQLExpress'),'SQLExpress','AzureSQL')]",
         "dnsName": "[tolower(parameters('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
