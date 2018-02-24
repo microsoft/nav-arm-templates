@@ -59,13 +59,6 @@
                 "Description": "Specify administrator user name for NAV"
             }
         },
-		"sqlAdminUsername": {
-			"type": "string",
-			"defaultValue": "sqladmin",
-			"metadata": {
-				"Description": "Specify SQL Administrator user name (only used if you select Azure SQL as your SQL Server)"
-			}
-		},
         "adminPassword": {
             "type": "securestring",
             "metadata": {
@@ -84,14 +77,14 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:<tag>)"
+                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:tag)"
             }
         },
         "registryPassword": {
             "type": "securestring",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:<tag>)"
+                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:tag)"
             }
         },
         "LicenseFileUri": {
@@ -113,14 +106,6 @@
             "defaultValue": "",
             "metadata": {
                 "Description": "Optional: Specify a secure Url of the tenant bacpac you want to use for the Docker image. If you do not specify an tenant bacpac, you will be using the NAV database in the Docker image."
-            }
-        },
-        "SQLServer": {
-		    "type": "string",
-            "defaultValue": "SQLExpress",
-            "allowedValues": [ "SQLExpress", "AzureSQL" ],
-            "metadata": {
-                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of NAV Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost and you will need to specify App and Tenant Bacpac Uris as Azure Storage Shared Access Signature Urls."
             }
         },
         "IncludeAppUris": {
@@ -214,8 +199,6 @@
         "publicIPAddressName": "[concat(parameters('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
-		"sqlServerName": "[concat('sql', replace(tolower(parameters('vmName')),'-',''))]",
-		"sqlType": "[if(equals(parameters('SQLServer'),'SQLExpress'),'SQLExpress','AzureSQL')]",
         "dnsName": "[tolower(parameters('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
@@ -231,123 +214,9 @@
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
         "accountid": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
         "wadmetricsresourceid": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/', 'Microsoft.Compute/virtualMachines/', variables('server1Name'))]",
-        "ScriptCommandToExecute": "powershell.exe -File  ",
-		"SqlCollation": "Latin1_General_100_CS_AS"
+        "ScriptCommandToExecute": "powershell.exe -File  "
     },
     "resources": [
-		{
-			"apiVersion": "2014-04-01-preview",
-			"type": "Microsoft.Sql/servers",
-			"name": "[variables('sqlserverName')]",
-			"location": "[resourceGroup().location]",
-			"condition": "[equals(variables('sqlType'),'AzureSQL')]",
-			"tags": {
-				"displayName": "SqlServer"
-			},
-			"properties": {
-				"administratorLogin": "[parameters('sqlAdminUsername')]",
-				"administratorLoginPassword": "[parameters('adminPassword')]",
-				"version": "12.0"
-			},
-			"resources": [
-				{
-					"apiVersion": "2014-04-01-preview",
-					"type": "firewallrules",
-					"name": "AllowAllAzureIps",
-					"location": "[resourceGroup().location]",
-					"condition": "[equals(variables('sqlType'),'AzureSQL')]",
-					"dependsOn": [
-						"[variables('sqlserverName')]"
-					],
-					"properties": {
-						"endIpAddress": "0.0.0.0",
-						"startIpAddress": "0.0.0.0"
-					}
-				},
-				{
-					"apiVersion": "2014-04-01-preview",
-					"type": "databases",
-					"name": "App",
-					"location": "[resourceGroup().location]",
-					"condition": "[equals(variables('sqlType'),'AzureSQL')]",
-					"dependsOn": [
-						"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
-					],
-					"tags": {
-						"displayName": "App Database"
-					},
-					"properties": {
-						"collation": "[variables('SqlCollation')]",
-						"edition": "Standard",
-						"maxSizeBytes": "1073741824",
-						"requestedServiceObjectiveName": "S0"
-					},
-					"resources": [
-						{
-							"apiVersion": "2014-04-01-preview",
-							"type": "extensions",
-							"name": "Import",
-							"condition": "[equals(variables('sqlType'),'AzureSQL')]",
-							"dependsOn": [
-								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/App')]"
-							],
-							"tags": {
-								"displayName": "Import"
-							},
-							"properties": {
-								"storageKeyType": "SharedAccessKey",
-								"storageUri": "[split(parameters('AppBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(parameters('AppBacpacUri'),'?')[1])]",
-								"administratorLogin": "[parameters('sqlAdminUsername')]",
-								"administratorLoginPassword": "[parameters('adminPassword')]",
-								"operationMode": "Import"
-							}
-						}
-					]
-				},
-				{
-					"apiVersion": "2014-04-01-preview",
-					"type": "databases",
-					"name": "Tenant",
-					"location": "[resourceGroup().location]",
-					"condition": "[equals(variables('sqlType'),'AzureSQL')]",
-					"dependsOn": [
-						"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
-					],
-					"tags": {
-						"displayName": "Tenant Template"
-					},
-					"properties": {
-						"collation": "[variables('SqlCollation')]",
-						"edition": "Standard",
-						"maxSizeBytes": "1073741824",
-						"requestedServiceObjectiveName": "S0"
-					},
-					"resources": [
-						{
-							"apiVersion": "2014-04-01-preview",
-							"type": "extensions",
-							"name": "Import",
-							"condition": "[equals(variables('sqlType'),'AzureSQL')]",
-							"dependsOn": [
-								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Tenant')]"
-							],
-							"tags": {
-								"displayName": "Import"
-							},
-							"properties": {
-								"storageKeyType": "SharedAccessKey",
-								"storageUri": "[split(parameters('TenantBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(parameters('TenantBacpacUri'),'?')[1])]",
-								"administratorLogin": "[parameters('sqlAdminUsername')]",
-								"administratorLoginPassword": "[parameters('adminPassword')]",
-								"operationMode": "Import"
-							}
-						}
-					]
-				}
-			]
-		},
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Storage/storageAccounts",
