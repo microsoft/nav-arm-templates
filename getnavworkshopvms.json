@@ -332,6 +332,7 @@
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
 			"name": "rdp-0",
+			"condition": "[not(equals(parameters('RemoteDesktopAccess'),'-'))]",
 			"dependsOn": [
 				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
 			],
@@ -352,6 +353,7 @@
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
 			"name": "[concat('rdp-', copyIndex(1))]",
+			"condition": "[not(equals(parameters('RemoteDesktopAccess'),'-'))]",
 			"dependsOn": [
 				"[concat('rdp-', copyIndex())]"
 			],
