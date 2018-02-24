@@ -150,7 +150,7 @@ $title = 'Dynamics NAV Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
 
-if ("$RemoteDesktopAccess" -ne "-") {
+if ("$RemoteDesktopAccess" -ne "") {
 Log "Creating Connect.rdp"
 "full address:s:${publicDnsName}:3389
 prompt for credentials:i:1
