@@ -190,9 +190,10 @@ if ($vmAdminUsername -ne $navAdminUsername) {
 '. "c:\run\SetupConfiguration.ps1"
 if ($auth -eq "AccessControlService") {
     Write-Host "Changing Server config to NavUserPassword to enable basic web services"
-    Set-NAVServerConfiguration -ServerInstance nav -KeyName ClientServicesCredentialType -KeyValue NavUserPassword -WarningAction Ignore
+    Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
 }
-Set-NAVServerConfiguration -ServerInstance nav -KeyName EnableSaasExtensionInstall -KeyValue true -ErrorAction Ignore -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance nav -KeyName "EnableSaasExtensionInstall" -KeyValue "true" -ErrorAction Ignore -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance nav -KeyName "TenantEnvironmentType" -KeyValue "Sandbox" true -ErrorAction Ignore -WarningAction Ignore
 ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
