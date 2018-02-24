@@ -55,6 +55,8 @@ if ($publicDnsName -eq "") {
     $publicDnsName = $hostname
 }
 
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
+
 $settingsScript = "c:\demo\settings.ps1"
 if (Test-Path $settingsScript) {
     . "$settingsScript"
@@ -178,9 +180,9 @@ if ($vmAdminUsername -ne $navAdminUsername) {
 '. "c:\run\SetupConfiguration.ps1"
 if ($auth -eq "AccessControlService") {
     Write-Host "Changing Server config to NavUserPassword to enable basic web services"
-    $customConfig.SelectSingleNode("//appSettings/add[@key=''ClientServicesCredentialType'']").Value = "NavUserPassword"
-    $CustomConfig.Save($CustomConfigFile)
+    Set-NAVServerConfiguration -ServerInstance nav -KeyName ClientServicesCredentialType -KeyValue NavUserPassword
 }
+Set-NAVServerConfiguration -ServerInstance nav -KeyName EnableSaasExtensionInstall -KeyValue true -ErrorAction Ignore
 ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
