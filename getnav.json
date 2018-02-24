@@ -286,6 +286,7 @@
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
 			"name": "rdp-0",
+			"condition": "[greater(variables('noOfAddresses'),0)]",
 			"dependsOn": [
 				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
 			],
@@ -306,6 +307,7 @@
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
 			"name": "[concat('rdp-', copyIndex(1))]",
+			"condition": "[greater(variables('noOfAddresses'),0)]",
 			"dependsOn": [
 				"[concat('rdp-', copyIndex())]"
 			],
