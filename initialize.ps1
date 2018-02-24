@@ -193,7 +193,7 @@ if ($auth -eq "AccessControlService") {
     Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
 }
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "EnableSaasExtensionInstall" -KeyValue "true" -ErrorAction Ignore -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance nav -KeyName "TenantEnvironmentType" -KeyValue "Sandbox" true -ErrorAction Ignore -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance nav -KeyName "TenantEnvironmentType" -KeyValue "Sandbox" -ErrorAction Ignore -WarningAction Ignore
 ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
