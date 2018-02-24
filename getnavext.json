@@ -59,7 +59,7 @@
                 "Description": "Specify administrator user name for NAV"
             }
         },
-		"sqlAdminUsername": {
+		"azureSqlAdminUsername": {
 			"type": "string",
 			"defaultValue": "sqladmin",
 			"metadata": {
@@ -239,12 +239,12 @@
 			"type": "Microsoft.Sql/servers",
 			"name": "[variables('sqlserverName')]",
 			"location": "[resourceGroup().location]",
-			"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
+			"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 			"tags": {
 				"displayName": "SqlServer"
 			},
 			"properties": {
-				"administratorLogin": "[parameters('sqlAdminUsername')]",
+				"administratorLogin": "[parameters('azureSqlAdminUsername')]",
 				"administratorLoginPassword": "[parameters('adminPassword')]",
 				"version": "12.0"
 			},
@@ -254,7 +254,7 @@
 					"type": "firewallrules",
 					"name": "AllowAllAzureIps",
 					"location": "[resourceGroup().location]",
-					"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
+					"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 					"dependsOn": [
 						"[variables('sqlserverName')]"
 					],
@@ -268,7 +268,7 @@
 					"type": "databases",
 					"name": "App",
 					"location": "[resourceGroup().location]",
-					"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
+					"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 					"dependsOn": [
 						"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
 					],
@@ -286,7 +286,7 @@
 							"apiVersion": "2014-04-01-preview",
 							"type": "extensions",
 							"name": "Import",
-							"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
+							"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 							"dependsOn": [
 								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/App')]"
 							],
@@ -297,7 +297,7 @@
 								"storageKeyType": "SharedAccessKey",
 								"storageUri": "[split(parameters('AppBacpacUri'),'?')[0]]",
 								"storageKey": "[concat('?',split(parameters('AppBacpacUri'),'?')[1])]",
-								"administratorLogin": "[parameters('sqlAdminUsername')]",
+								"administratorLogin": "[parameters('azureSqlAdminUsername')]",
 								"administratorLoginPassword": "[parameters('adminPassword')]",
 								"operationMode": "Import"
 							}
@@ -309,7 +309,7 @@
 					"type": "databases",
 					"name": "Tenant",
 					"location": "[resourceGroup().location]",
-					"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
+					"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 					"dependsOn": [
 						"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
 					],
@@ -327,7 +327,7 @@
 							"apiVersion": "2014-04-01-preview",
 							"type": "extensions",
 							"name": "Import",
-							"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
+							"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 							"dependsOn": [
 								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Tenant')]"
 							],
@@ -338,7 +338,7 @@
 								"storageKeyType": "SharedAccessKey",
 								"storageUri": "[split(parameters('TenantBacpacUri'),'?')[0]]",
 								"storageKey": "[concat('?',split(parameters('TenantBacpacUri'),'?')[1])]",
-								"administratorLogin": "[parameters('sqlAdminUsername')]",
+								"administratorLogin": "[parameters('azureSqlAdminUsername')]",
 								"administratorLoginPassword": "[parameters('adminPassword')]",
 								"operationMode": "Import"
 							}
@@ -659,7 +659,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',parameters('RemoteDesktopAccess'),'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -SQLAdminUsername \"',parameters('sqlAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -SQLServerType \"',parameters('SQLServerType'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -IncludeAppUris \"',parameters('IncludeAppUris'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',parameters('PublicDnsName'),'\" -Multitenant \"',parameters('Multitenant'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',parameters('RemoteDesktopAccess'),'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AzureSQLAdminUsername \"',parameters('azureSqlAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -SQLServerType \"',parameters('SQLServerType'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -IncludeAppUris \"',parameters('IncludeAppUris'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',parameters('PublicDnsName'),'\" -Multitenant \"',parameters('Multitenant'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
                 },
                 "protectedSettings": {}
             }
