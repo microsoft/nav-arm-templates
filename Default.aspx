@@ -35,6 +35,16 @@ private string getLandingPageUrl()
   return getHostname();
 }
 
+private string getConfigureAppUrl()
+{
+  var url = "ms-dynamicsnav://"+getHostname()+"/nav";
+  if (isMultitenant()) 
+    {
+      url += "?tenant=default";
+    }
+    return url;
+}
+
 private string createQrForLandingPage()
 {
   return createQrImg("http://"+getLandingPageUrl(), getProduct());
@@ -93,11 +103,34 @@ private bool GetCustomSettings()
   return this.customSettings != null;
 }
 
+private bool isMultitenant()
+{
+  if (GetCustomSettings())
+  {
+    return customSettings.SelectSingleNode("//appSettings/add[@key='Multitenant']").Attributes["value"].Value.ToLowerInvariant().Equals("true");
+  }
+  return false;
+}
+
+private string getTenant()
+{
+  if (isMultitenant())
+  {
+    return "default";
+  }
+  return "";
+}
+
 private string getWebBaseUrl()
 {
   if (GetCustomSettings())
   {
-    return customSettings.SelectSingleNode("//appSettings/add[@key='PublicWebBaseUrl']").Attributes["value"].Value.ToLowerInvariant();
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicWebBaseUrl']").Attributes["value"].Value.ToLowerInvariant();
+    if (isMultitenant()) 
+    {
+      url += "?tenant=default";
+    }
+    return url;
   }
   return "";
 }
@@ -106,7 +139,12 @@ private string getODataBaseUrl()
 {
   if (GetCustomSettings())
   {
-    return customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant();
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant();
+    if (isMultitenant()) 
+    {
+      url += "?tenant=default";
+    }
+    return url;
   }
   return "";
 }
@@ -115,7 +153,12 @@ private string getSoapBaseUrl()
 {
   if (GetCustomSettings())
   {
-    return customSettings.SelectSingleNode("//appSettings/add[@key='PublicSOAPBaseUrl']").Attributes["value"].Value.ToLowerInvariant();
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicSOAPBaseUrl']").Attributes["value"].Value.ToLowerInvariant()+"/services";
+    if (isMultitenant()) 
+    {
+      url += "?tenant=default";
+    }
+    return url;
   }
   return "";
 }
@@ -150,11 +193,8 @@ private string getAzureSQL()
     var DatabaseServer = customSettings.SelectSingleNode("//appSettings/add[@key='DatabaseServer']").Attributes["value"].Value;
     var DatabaseInstance = customSettings.SelectSingleNode("//appSettings/add[@key='DatabaseInstance']").Attributes["value"].Value;
     var DatabaseName = customSettings.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Attributes["value"].Value;
-    var len = DatabaseServer.IndexOf(".database.windows.net", StringComparison.OrdinalIgnoreCase);
-    if (len>=0)
-      return "Azure SQL<br />"+DatabaseServer+"<br />"+DatabaseName;
     if (!string.IsNullOrEmpty(DatabaseInstance))
-      DatabaseInstance = "/"+DatabaseInstance;
+      DatabaseInstance = "\\"+DatabaseInstance;
     return "SQL Server<br />"+DatabaseServer+DatabaseInstance+"<br />"+DatabaseName;
   }
   return "";
@@ -408,7 +448,7 @@ You can view the installation status by following this link.
     <tr>
       <td colspan="2">If you have installed the Microsoft Dynamics NAV Universal App on your phone, tablet or desktop computer and want to configure the app to connect to this <%=getProduct() %>, choose this link.</td>
       <td></td>  
-      <td style="white-space: nowrap"><a href="ms-dynamicsnav://<% =getHostname() %>/nav">Configure App</a></td>
+      <td style="white-space: nowrap"><a href="<% =getConfigureAppUrl() %>">Configure App</a></td>
     </tr>
 <%
     }
@@ -417,7 +457,7 @@ You can view the installation status by following this link.
     <tr>
       <td colspan="2">The <%=getProduct() %> exposes functionality as SOAP web services. Choose this link to view the web services.</td>
       <td></td>  
-      <td style="white-space: nowrap"><a href="<% =getSoapBaseUrl() %>/services" target="_blank">View SOAP Web Services</a></td>
+      <td style="white-space: nowrap"><a href="<% =getSoapBaseUrl() %>" target="_blank">View SOAP Web Services</a></td>
     </tr>
     <tr>
       <td colspan="2">The <%=getProduct() %> exposes data as restful OData web services. Choose this link to view the web services</td>
@@ -438,7 +478,7 @@ You can view the installation status by following this link.
     <tr><td colspan="4">launch.json settings:</td></tr>
     <tr><td colspan="4" style="font-family: Courier, Monaco, monospace">&nbsp;&nbsp;"server": "https://<%=getHostname() %>",<br>
       &nbsp;&nbsp;"serverInstance": "NAV",<br>
-      &nbsp;&nbsp;"tenant": "",<br>
+      &nbsp;&nbsp;"tenant": "<%=getTenant() %>",<br>
       &nbsp;&nbsp;"authentication": "UserPassword",</td></tr>
 <%
     }
