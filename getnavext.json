@@ -214,7 +214,7 @@
         "publicIPAddressName": "[concat(parameters('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
-		"sqlServerName": "[concat('sql', replace(tolower(parameters('vmName')),'-',''))]",
+		"azureSqlServer": "[concat('sql', replace(tolower(parameters('vmName')),'-',''))]",
         "dnsName": "[tolower(parameters('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
@@ -237,7 +237,7 @@
 		{
 			"apiVersion": "2014-04-01-preview",
 			"type": "Microsoft.Sql/servers",
-			"name": "[variables('sqlserverName')]",
+			"name": "[variables('azureSqlServer')]",
 			"location": "[resourceGroup().location]",
 			"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 			"tags": {
@@ -256,7 +256,7 @@
 					"location": "[resourceGroup().location]",
 					"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 					"dependsOn": [
-						"[variables('sqlserverName')]"
+						"[variables('azureSqlServer')]"
 					],
 					"properties": {
 						"endIpAddress": "0.0.0.0",
@@ -270,7 +270,7 @@
 					"location": "[resourceGroup().location]",
 					"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 					"dependsOn": [
-						"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
+						"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'))]"
 					],
 					"tags": {
 						"displayName": "App Database"
@@ -288,7 +288,7 @@
 							"name": "Import",
 							"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 							"dependsOn": [
-								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/App')]"
+								"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'), '/databases/App')]"
 							],
 							"tags": {
 								"displayName": "Import"
@@ -311,7 +311,7 @@
 					"location": "[resourceGroup().location]",
 					"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 					"dependsOn": [
-						"[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
+						"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'))]"
 					],
 					"tags": {
 						"displayName": "Tenant Template"
@@ -329,7 +329,7 @@
 							"name": "Import",
 							"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
 							"dependsOn": [
-								"[concat('Microsoft.Sql/servers/', variables('sqlserverName'), '/databases/Tenant')]"
+								"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'), '/databases/Tenant')]"
 							],
 							"tags": {
 								"displayName": "Import"
@@ -659,7 +659,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',parameters('RemoteDesktopAccess'),'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AzureSQLAdminUsername \"',parameters('azureSqlAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -SQLServerType \"',parameters('SQLServerType'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -IncludeAppUris \"',parameters('IncludeAppUris'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',parameters('PublicDnsName'),'\" -Multitenant \"',parameters('Multitenant'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',parameters('RemoteDesktopAccess'),'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AzureSQLAdminUsername \"',parameters('azureSqlAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -SQLServerType \"',parameters('SQLServerType'),'\" -AzureSqlServer \"',if(equals(parameters('SQLServerType'),'AzureSQL'),reference(parameters('AzureSqlServer')).fullyQualifiedDomainName,'\"\"'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -IncludeAppUris \"',parameters('IncludeAppUris'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',parameters('PublicDnsName'),'\" -Multitenant \"',parameters('Multitenant'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
                 },
                 "protectedSettings": {}
             }

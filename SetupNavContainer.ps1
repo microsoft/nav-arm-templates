@@ -60,9 +60,12 @@ if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
         $additionalParameters += @("--env appbacpac=$appBacpacUri",
                                    "--env tenantbacpac=$tenantBacpacUri")
     } else {
+        Log "using $azureSqlServer as database server"
         $params += @{ "databaseServer"     = "$azureSqlServer"
                       "databaseInstance"   = ""
+                      "databaseName"       = "App"
                       "databaseCredential" = $azureSqlCredential }
+        $multitenant = "Yes"
     }
 }
 if ("$clickonce" -eq "Yes") {
@@ -100,7 +103,7 @@ if ($sqlServerType -eq "AzureSQL") {
         Log "Importing c:\demo\objects.fob to container"
         Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $azureSqlCredential
     }
-    New-NavContainerTenant -containerName $containerName -tenantId "default"
+    New-NavContainerTenant -containerName $containerName -tenantId "default" -sqlCredential $azureSqlCredential
     New-NavContainerNavUser -containerName $containerName -tenant "default" -Credential $credential -AuthenticationEmail $Office365UserName -ChangePasswordAtNextLogOn:$false -PermissionSetId "SUPER"
 } else {
     if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {

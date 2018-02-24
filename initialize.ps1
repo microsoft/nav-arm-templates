@@ -226,7 +226,7 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.6.4 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.6.5 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
