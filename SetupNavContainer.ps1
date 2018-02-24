@@ -46,6 +46,8 @@ Log "Locale $locale"
 
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
+$azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
+$params = @{}
 $additionalParameters = @("--publish  8080:8080",
                           "--publish  443:443", 
                           "--publish  7046-7049:7046-7049", 
@@ -54,16 +56,21 @@ $additionalParameters = @("--publish  8080:8080",
                           "--env RemovePasswordKeyFile=N"
                           )
 if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
-    $additionalParameters += @("--env appbacpac=$appBacpacUri",
-                               "--env tenantbacpac=$tenantBacpacUri")
+    if ("$sqlServerType" -eq "Express") {
+        $additionalParameters += @("--env appbacpac=$appBacpacUri",
+                                   "--env tenantbacpac=$tenantBacpacUri")
+    } else {
+        $params += @{ "databaseServer"     = "$azureSqlServer"
+                      "databaseInstance"   = ""
+                      "databaseCredential" = $azureSqlCredential }
+    }
 }
 if ("$clickonce" -eq "Yes") {
     $additionalParameters += @("--env clickonce=Y")
 }
 
-$mt = $false
 if ($multitenant -eq "Yes") {
-    $mt = $true
+    $params += @{ "multitenant" = $true }
 }
 
 $myScripts = @()
@@ -75,7 +82,7 @@ if ($Office365UserName -ne "" -and $Office365Password -ne "") {
 }
 
 Log "Running $imageName (this will take a few minutes)"
-New-NavContainer -accept_eula `
+New-NavContainer -accept_eula @Params `
                  -containerName $containerName `
                  -useSSL `
                  -auth $Auth `
@@ -85,13 +92,22 @@ New-NavContainer -accept_eula `
                  -credential $credential `
                  -additionalParameters $additionalParameters `
                  -myScripts $myscripts `
-                 -imageName $imageName `
-                 -multitenant:$mt
+                 -imageName $imageName
 
-if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
-    Log "Importing c:\demo\objects.fob to container"
-    $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
-    Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $sqlCredential
+
+if ($sqlServerType -eq "AzureSQL") {
+    if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
+        Log "Importing c:\demo\objects.fob to container"
+        Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $azureSqlCredential
+    }
+    New-NavContainerTenant -containerName $containerName -tenantId "default"
+    New-NavContainerNavUser -containerName $containerName -tenant "default" -Credential $credential -AuthenticationEmail $Office365UserName -ChangePasswordAtNextLogOn:$false -PermissionSetId "SUPER"
+} else {
+    if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
+        Log "Importing c:\demo\objects.fob to container"
+        $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
+        Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $sqlCredential
+    }
 }
 
 # Copy .vsix and Certificate to container folder

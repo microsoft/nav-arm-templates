@@ -6,10 +6,13 @@ param
        [string]$hostName                  = "",
        [string]$vmAdminUsername           = "vmadmin",
        [string]$navAdminUsername          = "admin",
+       [string]$azureSqlAdminUsername     = "sqladmin",
        [string]$adminPassword             = "P@ssword1",
        [string]$navDockerImage            = "microsoft/dynamics-nav:devpreview-finus",
        [string]$registryUsername          = "",
        [string]$registryPassword          = "",
+       [string]$sqlServerType             = "Express",
+       [string]$azureSqlServer            = "",
        [string]$appBacpacUri              = "",
        [string]$tenantBacpacUri           = "",
        [string]$includeAppUris            = "",
@@ -26,6 +29,7 @@ param
        [string]$Multitenant               = "No",
        [string]$UseLetsEncryptCertificate = "No",
        [string]$ContactEMailForLetsEncrypt= "",
+       [string]$RemoteDesktopAccess       = "*",
        [string]$Office365UserName         = "",
        [string]$Office365Password         = "",
        [string]$Office365CreatePortal     = "No"
@@ -69,11 +73,14 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "containerName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "vmAdminUsername"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "navAdminUsername"       | Add-Content $settingsScript
+    Get-VariableDeclaration -name "azureSqlAdminUsername"  | Add-Content $settingsScript
     Get-VariableDeclaration -name "Office365Username"      | Add-Content $settingsScript
     Get-VariableDeclaration -name "Office365CreatePortal"  | Add-Content $settingsScript
     Get-VariableDeclaration -name "navDockerImage"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryUsername"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryPassword"       | Add-Content $settingsScript
+    Get-VariableDeclaration -name "sqlServerType"          | Add-Content $settingsScript
+    Get-VariableDeclaration -name "azureSqlServer"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "appBacpacUri"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "tenantBacpacUri"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "includeAppUris"         | Add-Content $settingsScript
@@ -96,7 +103,6 @@ if (Test-Path $settingsScript) {
     $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -AsPlainText -Force
     $encOffice365Password = ConvertFrom-SecureString -SecureString $secureOffice365Password -Key $passwordKey
     ('$Office365Password = "'+$encOffice365Password+'"') | Add-Content $settingsScript
-
 }
 
 #
@@ -114,6 +120,8 @@ if (Test-Path -Path "c:\DEMO\Status.txt" -PathType Leaf) {
     Log "VM already initialized."
     exit
 }
+
+Set-Content "c:\DEMO\RemoteDesktopAccess.txt" -Value $RemoteDesktopAccess
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
@@ -142,10 +150,12 @@ $title = 'Dynamics NAV Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
 
+if ("$RemoteDesktopAccess" -ne "-") {
 Log "Creating Connect.rdp"
 "full address:s:${publicDnsName}:3389
 prompt for credentials:i:1
 username:s:$vmAdminUsername" | Set-Content "c:\inetpub\wwwroot\Connect.rdp"
+}
 
 Log "Enabling Docker API"
 '{
