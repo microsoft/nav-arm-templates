@@ -22,8 +22,14 @@ docker images -q --no-trunc | % {
     if ($inspect.RepoTags | Where-Object { "$_" -eq "$imageName" -or "$_" -eq "${imageName}:latest"}) { $exist = $true }
 }
 if (!$exist) {
-    docker pull $imageName
+    try {
+        docker pull $imageName
+    } catch {
+        Log -Color Red -line $_.Exception
+        exit
+    }
 }
+
 $inspect = docker inspect $imageName | ConvertFrom-Json
 $country = $inspect.Config.Labels.country
 $navVersion = $inspect.Config.Labels.version
