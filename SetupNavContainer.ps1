@@ -113,6 +113,10 @@ if ($sqlServerType -eq "AzureSQL") {
     }
 }
 
+foreach($includeApp in "$includeAppUris".Split(',;')) {
+    Publish-NavContainerApp -containerName $containerName -appFile $includeApp -install
+}
+
 # Copy .vsix and Certificate to container folder
 $containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
 Log "Copying .vsix and Certificate to $containerFolder"
