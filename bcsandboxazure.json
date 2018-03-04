@@ -80,20 +80,6 @@
                 "Description": "Select the NAV Docker Image to deploy. Replace -finus with -finca or -fingb to get other Financials localizations. Remove -finus to get W1."
             }
         },
-        "registryUsername": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:<tag>)"
-            }
-        },
-        "registryPassword": {
-            "type": "securestring",
-            "defaultValue": "",
-            "metadata": {
-                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:<tag>)"
-            }
-        },
         "LicenseFileUri": {
             "type": "string",
             "defaultValue": "",
@@ -130,57 +116,6 @@
                 "Description": "Optional: Specify a list of secure Urls of apps to be published and installed."
             }
         },
-        "ClickOnce": {
-		    "type": "string",
-            "defaultValue": "No",
-            "allowedValues": [ "Yes", "No" ],
-            "metadata": {
-                "Description": "Include ClickOnce deployed Windows Client"
-            }
-        },
-        "Multitenant": {
-		    "type": "string",
-            "defaultValue": "No",
-            "allowedValues": [ "Yes", "No" ],
-            "metadata": {
-                "Description": "Should NAV be setup for multi tenancy"
-            }
-        },
-		"Office365UserName": {
-			"type": "string",
-			"defaultValue": "",
-			"metadata": {
-				"Description": "Enter Office 365 Administrator Email (leave empty to skip Office 365 integration)"
-			}
-		},
-		"Office365Password": {
-			"type": "securestring",
-			"defaultValue": "",
-			"metadata": {
-				"Description": "Enter Office 365 Administrator Password (leave empty if no Office 365 integration)"
-			}
-		},
-        "CertificatePfxUrl": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "Description": "Optional: Specify a secure Url of your Certificate Pfx File. If you do not specify a certificate, you will get a Self Signed Certificate."
-            }
-        },
-        "CertificatePfxPassword": {
-            "type": "securestring",
-            "defaultValue": "",
-            "metadata": {
-                "Description": "Optional: Password for Certificate Pfx File. If you do not specify a certificate password, you will get a Self Signed Certificate."
-            }
-        },
-        "PublicDnsName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "Description": "Public DNS Name (CNAME record pointing to your VM). A # in the name will be replaced by the VM number. If you do not specify a public DNS name, you will get a Self Signed Certificate."
-            }
-        },
         "RunWindowsUpdate": {
 		    "type": "string",
             "defaultValue": "No",
@@ -215,6 +150,7 @@
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
 		"azureSqlServer": "[concat('sql', replace(tolower(parameters('vmName')),'-',''))]",
+		"azureSqlServerDnsName": "[concat(variables('azureSqlServer'),'.database.windows.net')]",
         "dnsName": "[tolower(parameters('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
@@ -659,7 +595,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AzureSQLAdminUsername \"',parameters('azureSqlAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -SQLServerType \"',parameters('SQLServerType'),'\" -AzureSqlServer \"',if(equals(parameters('SQLServerType'),'AzureSQL'),reference(variables('azureSqlServer')).fullyQualifiedDomainName,'\"\"'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -IncludeAppUris \"',parameters('IncludeAppUris'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',parameters('PublicDnsName'),'\" -Multitenant \"',parameters('Multitenant'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AzureSQLAdminUsername \"',parameters('azureSqlAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -SQLServerType \"',parameters('SQLServerType'),'\" -AzureSqlServer \"',if(equals(parameters('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),'\"\"'),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -IncludeAppUris \"',parameters('IncludeAppUris'),'\" -Multitenant \"Yes\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -style \"Sandbox\"')]"
                 },
                 "protectedSettings": {}
             }
