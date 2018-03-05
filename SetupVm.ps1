@@ -41,8 +41,14 @@ $navDockerImage.Split(',') | % {
         Log "Logging in to $registry"
         docker login "$registry" -u "$registryUsername" -p "$registryPassword"
     }
-    Log "Pulling $_ (this might take ~30 minutes)"
-    docker pull "$_"
+    $imageName = $_
+    try {
+        Log "Pulling $imageName (this might take ~30 minutes)"
+        docker pull $imageName
+    } catch {
+        Log -Color Red -line $_.Exception.Message
+        throw
+    }
 }
 
 Log "Installing Visual C++ Redist"

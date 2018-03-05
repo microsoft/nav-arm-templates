@@ -11,7 +11,7 @@ param
        [string]$navDockerImage            = "microsoft/dynamics-nav:devpreview-finus",
        [string]$registryUsername          = "",
        [string]$registryPassword          = "",
-       [string]$sqlServerType             = "Express",
+       [string]$sqlServerType             = "SQLExpress",
        [string]$azureSqlServer            = "",
        [string]$appBacpacUri              = "",
        [string]$tenantBacpacUri           = "",
