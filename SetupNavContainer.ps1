@@ -5,6 +5,52 @@
     }
 }
 
+if (!(Test-Path function:DockerDo)) {
+    function DockerDo {
+        Param(
+            [Parameter(Mandatory=$true)]
+            [string]$imageName,
+            [ValidateSet('run','start','pull')]
+            [string]$command = "run",
+            [switch]$accept_eula,
+            [switch]$accept_outdated,
+            [switch]$detach,
+            [string[]]$parameters = @()
+        )
+    
+        if ($accept_eula) {
+            $parameters += "--env accept_eula=Y"
+        }
+        if ($accept_outdated) {
+            $parameters += "--env accept_outdated=Y"
+        }
+        if ($detach) {
+            $parameters += "--detach"
+        }
+        $arguments = ("$command "+[string]::Join(" ", $parameters)+" $imageName")
+    
+        $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+        $pinfo.FileName = "docker.exe"
+        $pinfo.RedirectStandardError = $true
+        $pinfo.RedirectStandardOutput = $true
+        $pinfo.UseShellExecute = $false
+        $pinfo.Arguments = $arguments
+        $p = New-Object System.Diagnostics.Process
+        $p.StartInfo = $pinfo
+        $p.Start() | Out-Null
+        $p.WaitForExit()
+        $output = $p.StandardOutput.ReadToEnd()
+        $output += $p.StandardError.ReadToEnd()
+        if ($p.ExitCode -eq 0) {
+            return $true
+        } else {
+            Log -color red $output
+            Log -color red "Commandline: docker $arguments"
+            return $false
+        }
+    }
+}
+
 Import-Module -name navcontainerhelper -DisableNameChecking
 
 . (Join-Path $PSScriptRoot "settings.ps1")
@@ -22,12 +68,9 @@ docker images -q --no-trunc | % {
     if ($inspect.RepoTags | Where-Object { "$_" -eq "$imageName" -or "$_" -eq "${imageName}:latest"}) { $exist = $true }
 }
 if (!$exist) {
-    try {
-        Log "Pulling $imageName (this might take ~30 minutes)"
-        docker pull $imageName
-    } catch {
-        Log -Color Red -line $_.Exception
-        throw
+    Log "Pulling $imageName (this might take ~30 minutes)"
+    if (!(DockerDo -imageName $imageName -command pull)) {
+        throw "Error pulling image"
     }
 }
 

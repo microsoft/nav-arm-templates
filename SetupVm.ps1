@@ -11,6 +11,50 @@ function Log([string]$line, [string]$color = "Gray") {
     ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt" 
 }
 
+function DockerDo {
+    Param(
+        [Parameter(Mandatory=$true)]
+        [string]$imageName,
+        [ValidateSet('run','start','pull')]
+        [string]$command = "run",
+        [switch]$accept_eula,
+        [switch]$accept_outdated,
+        [switch]$detach,
+        [string[]]$parameters = @()
+    )
+
+    if ($accept_eula) {
+        $parameters += "--env accept_eula=Y"
+    }
+    if ($accept_outdated) {
+        $parameters += "--env accept_outdated=Y"
+    }
+    if ($detach) {
+        $parameters += "--detach"
+    }
+    $arguments = ("$command "+[string]::Join(" ", $parameters)+" $imageName")
+
+    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+    $pinfo.FileName = "docker.exe"
+    $pinfo.RedirectStandardError = $true
+    $pinfo.RedirectStandardOutput = $true
+    $pinfo.UseShellExecute = $false
+    $pinfo.Arguments = $arguments
+    $p = New-Object System.Diagnostics.Process
+    $p.StartInfo = $pinfo
+    $p.Start() | Out-Null
+    $p.WaitForExit()
+    $output = $p.StandardOutput.ReadToEnd()
+    $output += $p.StandardError.ReadToEnd()
+    if ($p.ExitCode -eq 0) {
+        return $true
+    } else {
+        Log -color red $output
+        Log -color red "Commandline: docker $arguments"
+        return $false
+    }
+}
+
 Import-Module -name navcontainerhelper -DisableNameChecking
 
 . (Join-Path $PSScriptRoot "settings.ps1")
@@ -47,7 +91,7 @@ $navDockerImage.Split(',') | % {
     }
     $imageName = $_
     Log "Pulling $imageName (this might take ~30 minutes)"
-    docker pull $imageName
+    DockerDo -imageName $imageName -command pull
 }
 
 Log "Installing Visual C++ Redist"
