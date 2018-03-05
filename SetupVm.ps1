@@ -1,5 +1,6 @@
 ﻿$ErrorActionPreference = "Stop"
-$WarningActionPreference = "Stop"
+$WarningActionPreference = "Continue"
+
 try {
 
 if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
@@ -45,11 +46,16 @@ function DockerDo {
     $p.Start() | Out-Null
     $p.WaitForExit()
     $output = $p.StandardOutput.ReadToEnd()
-    $output += $p.StandardError.ReadToEnd()
+    $error = $p.StandardError.ReadToEnd()
     if ($p.ExitCode -eq 0) {
         return $true
     } else {
-        Log -color red $output
+        if ($output) {
+            Log $output
+        }
+        if ($error) {
+            Log -color red $error
+        }
         Log -color red "Commandline: docker $arguments"
         return $false
     }
@@ -91,7 +97,9 @@ $navDockerImage.Split(',') | % {
     }
     $imageName = $_
     Log "Pulling $imageName (this might take ~30 minutes)"
-    DockerDo -imageName $imageName -command pull
+    if (!(DockerDo -imageName $imageName -command pull))  {
+        throw "Error pulling image"
+    }
 }
 
 Log "Installing Visual C++ Redist"
