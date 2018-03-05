@@ -40,11 +40,16 @@ if (!(Test-Path function:DockerDo)) {
         $p.Start() | Out-Null
         $p.WaitForExit()
         $output = $p.StandardOutput.ReadToEnd()
-        $output += $p.StandardError.ReadToEnd()
+        $error = $p.StandardError.ReadToEnd()
         if ($p.ExitCode -eq 0) {
             return $true
         } else {
-            Log -color red $output
+            if ("$output".Trim() -ne "") {
+                Log $output
+            }
+            if ("$error".Trim() -ne "") {
+                Log -color red $error
+            }
             Log -color red "Commandline: docker $arguments"
             return $false
         }
@@ -163,8 +168,10 @@ if ($sqlServerType -eq "AzureSQL") {
     }
 }
 
-foreach($includeApp in "$includeAppUris".Split(',;')) {
-    Publish-NavContainerApp -containerName $containerName -appFile $includeApp -install
+if ("$includeappUris".Trim() -ne "") {
+    foreach($includeApp in "$includeAppUris".Split(',;')) {
+        Publish-NavContainerApp -containerName $containerName -appFile $includeApp -sync -install
+    }
 }
 
 # Copy .vsix and Certificate to container folder

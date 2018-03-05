@@ -50,10 +50,10 @@ function DockerDo {
     if ($p.ExitCode -eq 0) {
         return $true
     } else {
-        if ($output) {
+        if ("$output".Trim() -ne "") {
             Log $output
         }
-        if ($error) {
+        if ("$error".Trim() -ne "") {
             Log -color red $error
         }
         Log -color red "Commandline: docker $arguments"
