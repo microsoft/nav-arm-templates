@@ -207,11 +207,6 @@ if ($finalSetupScriptUrl) {
     Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
 }
 
-
-if ($licenseFileUri -ne "") {
-    Download-File -sourceUrl $licenseFileUri -destinationFile "c:\demo\license.flf"
-}
-
 if ($fobFileUrl -ne "") {
     Download-File -sourceUrl $fobFileUrl -destinationFile "c:\demo\objects.fob"
 }
@@ -229,6 +224,10 @@ if ($workshopFilesUrl -ne "") {
 Log "Install Nav Container Helper from PowerShell Gallery"
 Install-Module -Name navcontainerhelper -RequiredVersion 0.2.6.5 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
+
+if ($licenseFileUri -ne "") {
+    Download-File -sourceUrl $licenseFileUri -destinationFile "c:\programdata\navcontainerhelper\license.flf"
+}
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
     Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"

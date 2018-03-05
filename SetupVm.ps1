@@ -1,4 +1,7 @@
-﻿if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
+﻿$ErrorActionPreference = Stop
+$WarningActionPreference = Ignore
+
+if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
     Remove-item -Path (Join-Path $PSScriptRoot "setupStart.ps1") -Force -ErrorAction Ignore
     schtasks /DELETE /TN SetupVm /F | Out-Null
 }
