@@ -1,5 +1,5 @@
-﻿$ErrorActionPreference = Stop
-$WarningActionPreference = Ignore
+﻿$ErrorActionPreference = "Stop"
+$WarningActionPreference = "Ignore"
 
 if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
     Remove-item -Path (Join-Path $PSScriptRoot "setupStart.ps1") -Force -ErrorAction Ignore
@@ -33,9 +33,9 @@ New-Item $winPsFolder -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 "Import-Module navcontainerhelper -DisableNameChecking" | Set-Content (Join-Path $winPsFolder "Profile.ps1")
 
 Log "Adding Landing Page to Startup Group"
-New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -FolderName "Startup" -Arguments "http://$publicDnsName"
+New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://$publicDnsName" -ErrorAction Ignore
 if ($style -eq "devpreview") {
-    New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -FolderName "Startup" -Arguments "http://aka.ms/moderndevtools"
+    New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://aka.ms/moderndevtools" -ErrorAction Ignore
 }
 
 $navDockerImage.Split(',') | % {
