@@ -1,5 +1,5 @@
-﻿$ErrorActionPreference = Stop
-$WarningActionPreference = Ignore
+﻿$ErrorActionPreference = "Stop"
+$WarningActionPreference = "Ignore"
 
 if (!(Test-Path function:Log)) {
     function Log([string]$line, [string]$color = "Gray") {
