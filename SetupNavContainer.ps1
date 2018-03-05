@@ -62,7 +62,7 @@ $additionalParameters = @("--publish  8080:8080",
                           "--env RemovePasswordKeyFile=N"
                           )
 if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
-    if ("$sqlServerType" -eq "Express") {
+    if ("$sqlServerType" -eq "SQLExpress") {
         $additionalParameters += @("--env appbacpac=$appBacpacUri",
                                    "--env tenantbacpac=$tenantBacpacUri")
     } else {
