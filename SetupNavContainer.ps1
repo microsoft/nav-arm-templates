@@ -23,10 +23,11 @@ docker images -q --no-trunc | % {
 }
 if (!$exist) {
     try {
+        Log "Pulling $imageName (this might take ~30 minutes)"
         docker pull $imageName
     } catch {
         Log -Color Red -line $_.Exception
-        exit
+        throw
     }
 }
 
