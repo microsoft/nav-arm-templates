@@ -1,5 +1,5 @@
 ﻿$ErrorActionPreference = "Stop"
-$WarningActionPreference = "Ignore"
+$WarningActionPreference = "Stop"
 try {
 
 if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
