@@ -1,5 +1,6 @@
 ﻿$ErrorActionPreference = "Stop"
 $WarningActionPreference = "Ignore"
+try {
 
 if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
     Remove-item -Path (Join-Path $PSScriptRoot "setupStart.ps1") -Force -ErrorAction Ignore
@@ -33,9 +34,9 @@ New-Item $winPsFolder -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 "Import-Module navcontainerhelper -DisableNameChecking" | Set-Content (Join-Path $winPsFolder "Profile.ps1")
 
 Log "Adding Landing Page to Startup Group"
-New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://$publicDnsName" -ErrorAction Ignore
+New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://$publicDnsName"
 if ($style -eq "devpreview") {
-    New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://aka.ms/moderndevtools" -ErrorAction Ignore
+    New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://aka.ms/moderndevtools"
 }
 
 $navDockerImage.Split(',') | % {
@@ -45,13 +46,8 @@ $navDockerImage.Split(',') | % {
         docker login "$registry" -u "$registryUsername" -p "$registryPassword"
     }
     $imageName = $_
-    try {
-        Log "Pulling $imageName (this might take ~30 minutes)"
-        docker pull $imageName
-    } catch {
-        Log -Color Red -line $_.Exception.Message
-        throw
-    }
+    Log "Pulling $imageName (this might take ~30 minutes)"
+    docker pull $imageName
 }
 
 Log "Installing Visual C++ Redist"
@@ -86,4 +82,9 @@ if ($RunWindowsUpdate -eq "Yes") {
     install-module PSWindowsUpdate -force
     Get-WUInstall -install -acceptall -autoreboot | % { Log ($_.Status + " " + $_.KB + " " +$_.Title) }
     Log "Windows updates installed"
+}
+
+} catch {
+    Log -Color Red -line $_.Exception.Message
+    throw
 }
