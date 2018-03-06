@@ -11,7 +11,7 @@ param
        [string]$navDockerImage            = "microsoft/dynamics-nav:devpreview-finus",
        [string]$registryUsername          = "",
        [string]$registryPassword          = "",
-       [string]$sqlServerType             = "Express",
+       [string]$sqlServerType             = "SQLExpress",
        [string]$azureSqlServer            = "",
        [string]$appBacpacUri              = "",
        [string]$tenantBacpacUri           = "",
@@ -207,11 +207,6 @@ if ($finalSetupScriptUrl) {
     Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
 }
 
-
-if ($licenseFileUri -ne "") {
-    Download-File -sourceUrl $licenseFileUri -destinationFile "c:\demo\license.flf"
-}
-
 if ($fobFileUrl -ne "") {
     Download-File -sourceUrl $fobFileUrl -destinationFile "c:\demo\objects.fob"
 }
@@ -227,8 +222,12 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.6.5 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.7.0 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
+
+if ($licenseFileUri -ne "") {
+    Download-File -sourceUrl $licenseFileUri -destinationFile "c:\programdata\navcontainerhelper\license.flf"
+}
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
     Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"
