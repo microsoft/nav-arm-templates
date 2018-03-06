@@ -222,7 +222,7 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.6.8 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.6.9 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 if ($licenseFileUri -ne "") {
