@@ -22,8 +22,10 @@ docker images -q --no-trunc | % {
     if ($inspect.RepoTags | Where-Object { "$_" -eq "$imageName" -or "$_" -eq "${imageName}:latest"}) { $exist = $true }
 }
 if (!$exist) {
+    Log "Pulling $imageName (this might take ~30 minutes)"
     docker pull $imageName
 }
+
 $inspect = docker inspect $imageName | ConvertFrom-Json
 $country = $inspect.Config.Labels.country
 $navVersion = $inspect.Config.Labels.version
@@ -47,7 +49,7 @@ Log "Locale $locale"
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
-$params = @{}
+$params = @{ "enableSymbolLoading" = $true }
 $additionalParameters = @("--publish  8080:8080",
                           "--publish  443:443", 
                           "--publish  7046-7049:7046-7049", 
@@ -56,7 +58,7 @@ $additionalParameters = @("--publish  8080:8080",
                           "--env RemovePasswordKeyFile=N"
                           )
 if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
-    if ("$sqlServerType" -eq "Express") {
+    if ("$sqlServerType" -eq "SQLExpress") {
         $additionalParameters += @("--env appbacpac=$appBacpacUri",
                                    "--env tenantbacpac=$tenantBacpacUri")
     } else {
@@ -110,6 +112,12 @@ if ($sqlServerType -eq "AzureSQL") {
         Log "Importing c:\demo\objects.fob to container"
         $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
         Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $sqlCredential
+    }
+}
+
+if ("$includeappUris".Trim() -ne "") {
+    foreach($includeApp in "$includeAppUris".Split(',;')) {
+        Publish-NavContainerApp -containerName $containerName -appFile $includeApp -sync -install
     }
 }
 

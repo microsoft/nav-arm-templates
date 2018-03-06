@@ -1,10 +1,64 @@
-﻿if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
+﻿$ErrorActionPreference = "Stop"
+$WarningActionPreference = "Continue"
+
+try {
+
+if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
     Remove-item -Path (Join-Path $PSScriptRoot "setupStart.ps1") -Force -ErrorAction Ignore
     schtasks /DELETE /TN SetupVm /F | Out-Null
 }
 
 function Log([string]$line, [string]$color = "Gray") {
     ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt" 
+}
+
+function DockerDo {
+    Param(
+        [Parameter(Mandatory=$true)]
+        [string]$imageName,
+        [ValidateSet('run','start','pull')]
+        [string]$command = "run",
+        [switch]$accept_eula,
+        [switch]$accept_outdated,
+        [switch]$detach,
+        [string[]]$parameters = @()
+    )
+
+    if ($accept_eula) {
+        $parameters += "--env accept_eula=Y"
+    }
+    if ($accept_outdated) {
+        $parameters += "--env accept_outdated=Y"
+    }
+    if ($detach) {
+        $parameters += "--detach"
+    }
+    $arguments = ("$command "+[string]::Join(" ", $parameters)+" $imageName")
+
+    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+    $pinfo.FileName = "docker.exe"
+    $pinfo.RedirectStandardError = $true
+    $pinfo.RedirectStandardOutput = $true
+    $pinfo.UseShellExecute = $false
+    $pinfo.Arguments = $arguments
+    $p = New-Object System.Diagnostics.Process
+    $p.StartInfo = $pinfo
+    $p.Start() | Out-Null
+    $p.WaitForExit()
+    $output = $p.StandardOutput.ReadToEnd()
+    $error = $p.StandardError.ReadToEnd()
+    if ($p.ExitCode -eq 0) {
+        return $true
+    } else {
+        if ("$output".Trim() -ne "") {
+            Log $output
+        }
+        if ("$error".Trim() -ne "") {
+            Log -color red $error
+        }
+        Log -color red "Commandline: docker $arguments"
+        return $false
+    }
 }
 
 Import-Module -name navcontainerhelper -DisableNameChecking
@@ -30,9 +84,9 @@ New-Item $winPsFolder -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 "Import-Module navcontainerhelper -DisableNameChecking" | Set-Content (Join-Path $winPsFolder "Profile.ps1")
 
 Log "Adding Landing Page to Startup Group"
-New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -FolderName "Startup" -Arguments "http://$publicDnsName"
+New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://$publicDnsName"
 if ($style -eq "devpreview") {
-    New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -FolderName "Startup" -Arguments "http://aka.ms/moderndevtools"
+    New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://aka.ms/moderndevtools"
 }
 
 $navDockerImage.Split(',') | % {
@@ -41,8 +95,11 @@ $navDockerImage.Split(',') | % {
         Log "Logging in to $registry"
         docker login "$registry" -u "$registryUsername" -p "$registryPassword"
     }
-    Log "Pulling $_ (this might take ~30 minutes)"
-    docker pull "$_"
+    $imageName = $_
+    Log "Pulling $imageName (this might take ~30 minutes)"
+    if (!(DockerDo -imageName $imageName -command pull))  {
+        throw "Error pulling image"
+    }
 }
 
 Log "Installing Visual C++ Redist"
@@ -77,4 +134,9 @@ if ($RunWindowsUpdate -eq "Yes") {
     install-module PSWindowsUpdate -force
     Get-WUInstall -install -acceptall -autoreboot | % { Log ($_.Status + " " + $_.KB + " " +$_.Title) }
     Log "Windows updates installed"
+}
+
+} catch {
+    Log -Color Red -line $_.Exception.Message
+    throw
 }
