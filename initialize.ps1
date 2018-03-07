@@ -238,13 +238,14 @@ $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate
 $certificateThumbprint = $cert.Thumbprint
 Write-Host "Certificate File Thumbprint $certificateThumbprint"
 if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
-    Write-Host "Import Certificate to LocalMachine\my"
+    Write-Host "Importing Certificate to LocalMachine\my"
     Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
 }
 $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
 if ($dnsidentity.StartsWith("*")) {
     $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
 }
+Write-Host "DNS identity $dnsidentity"
 ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
 
 } elseif ($UseLetsEncryptCertificate -eq "Yes") {
