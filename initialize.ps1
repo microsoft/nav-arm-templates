@@ -248,6 +248,9 @@ if ($dnsidentity.StartsWith("*")) {
 Write-Host "DNS identity $dnsidentity"
 ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
 
+('Write-Host "DNS identity $dnsidentity"
+') | Set-Content "c:\myfolder\AdditionalSetup.ps1"
+
 } elseif ($UseLetsEncryptCertificate -eq "Yes") {
 
     if ("$ContactEMailForLetsEncrypt" -eq "") {
