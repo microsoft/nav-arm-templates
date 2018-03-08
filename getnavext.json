@@ -14,6 +14,7 @@
 		    "type": "string",
             "defaultValue": "No",
             "allowedValues": [ "Yes", "No" ],
+            "minLength": 3,
             "metadata": {
                 "Description": "Please accept the EULA in order to deploy. Eula can be found here: https://go.microsoft.com/fwlink/?linkid=861843"
             }
