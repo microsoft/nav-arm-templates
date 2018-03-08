@@ -14,9 +14,8 @@
 		    "type": "string",
             "defaultValue": "No",
             "allowedValues": [ "Yes", "No" ],
-            "minLength": 3,
             "metadata": {
-                "Description": "Please accept the EULA in order to deploy. Eula can be found here: https://go.microsoft.com/fwlink/?linkid=861843"
+                "Description": "In order to deploy the VM, you need to accept the EULA, which can be found here: https://go.microsoft.com/fwlink/?linkid=861843"
             }
 		},
         "RemoteDesktopAccess": {
