@@ -49,7 +49,8 @@ Log "Locale $locale"
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
-$params = @{ "enableSymbolLoading" = $true }
+$params = @{ "enableSymbolLoading" = $true 
+             "licensefile" = "$licensefileuri" }
 $additionalParameters = @("--publish  8080:8080",
                           "--publish  443:443", 
                           "--publish  7046-7049:7046-7049", 
