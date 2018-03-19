@@ -10,6 +10,14 @@
                 "Description": "Select the name of the deployment"
             }
         },
+        "AcceptEula": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "In order to deploy the VM, you need to accept the EULA, which can be found here: https://go.microsoft.com/fwlink/?linkid=861843"
+            }
+		},
         "RemoteDesktopAccess": {
 		    "type": "string",
 			"defaultValue": "",
@@ -381,6 +389,7 @@
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[variables('server1Name')]",
             "location": "[resourceGroup().location]",
+			"condition": "[equals(parameters('acceptEula'),'Yes')]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nic1Name'))]"
@@ -428,6 +437,7 @@
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('server1Name'),'/vmextension1')]",
             "location": "[resourceGroup().location]",
+			"condition": "[equals(parameters('acceptEula'),'Yes')]",
             "tags": {
                 "displayName": "PowerShellScript2"
             },

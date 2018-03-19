@@ -10,6 +10,14 @@
                 "Description": "Select the name of the deployment"
             }
         },
+        "AcceptEula": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "In order to deploy the VM, you need to accept the EULA, which can be found here: https://go.microsoft.com/fwlink/?linkid=861843"
+            }
+		},
         "RemoteDesktopAccess": {
 		    "type": "string",
 			"defaultValue": "",
@@ -182,9 +190,9 @@
         "vmStorageAccountContainerName": "vhds",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
-        "addressPrefix": "10.0.0.0/16",
+        "addressPrefix": "10.0.0.0/8",
         "subnetName": "Subnet",
-        "subnetPrefix": "10.0.0.0/24",
+        "subnetPrefix": "10.0.0.0/16",
         "virtualNetworkName": "virtualnetwork",
 		"delimiters": [ ",", ";" ],
 		"RdpAddresses": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'',parameters('RemoteDesktopAccess'))]",
@@ -453,6 +461,7 @@
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]",
             "location": "[resourceGroup().location]",
+			"condition": "[equals(parameters('acceptEula'),'Yes')]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
                 "[concat('Microsoft.Network/networkInterfaces/', parameters('vmName'),string(add(copyIndex(),parameters('offset'))),'_nic')]"
@@ -505,6 +514,7 @@
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))),'/extension',string(add(copyIndex(),parameters('offset'))))]",
             "location": "[resourceGroup().location]",
+			"condition": "[equals(parameters('acceptEula'),'Yes')]",
             "tags": {
                 "displayName": "PowerShellScript"
             },
