@@ -222,19 +222,8 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.7.0 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.7.1 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
-
-if ($licenseFileUri -ne "") {
-    $licenseFile = "c:\programdata\navcontainerhelper\license.flf"
-    Download-File -sourceUrl $licenseFileUri -destinationFile $licenseFile
-    $bytes = [System.IO.File]::ReadAllBytes($licenseFile)
-    $text = [System.Text.Encoding]::ASCII.GetString($bytes, 0, 100)
-    if (!($text.StartsWith("Microsoft Software License Information"))) {
-        Log -color Red "Ignoring License file Uri, which isn't a direct download Uri"
-        Remove-Item -Path $licenseFile -Force
-    }
-}
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
     Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"
