@@ -222,12 +222,8 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.7.0 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.7.1 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
-
-if ($licenseFileUri -ne "") {
-    Download-File -sourceUrl $licenseFileUri -destinationFile "c:\programdata\navcontainerhelper\license.flf"
-}
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
     Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"
@@ -238,14 +234,18 @@ $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate
 $certificateThumbprint = $cert.Thumbprint
 Write-Host "Certificate File Thumbprint $certificateThumbprint"
 if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
-    Write-Host "Import Certificate to LocalMachine\my"
+    Write-Host "Importing Certificate to LocalMachine\my"
     Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
 }
 $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
 if ($dnsidentity.StartsWith("*")) {
     $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
 }
+Write-Host "DNS identity $dnsidentity"
 ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
+('Write-Host "DNS identity $dnsidentity"
+') | Set-Content "c:\myfolder\AdditionalSetup.ps1"
 
 } elseif ($UseLetsEncryptCertificate -eq "Yes") {
 
