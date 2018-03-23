@@ -132,7 +132,7 @@ $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
 
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
-    Write-Host "Installing NuGet Package Provider"
+    Log "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -WarningAction Ignore | Out-Null
 }
 
