@@ -131,11 +131,10 @@ $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 
 New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
 
-#Log "Upgrading Docker Engine"
-#Unregister-PackageSource -ProviderName DockerMsftProvider -Name DockerDefault -Erroraction Ignore
-#Register-PackageSource -ProviderName DockerMsftProvider -Name Docker -Erroraction Ignore -Location https://download.docker.com/components/engine/windows-server/index.json
-#Install-Package -Name docker -ProviderName DockerMsftProvider -Update -Force
-#Start-Service docker
+if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
+    Write-Host "Installing NuGet Package Provider"
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -WarningAction Ignore | Out-Null
+}
 
 Log "Installing Internet Information Server (this might take a few minutes)"
 Add-WindowsFeature Web-Server,web-Asp-Net45
@@ -156,13 +155,6 @@ Log "Creating Connect.rdp"
 prompt for credentials:i:1
 username:s:$vmAdminUsername" | Set-Content "c:\inetpub\wwwroot\Connect.rdp"
 }
-
-Log "Enabling Docker API"
-'{
-    "hosts": ["tcp://0.0.0.0:2375", "npipe://"]
-}' | Set-Content "C:\ProgramData\docker\config\daemon.json"
-restart-service docker
-netsh advfirewall firewall add rule name="Docker" dir=in action=allow protocol=TCP localport=2375
 
 Log "Turning off IE Enhanced Security Configuration"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
@@ -315,6 +307,17 @@ Write-Host "DNS identity $dnsidentity"
         }
     }
 }
+
+Log "Installing Docker"
+Install-module DockerMsftProvider -Force
+Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+
+Log "Enabling Docker API"
+New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
+'{
+    "hosts": ["tcp://0.0.0.0:2375", "npipe://"]
+}' | Set-Content "C:\ProgramData\docker\config\daemon.json"
+netsh advfirewall firewall add rule name="Docker" dir=in action=allow protocol=TCP localport=2375
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
