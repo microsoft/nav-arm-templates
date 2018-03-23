@@ -8,8 +8,10 @@ function Log([string]$line, [string]$color = "Gray") {
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
-Log "Launching SetupVm"
+Log "Starting docker"
+start-service docker
 
+Log "Launching SetupVm"
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "c:\demo\setupVm.ps1"
