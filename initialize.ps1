@@ -131,6 +131,11 @@ $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 
 New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
 
+if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
+    Write-Host "Installing NuGet Package Provider"
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -WarningAction Ignore | Out-Null
+}
+
 Log "Installing Internet Information Server (this might take a few minutes)"
 Add-WindowsFeature Web-Server,web-Asp-Net45
 Remove-Item -Path "C:\inetpub\wwwroot\iisstart.*" -Force
@@ -304,10 +309,6 @@ Write-Host "DNS identity $dnsidentity"
 }
 
 Log "Installing Docker"
-if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
-    Write-Host "Installing NuGet Package Provider"
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -WarningAction Ignore | Out-Null
-}
 Install-module DockerMsftProvider -Force
 Install-Package -Name docker -ProviderName DockerMsftProvider -Force
 
