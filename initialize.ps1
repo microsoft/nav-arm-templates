@@ -145,7 +145,7 @@ Download-File -sourceUrl "${scriptPath}line.png"                -destinationFile
 Download-File -sourceUrl "${scriptPath}Microsoft.png"           -destinationFile "C:\inetpub\wwwroot\Microsoft.png"
 Download-File -sourceUrl "${scriptPath}web.config"              -destinationFile "C:\inetpub\wwwroot\web.config"
 
-$title = 'Dynamics NAV Container Host'
+$title = 'Dynamics Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
 
@@ -212,7 +212,7 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.7.3 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.7.5 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
@@ -306,9 +306,11 @@ Write-Host "DNS identity $dnsidentity"
     }
 }
 
-Log "Installing Docker"
-Install-module DockerMsftProvider -Force
-Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
+    Log "Installing Docker"
+    Install-module DockerMsftProvider -Force
+    Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+}
 
 Log "Enabling Docker API"
 New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
