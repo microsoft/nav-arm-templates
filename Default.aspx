@@ -16,6 +16,23 @@ private string getClickOnceUrl()
   return System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\clickonce.txt");
 }
 
+private string GetIPAddress()
+{
+    System.Web.HttpContext context = System.Web.HttpContext.Current; 
+    string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+
+    if (!string.IsNullOrEmpty(ipAddress))
+    {
+        string[] addresses = ipAddress.Split(',');
+        if (addresses.Length != 0)
+        {
+            return addresses[0];
+        }
+    }
+
+    return context.Request.ServerVariables["REMOTE_ADDR"];
+}
+
 private string getProduct()
 {
   if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\title.txt")) {
@@ -397,6 +414,7 @@ You can connect to the server in the <%=getProduct() %> by following this link.
         }
       }
 %>
+If connections to RDP fails, you might need to add an incoming rule to the networksecurity group allowing port 3389 for IP address <%=GetIPAddress() %>.
         </td>
         <td></td>
         <td style="white-space: nowrap"><a href="http://<%=getLandingPageUrl() %>/<% =System.IO.Path.GetFileName(rdps[i]) %>"><% =System.IO.Path.GetFileNameWithoutExtension(rdps[i]) %></a></td>
