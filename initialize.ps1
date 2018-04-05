@@ -306,9 +306,11 @@ Write-Host "DNS identity $dnsidentity"
     }
 }
 
-Log "Installing Docker"
-Install-module DockerMsftProvider -Force
-Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
+    Log "Installing Docker"
+    Install-module DockerMsftProvider -Force
+    Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+}
 
 Log "Enabling Docker API"
 New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
