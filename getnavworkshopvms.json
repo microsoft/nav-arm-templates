@@ -14,6 +14,7 @@
 		    "type": "string",
             "defaultValue": "No",
             "allowedValues": [ "Yes", "No" ],
+            "minLength": 3,
             "metadata": {
                 "Description": "In order to deploy the VM, you need to accept the EULA, which can be found here: https://go.microsoft.com/fwlink/?linkid=861843"
             }
@@ -532,7 +533,7 @@
                     ]
                 },
                 "protectedSettings": {
-					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',parameters('vmAdminUsername'),'\" -NAVAdminUsername \"',parameters('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',parameters('navDockerImage'),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
+					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
 				}
             },
 			"copy": {
