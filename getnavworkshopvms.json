@@ -186,7 +186,7 @@
     "variables": {
         "imagePublisher": "MicrosoftWindowsServer",
         "imageOffer": "WindowsServer",
-        "imageSku": "2016-Datacenter",
+        "imageSku": "2016-Datacenter-with-containers",
         "storageAccountType": "Standard_LRS",
         "vmStorageAccountContainerName": "vhds",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",

@@ -33,10 +33,12 @@ $nav = $inspect.Config.Labels.nav
 $cu = $inspect.Config.Labels.cu
 $locale = Get-LocaleFromCountry $country
 
-if ($nav -eq "devpreview") {
-    $title = "Dynamics 365 ""Tenerife"" Preview Environment"
+if ($nav -eq "bcsandbox") {
+    $title = "Dynamics 365 Business Central Sandbox Environment"
+} elseif ($nav -eq "devpreview") {
+    $title = "Dynamics 365 Business Central Sandbox Environment"
 } elseif ($nav -eq "main") {
-    $title = "Dynamics 365 ""Tenerife"" Preview Environment"
+    $title = "Dynamics 365 Business Central Preview Environment"
 } else {
     $title = "Dynamics NAV $nav Demonstration Environment"
 }
