@@ -132,7 +132,7 @@ $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
 
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
-    Write-Host "Installing NuGet Package Provider"
+    Log "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -WarningAction Ignore | Out-Null
 }
 
@@ -184,8 +184,6 @@ if ($auth -eq "AccessControlService") {
     Write-Host "Changing Server config to NavUserPassword to enable basic web services"
     Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
 }
-Set-NAVServerConfiguration -ServerInstance nav -KeyName "EnableSaasExtensionInstall" -KeyValue "true" -ErrorAction Ignore -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance nav -KeyName "TenantEnvironmentType" -KeyValue "Sandbox" -ErrorAction Ignore -WarningAction Ignore
 ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
