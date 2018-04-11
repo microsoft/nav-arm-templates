@@ -81,6 +81,10 @@ if ($multitenant -eq "Yes") {
     $params += @{ "multitenant" = $true }
 }
 
+if ($assignPremiumPlan -eq "Yes") {
+    $params += @{ "assignPremiumPlan" = $true }
+}
+
 $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
@@ -102,6 +106,9 @@ New-NavContainer -accept_eula @Params `
                  -myScripts $myscripts `
                  -imageName $imageName
 
+if ($CreateTestUsers -eq "Yes") {
+    Setup-NavContainerTestUsers -containerName $containerName -tenant "default" -password $credential.Password
+}
 
 if ($sqlServerType -eq "AzureSQL") {
     if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
