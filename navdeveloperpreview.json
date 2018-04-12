@@ -74,12 +74,28 @@
                 "Description": "Specify administrator password for VM, NAV and SQL (if applicable)"
             }
         },
+        "AssignPremiumPlan": {
+		    "type": "string",
+            "defaultValue": "Yes",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Assign Premium Plan to admin user"
+            }
+        },
+        "CreateTestUsers": {
+		    "type": "string",
+            "defaultValue": "Yes",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin)."
+            }
+        },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "microsoft/dynamics-nav:devpreview-finus",
+            "defaultValue": "microsoft/bcsandbox:us",
             "minLength": 1,
             "metadata": {
-                "Description": "Select the NAV Docker Image to deploy. Replace -finus with -finca or -fingb to get other Financials localizations. Remove -finus to get W1."
+                "Description": "Select the BcSandbox Docker Image to deploy. See https://hub.docker.com/r/microsoft/bcsandbox/ for a list of public images."
             }
         },
         "LicenseFileUri": {
@@ -454,7 +470,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -AssignPremiumPlan \"',parameters('AssignPremiumPlan'),'\" -CreateTestUsers \"',parameters('CreateTestUsers'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
                 },
                 "protectedSettings": {}
             }

@@ -1,38 +1,40 @@
 #usage initialize.ps1
 param
 (
-       [string]$templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
-       [string]$containerName             = "navserver",
-       [string]$hostName                  = "",
-       [string]$vmAdminUsername           = "vmadmin",
-       [string]$navAdminUsername          = "admin",
-       [string]$azureSqlAdminUsername     = "sqladmin",
-       [string]$adminPassword             = "P@ssword1",
-       [string]$navDockerImage            = "microsoft/dynamics-nav:devpreview-finus",
-       [string]$registryUsername          = "",
-       [string]$registryPassword          = "",
-       [string]$sqlServerType             = "SQLExpress",
-       [string]$azureSqlServer            = "",
-       [string]$appBacpacUri              = "",
-       [string]$tenantBacpacUri           = "",
-       [string]$includeAppUris            = "",
-       [string]$clickonce                 = "No",
-       [string]$licenseFileUri            = "",
-       [string]$certificatePfxUrl         = "",
-       [string]$certificatePfxPassword    = "",
-       [string]$publicDnsName             = "",
-	   [string]$fobFileUrl                = "",
-	   [string]$workshopFilesUrl          = "",
-	   [string]$finalSetupScriptUrl       = "",
-       [string]$style                     = "devpreview",
-       [string]$RunWindowsUpdate          = "No",
-       [string]$Multitenant               = "No",
-       [string]$UseLetsEncryptCertificate = "No",
-       [string]$ContactEMailForLetsEncrypt= "",
-       [string]$RemoteDesktopAccess       = "*",
-       [string]$Office365UserName         = "",
-       [string]$Office365Password         = "",
-       [string]$Office365CreatePortal     = "No"
+       [string] $templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
+       [string] $containerName             = "navserver",
+       [string] $hostName                  = "",
+       [string] $vmAdminUsername           = "vmadmin",
+       [string] $navAdminUsername          = "admin",
+       [string] $azureSqlAdminUsername     = "sqladmin",
+       [string] $adminPassword             = "P@ssword1",
+       [string] $navDockerImage            = "microsoft/dynamics-nav:devpreview-finus",
+       [string] $registryUsername          = "",
+       [string] $registryPassword          = "",
+       [string] $sqlServerType             = "SQLExpress",
+       [string] $azureSqlServer            = "",
+       [string] $appBacpacUri              = "",
+       [string] $tenantBacpacUri           = "",
+       [string] $includeAppUris            = "",
+       [string] $clickonce                 = "No",
+       [string] $licenseFileUri            = "",
+       [string] $certificatePfxUrl         = "",
+       [string] $certificatePfxPassword    = "",
+       [string] $publicDnsName             = "",
+	   [string] $fobFileUrl                = "",
+	   [string] $workshopFilesUrl          = "",
+	   [string] $finalSetupScriptUrl       = "",
+       [string] $style                     = "devpreview",
+       [string] $AssignPremiumPlan         = "No",
+       [string] $CreateTestUsers           = "No",
+       [string] $RunWindowsUpdate          = "No",
+       [string] $Multitenant               = "No",
+       [string] $UseLetsEncryptCertificate = "No",
+       [string] $ContactEMailForLetsEncrypt= "",
+       [string] $RemoteDesktopAccess       = "*",
+       [string] $Office365UserName         = "",
+       [string] $Office365Password         = "",
+       [string] $Office365CreatePortal     = "No"
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -90,6 +92,8 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "workshopFilesUrl"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "style"                  | Add-Content $settingsScript
     Get-VariableDeclaration -name "RunWindowsUpdate"       | Add-Content $settingsScript
+    Get-VariableDeclaration -name "AssignPremiumPlan"      | Add-Content $settingsScript
+    Get-VariableDeclaration -name "CreateTestUsers"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "Multitenant"            | Add-Content $settingsScript
 
     $passwordKey = New-Object Byte[] 16
@@ -165,8 +169,6 @@ $setupStartScript = "c:\demo\SetupStart.ps1"
 $setupVmScript = "c:\demo\SetupVm.ps1"
 $setupNavContainerScript = "c:\demo\SetupNavContainer.ps1"
 
-Download-File -sourceUrl "${scriptPath}SetupNavUsers.ps1" -destinationFile "c:\myfolder\SetupNavUsers.ps1"
-
 if ($vmAdminUsername -ne $navAdminUsername) {
     '. "c:\run\SetupWindowsUsers.ps1"
     Write-Host "Creating Host Windows user"
@@ -212,7 +214,7 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.7.5 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.8.5 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
