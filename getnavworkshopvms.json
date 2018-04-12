@@ -74,12 +74,28 @@
                 "Description": "Specify administrator password for VM, NAV and SQL (if applicable)"
             }
         },
+        "AssignPremiumPlan": {
+		    "type": "string",
+            "defaultValue": "Yes",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Assign Premium Plan to admin user"
+            }
+        },
+        "CreateTestUsers": {
+		    "type": "string",
+            "defaultValue": "Yes",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin)."
+            }
+        },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "microsoft/dynamics-nav:devpreview-finus",
+            "defaultValue": "microsoft/bcsandbox:us",
             "minLength": 1,
             "metadata": {
-                "Description": "Select the NAV Docker Image to deploy. See https://hub.docker.com/r/microsoft/dynamics-nav/ for a list of public images."
+                "Description": "Select the BcSandbox Docker Image to deploy. See https://hub.docker.com/r/microsoft/bcsandbox/ for a list of public images."
             }
         },
         "registryUsername": {
