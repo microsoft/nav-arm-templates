@@ -91,7 +91,7 @@
         },
         "CreateTestUsers": {
 		    "type": "string",
-            "defaultValue": "No",
+            "defaultValue": "Yes",
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
                 "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin)."
