@@ -134,7 +134,7 @@ if ("$includeappUris".Trim() -ne "") {
 # Copy .vsix and Certificate to container folder
 $containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
 Log "Copying .vsix and Certificate to $containerFolder"
-docker exec -it $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
+docker exec -t $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Program Files\Microsoft Dynamics NAV\*\Service\CustomSettings.config' -Destination '$containerFolder' -force
 if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
