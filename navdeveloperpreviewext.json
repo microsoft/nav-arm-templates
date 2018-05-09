@@ -92,24 +92,24 @@
         },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "microsoft/bcsandbox:us",
+            "defaultValue": "bcinsider.azurecr.io/bcsandbox:us",
             "minLength": 1,
             "metadata": {
-                "Description": "Select the BcSandbox Docker Image to deploy. See https://hub.docker.com/r/microsoft/bcsandbox/ for a list of public images."
+                "Description": "Select the BcSandbox Docker Image to deploy. Please obtain docker image and username/password from Collaborate (https://developer.microsoft.com/en-us/dashboard/collaborate/)"
             }
         },
         "registryUsername": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:tag)"
+                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/bcsandbox)"
             }
         },
         "registryPassword": {
             "type": "securestring",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/dynamics-nav:tag)"
+                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/bcsandbox)"
             }
         },
         "LicenseFileUri": {
@@ -153,7 +153,7 @@
     "variables": {
         "imagePublisher": "MicrosoftWindowsServer",
         "imageOffer": "WindowsServer",
-        "imageSku": "2016-Datacenter-with-containers",
+        "imageSku": "2016-Datacenter",
         "storageAccountType": "Standard_LRS",
         "vmStorageAccountContainerName": "vhds",
         "publicIPAddressName": "[concat(parameters('vmName'), '_pip')]",
