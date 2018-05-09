@@ -168,7 +168,7 @@
     "variables": {
         "imagePublisher": "MicrosoftWindowsServer",
         "imageOffer": "WindowsServer",
-        "imageSku": "2016-Datacenter-with-Containers",
+        "imageSku": "2016-Datacenter",
         "storageAccountType": "Standard_LRS",
         "vmStorageAccountContainerName": "vhds",
         "publicIPAddressName": "[concat(parameters('vmName'), '_pip')]",
