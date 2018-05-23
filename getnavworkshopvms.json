@@ -216,8 +216,7 @@
 		"rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
 		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
-        "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-        "accountid": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
+        "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
     },
     "resources": [
         {
@@ -549,7 +548,7 @@
                     ]
                 },
                 "protectedSettings": {
-					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
+					"commandToExecute": "[concat('powershell.exe -File ','initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -AssignPremiumPlan \"',parameters('AssignPremiumPlan'),'\" -CreateTestUsers \"',parameters('CreateTestUsers'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
 				}
             },
 			"copy": {
@@ -557,5 +556,7 @@
 				"count" : "[parameters('count')]"
 			}
         }
-    ]
+    ],
+    "outputs": {
+    }
 }
