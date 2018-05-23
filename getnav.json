@@ -478,7 +478,7 @@
                 {
                     "apiVersion": "2017-04-26-preview",
                     "type": "microsoft.devtestlab/schedules",
-                    "name": "[concat('shutdown-',variables('server1Name'))]",
+                    "name": "[concat('shutdown-computevm-',variables('server1Name'))]",
                     "location": "[resourceGroup().location]",
                     "dependsOn": [
                         "[concat('Microsoft.Compute/virtualMachines/',variables('server1Name'))]"
