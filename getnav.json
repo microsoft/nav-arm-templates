@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "vmName": {
@@ -157,8 +157,6 @@
 		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-        "accountid": "[concat('/subscriptions/',subscription().subscriptionId,'/resourceGroups/',resourceGroup().name,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "wadmetricsresourceid": "[concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/', resourceGroup().name, '/providers/', 'Microsoft.Compute/virtualMachines/', variables('server1Name'))]",
         "ScriptCommandToExecute": "powershell.exe -File  "
     },
     "resources": [
@@ -453,7 +451,30 @@
                     ]
                 }
             },
-            "resources": []
+            "resources": [
+                {
+                    "apiVersion": "2017-04-26-preview",
+                    "type": "microsoft.devtestlab/schedules",
+                    "name": "[concat('shutdown-',variables('server1Name'))]",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Compute/virtualMachines/',variables('server1Name'))]"
+                    ],
+                    "properties": {
+                        "status": "Enabled",
+                        "taskType": "ComputeVmShutdownTask",
+                        "dailyRecurrence": {
+                            "time": "1900"
+                        },
+                        "timeZoneId": "GMT",
+                        "notificationSettings": {
+                            "status": "Disabled",
+                            "timeInMinutes": 15
+                        },
+                        "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',variables('server1Name'))]"
+                    }
+                }                
+            ]
         },
         {
             "apiVersion": "2015-06-15",
@@ -481,5 +502,7 @@
                 "protectedSettings": {}
             }
         }
-    ]
+    ],
+    "outputs": {
+    }
 }
