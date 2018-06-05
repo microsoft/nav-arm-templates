@@ -347,7 +347,7 @@
 					"type": "databases",
 					"name": "Tenant",
 					"location": "[resourceGroup().location]",
-					"condition": "[and(equals(parameters('sqlServerType'),'AzureSQL'),not(equals(parameters('AppBacpacUri'),'')))]",
+					"condition": "[and(equals(parameters('sqlServerType'),'AzureSQL'),not(equals(parameters('TenantBacpacUri'),'')))]",
 					"dependsOn": [
 						"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'))]"
 					],
