@@ -19,7 +19,7 @@ docker ps --filter name=$containerName -a -q | % {
 $exist = $false
 docker images -q --no-trunc | % {
     $inspect = docker inspect $_ | ConvertFrom-Json
-    if ($inspect.RepoTags | Where-Object { "$_" -eq "$imageName" -or "$_" -eq "${imageName}:latest"}) { $exist = $true }
+    if ($inspect | % { $_.RepoTags | Where-Object { "$_" -eq "$imageName" -or "$_" -eq "${imageName}:latest"} } ) { $exist = $true }
 }
 if (!$exist) {
     Log "Pulling $imageName (this might take ~30 minutes)"
