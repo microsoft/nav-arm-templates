@@ -1,0 +1,210 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "containerName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name for the container"
+            }
+        },
+        "acceptEula": {
+            "type": "string",
+            "metadata": {
+                "description": "Change to 'Y' to accept the end user license agreement available at https://go.microsoft.com/fwlink/?linkid=861843. This is necessary to successfully run the container"
+            },
+            "defaultValue": "N",
+            "allowedValues": [
+                "Y",
+                "N"
+            ]
+        },
+        "dockerImage": {
+            "type": "string",
+            "metadata": {
+                "description": "Before the colon: dynamics-nav for NAV or bcsandbox for Business Central. After the colon: Identifier for the specific release like 2018-cu4-de for NAV or de for BC. Possible values can be found at https://hub.docker.com/r/microsoft/dynamics-nav/tags/ or https://hub.docker.com/r/microsoft/bcsandbox/tags/"
+            },
+            "defaultValue": "microsoft/bcsandbox:us"
+        },
+        "username": {
+            "type": "string",
+            "metadata": {
+                "description": "Username for your NAV super user"
+            }
+        },
+        "password": {
+            "type": "string",
+            "metadata": {
+                "description": "Password for your NAV/BC super user and your sa user on the database"
+            }
+        },
+        "cpuCores": {
+            "type": "string",
+            "metadata": {
+                "description": "The number of CPU cores to allocate to the container"
+            },
+            "defaultValue": "2.0"
+        },
+        "memoryInGb": {
+            "type": "string",
+            "metadata": {
+                "description": "The amount of memory to allocate to the container in gigabytes. Provide a minimum of 2 as the container will include SQL Server and NAV NST"
+            },
+            "defaultValue": "4.0"
+        },
+        "ContactEMailForLetsEncrypt": {
+		    "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify the email address of the person accepting subscriber agreement for LetsEncrypt here https://letsencrypt.org/repository/. Leave empty for using self-signed certificate."
+            }
+        },
+        "CertificatePfxUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a secure Url of your Certificate Pfx File. Leave empty to use LetsEncrypt or Self Signed Certificate."
+            }
+        },
+        "CertificatePfxPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Password for Certificate Pfx File. Leave empty to use LetsEncrypt or Self Signed Certificate."
+            }
+        },
+        "PublicDnsName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Public DNS Name (CNAME record pointing to your VM). A # in the name will be replaced by the VM number. Leave empty to use LetsEncrypt or Self Signed Certificate."
+            }
+        }
+    },
+    "variables": {
+        "hostname": "[concat(parameters('containerName'),'.',resourceGroup().location,'.azurecontainer.io')]",
+        "publicdnsname": "[if(empty(Parameters('PublicDnsName')),Variables('hostname'),Parameters('PublicDnsName'))]",
+        "scriptsForLetsEncrypt": "c:\\run\\my=https://github.com/NAVDEMO/LetsEncrypt/archive/master.zip\\LetsEncrypt-master",
+        "additionalSetup": ",c:\\run\\my=https://github.com/NAVDEMO/Additional/archive/master.zip\\Additional-master"
+    },
+    "resources": [
+        {
+            "name": "[parameters('containerName')]",
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2018-02-01-preview",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "imageRegistryCredentials": [
+                    {
+                        "server": "bcinsider.azurecr.io",
+                        "username": "2151f4c8-8fc2-4c87-a360-4f6c73ed8636",
+                        "password": "IVn1X5Iuo2fD6spnZ/as5SgPFMYIJV0e+qoTTb91Jtg="
+                    }
+                ],
+                "containers": [
+                    {
+                        "name": "[parameters('containerName')]",
+                        "properties": {
+                            "environmentVariables": [
+                                {
+                                    "name": "ACCEPT_EULA",
+                                    "value": "[parameters('acceptEula')]"
+                                },
+                                {
+                                    "name": "username",
+                                    "value": "[parameters('username')]"
+                                },
+                                {
+                                    "name": "password",
+                                    "value": "[parameters('password')]"
+                                },
+                                {
+                                    "name": "PublicDnsName",
+                                    "value": "[variables('publicdnsname')]"
+                                },
+                                {
+                                    "name": "folders",
+                                    "value": "[concat(variables('scriptsForLetsEncrypt'),variables('additionalSetup'))]"
+                                },
+                                {
+                                    "name": "ContactEMailForLetsEncrypt",
+                                    "value": "[parameters('ContactEMailForLetsEncrypt')]"
+                                },
+                                {
+                                    "name": "CertificatePfxUrl",
+                                    "value": "[parameters('CertificatePfxUrl')]"
+                                },
+                                {
+                                    "name": "CertificatePfxPassword",
+                                    "value": "[parameters('CertificatePfxPassword')]"
+                                }
+                            ],
+                            "image": "[Parameters('dockerImage')]",
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 443
+                                },
+                                {
+                                    "protocol": "TCP",
+                                    "port": 80
+                                },
+                                {
+                                    "protocol": "TCP",
+                                    "port": 7048
+                                },
+                                {
+                                    "protocol": "TCP",
+                                    "port": 7049
+                                },
+                                {
+                                    "protocol": "TCP",
+                                    "port": 8080
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "cpu": "[parameters('cpuCores')]",
+                                    "memoryInGB": "[parameters('memoryInGb')]"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "osType": "Windows",
+                "ipAddress": {
+                    "type": "Public",
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 443
+                        },
+                        {
+                            "protocol": "TCP",
+                            "port": 80
+                        },
+                        {
+                            "protocol": "TCP",
+                            "port": 7048
+                        },
+                        {
+                            "protocol": "TCP",
+                            "port": 7049
+                        },
+                        {
+                            "protocol": "TCP",
+                            "port": 8080
+                        }
+                    ],
+                    "dnsNameLabel": "[parameters('containerName')]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "containerIPAddressFqdn": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.ContainerInstance/containerGroups/', parameters('containerName'))).ipAddress.fqdn]"
+        }
+    }
+}
