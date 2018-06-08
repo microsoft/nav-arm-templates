@@ -143,15 +143,31 @@ if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
 [System.IO.File]::WriteAllText("$containerFolder\Country.txt", $country)
 [System.IO.File]::WriteAllText("$containerFolder\Title.txt",$title)
 
-if ($Office365UserName -ne "" -and $Office365Password -ne "") {
+if ($auth -eq "AAD") {
     Log "Creating Aad Apps for Office 365 integration"
     $CustomConfigFile =  Join-Path $containerFolder "CustomSettings.config"
     $CustomConfig = [xml](Get-Content $CustomConfigFile)
     $publicWebBaseUrl = $CustomConfig.SelectSingleNode("//appSettings/add[@key='PublicWebBaseUrl']").Value
     $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
     $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-    Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
-    $auth = "AAD"
+    $sec = 30
+    $ok = $false
+    while (!$ok)
+    {
+        try {
+            Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
+            $ok = $true
+        } catch {
+            if ($sec -gt 500) {
+                throw
+            }
+            Log -color yellow -line $_.Exception.GetType().FullName
+            Log -color yellow -line $_.Exception.Message
+            Log -color yellow -line "Retrying in $sec seconds..."
+            Start-Sleep -Seconds $sec
+            $sec = $sec*2
+        }
+    }
 }
 
 # Install Certificate on host
