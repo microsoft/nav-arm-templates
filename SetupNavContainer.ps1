@@ -143,7 +143,7 @@ if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
 [System.IO.File]::WriteAllText("$containerFolder\Country.txt", $country)
 [System.IO.File]::WriteAllText("$containerFolder\Title.txt",$title)
 
-if ($Office365UserName -ne "" -and $Office365Password -ne "") {
+if ($auth -eq "AAD") {
     Log "Creating Aad Apps for Office 365 integration"
     $CustomConfigFile =  Join-Path $containerFolder "CustomSettings.config"
     $CustomConfig = [xml](Get-Content $CustomConfigFile)
@@ -151,7 +151,6 @@ if ($Office365UserName -ne "" -and $Office365Password -ne "") {
     $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
     $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
     Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
-    $auth = "AAD"
 }
 
 # Install Certificate on host

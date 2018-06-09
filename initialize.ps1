@@ -214,7 +214,7 @@ if ($workshopFilesUrl -ne "") {
 }
 
 Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.8.5 -Force
+Install-Module -Name navcontainerhelper -RequiredVersion 0.2.9.0 -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
@@ -320,6 +320,21 @@ New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorA
     "hosts": ["tcp://0.0.0.0:2375", "npipe://"]
 }' | Set-Content "C:\ProgramData\docker\config\daemon.json"
 netsh advfirewall firewall add rule name="Docker" dir=in action=allow protocol=TCP localport=2375
+
+if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
+    Log "Installing NuGet Package Provider"
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -WarningAction Ignore | Out-Null
+}
+
+if (!(Get-Package -Name AzureRM.ApiManagement -ErrorAction Ignore)) {
+    Log "Installing AzureRM.ApiManagement PowerShell package"
+    Install-Package AzureRM.ApiManagement -Force -WarningAction Ignore | Out-Null
+}
+
+if (!(Get-Package -Name AzureRM.Resources -ErrorAction Ignore)) {
+    Log "Installing AzureRM.Resources PowerShell package"
+    Install-Package AzureRM.Resources -Force -WarningAction Ignore | Out-Null
+}
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
