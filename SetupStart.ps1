@@ -20,4 +20,21 @@ Register-ScheduledTask -TaskName SetupVm `
                        -RunLevel Highest `
                        -User $vmAdminUsername `
                        -Password $plainPassword | Out-Null
+
 Start-ScheduledTask -TaskName SetupVm
+
+if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
+    Log "Installing NuGet Package Provider"
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force -WarningAction Ignore | Out-Null
+}
+
+if (!(Get-Package -Name AzureRM.ApiManagement -ErrorAction Ignore)) {
+    Log "Installing AzureRM.ApiManagement PowerShell package"
+    Install-Package AzureRM.ApiManagement -Force -WarningAction Ignore | Out-Null
+}
+
+if (!(Get-Package -Name AzureRM.Resources -ErrorAction Ignore)) {
+    Log "Installing AzureRM.Resources PowerShell package"
+    Install-Package AzureRM.Resources -Force -WarningAction Ignore | Out-Null
+}
+
