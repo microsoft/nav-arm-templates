@@ -213,8 +213,9 @@ if ($workshopFilesUrl -ne "") {
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
 
-Log "Install Nav Container Helper from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion 0.2.9.2 -Force
+$navcontainerhelperversion = "0.2.9.2"
+Log "Install Nav Container Helper $navcontainerhelperversion from PowerShell Gallery"
+Install-Module -Name navcontainerhelper -RequiredVersion $navcontainerhelperversion -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
