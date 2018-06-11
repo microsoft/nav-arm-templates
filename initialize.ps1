@@ -311,7 +311,7 @@ Write-Host "DNS identity $dnsidentity"
     }
 }
 
-if ((Get-ComputerInfo).OsProductType -ne "Server") {
+if ((Get-ComputerInfo).OsProductType -eq "Server") {
     Log "Running Windows Server OS"
     if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
         Log "Installing Docker"
