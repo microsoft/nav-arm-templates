@@ -335,12 +335,7 @@ if ($WindowsInstallationType -eq "Server") {
         Install-Package -Name docker -ProviderName DockerMsftProvider -Force
     }
 } else {
-    if (!(Test-Path -Path "C:\Program Files\Docker\Docker\Docker for Windows.exe" -PathType Leaf)) {
-        Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
-        $dockerexe = "C:\DOWNLOAD\DockerInstall.exe"
-        (New-Object System.Net.WebClient).DownloadFile("https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe", $dockerexe)
-        Start-Process -FilePath $dockerexe -ArgumentList "install --quiet" -Wait
-    }
+    Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
 }
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy unrestricted -file $setupStartScript"
