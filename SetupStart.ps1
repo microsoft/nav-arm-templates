@@ -8,8 +8,22 @@ function Log([string]$line, [string]$color = "Gray") {
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
-Log "Starting docker"
-start-service docker
+if ((Get-ComputerInfo).OsProductType -ne "Server") {
+    Log "Starting docker"
+    start-service docker
+} else {
+    Log "Waiting for docker to start... (this should only take a few minutes)"
+    $serverOsStr = "  OS/Arch:      "
+    do {
+        Start-Sleep -Seconds 10
+        $dockerver = docker version
+    } while ($LASTEXITCODE -ne 0)
+    $serverOs = ($dockerver | where-Object { $_.startsWith($serverOsStr) }).SubString($serverOsStr.Length)
+    if (!$serverOs.startsWith("windows")) {
+        Log "Switching to Windows Containers"
+        & "c:\program files\docker\docker\dockercli" -SwitchDaemon
+    }
+}
 
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Log "Installing NuGet Package Provider"
