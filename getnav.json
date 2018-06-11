@@ -46,7 +46,7 @@
 		},
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_D3_v3",
+            "defaultValue": "Standard_D4_v3",
             "allowedValues": [
                 "Standard_D2_v2",
                 "Standard_D3_v2",
@@ -189,7 +189,7 @@
 		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-        "ScriptCommandToExecute": "powershell.exe -File  "
+        "ScriptCommandToExecute": "powershell.exe -executionpolicy unrestricted -file  "
     },
     "resources": [
         {

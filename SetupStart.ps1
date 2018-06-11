@@ -43,7 +43,7 @@ if (!(Get-Package -Name AzureRM.Resources -ErrorAction Ignore)) {
 Log "Launching SetupVm"
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
-$onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "c:\demo\setupVm.ps1"
+$onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy unrestricted -file c:\demo\setupVm.ps1"
 Register-ScheduledTask -TaskName SetupVm `
                        -Action $onceAction `
                        -RunLevel Highest `

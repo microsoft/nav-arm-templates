@@ -350,7 +350,7 @@ New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorA
 }' | Set-Content "C:\ProgramData\docker\config\daemon.json"
 netsh advfirewall firewall add rule name="Docker" dir=in action=allow protocol=TCP localport=2375
 
-$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument $setupStartScript
+$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy unrestricted -file $setupStartScript"
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
 Register-ScheduledTask -TaskName "SetupStart" `
                        -Action $startupAction `
