@@ -124,8 +124,8 @@ $openXmlFile = "C:\DOWNLOAD\OpenXMLSDKV25.msi"
 Download-File -sourceUrl $openXmlUrl -destinationFile $openXmlFile
 Start-Process $openXmlFile -argumentList "/qn /q /passive" -wait
 
-Start-Process -FilePath "powershell.exe" -ArgumentList "c:\demo\SetupNavContainer.ps1" -Wait
-Start-Process -FilePath "powershell.exe" -ArgumentList "c:\demo\SetupDesktop.ps1" -Wait
+. "c:\demo\SetupNavContainer.ps1"
+. "c:\demo\SetupDesktop.ps1"
 
 $finalSetupScript = (Join-Path $PSScriptRoot "FinalSetupScript.ps1")
 if (Test-Path $finalSetupScript) {
