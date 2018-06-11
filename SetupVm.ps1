@@ -93,17 +93,21 @@ if ($style -eq "devpreview") {
     New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://aka.ms/moderndevtools"
 }
 
+$first = $true
 $navDockerImage.Split(',') | % {
     $registry = $_.Split('/')[0]
     if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
         Log "Logging in to $registry"
         docker login "$registry" -u "$registryUsername" -p "$registryPassword"
     }
-    $imageName = $_
-    Log "Pulling $imageName (this might take ~30 minutes)"
-    if (!(DockerDo -imageName $imageName -command pull))  {
-        throw "Error pulling image"
+    if (!$first) {
+        $imageName = $_
+        Log "Pulling $imageName (this might take ~30 minutes)"
+        if (!(DockerDo -imageName $imageName -command pull))  {
+            throw "Error pulling image"
+        }
     }
+    $first = $false
 }
 
 Log "Installing Visual C++ Redist"
