@@ -311,10 +311,21 @@ Write-Host "DNS identity $dnsidentity"
     }
 }
 
-if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
-    Log "Installing Docker"
-    Install-module DockerMsftProvider -Force
-    Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+if ((Get-ComputerInfo).OsProductType -ne "Server") {
+    Log "Running Windows Server OS"
+    if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
+        Log "Installing Docker"
+        Install-module DockerMsftProvider -Force
+        Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+    }
+} else {
+    Log "Running Windows Client OS"
+    if (!(Test-Path -Path "C:\Program Files\Docker\Docker\Docker for Windows.exe" -PathType Leaf)) {
+        $feature = Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart
+        $dockerexe = "C:\DEMO\DockerInstall.exe"
+        (New-Object System.Net.WebClient).DownloadFile("https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe", $dockerexe)
+        Start-Process -FilePath $dockerexe -ArgumentList "install --quiet" -Wait
+    }
 }
 
 Log "Enabling Docker API"
