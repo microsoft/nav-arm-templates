@@ -61,6 +61,11 @@ if ($publicDnsName -eq "") {
     $publicDnsName = $hostname
 }
 
+$ComputerInfo = Get-ComputerInfo
+$WindowsInstallationType = $ComputerInfo.WindowsInstallationType
+$WindowsProductName = $ComputerInfo.WindowsProductName
+
+Log "Running $WindowsProductName"
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
 
 $settingsScript = "c:\demo\settings.ps1"
@@ -95,6 +100,8 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "AssignPremiumPlan"      | Add-Content $settingsScript
     Get-VariableDeclaration -name "CreateTestUsers"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "Multitenant"            | Add-Content $settingsScript
+    Get-VariableDeclaration -name "WindowsInstallationType"| Add-Content $settingsScript
+    Get-VariableDeclaration -name "WindowsProductName"     | Add-Content $settingsScript
 
     $passwordKey = New-Object Byte[] 16
     [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
@@ -104,8 +111,11 @@ if (Test-Path $settingsScript) {
     $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $passwordKey
     ('$adminPassword = "'+$encPassword+'"') | Add-Content $settingsScript
 
-    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -AsPlainText -Force
-    $encOffice365Password = ConvertFrom-SecureString -SecureString $secureOffice365Password -Key $passwordKey
+    $encOffice365Password = ""
+    if ("$Office365Password" -ne "") {
+        $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -AsPlainText -Force
+        $encOffice365Password = ConvertFrom-SecureString -SecureString $secureOffice365Password -Key $passwordKey
+    }
     ('$Office365Password = "'+$encOffice365Password+'"') | Add-Content $settingsScript
 }
 
@@ -141,7 +151,12 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
 }
 
 Log "Installing Internet Information Server (this might take a few minutes)"
-Add-WindowsFeature Web-Server,web-Asp-Net45
+if ($WindowsInstallationType -eq "Server") {
+    Add-WindowsFeature Web-Server,web-Asp-Net45
+} else {
+    Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServer,IIS-ASPNET45 -All -NoRestart | Out-Null
+}
+
 Remove-Item -Path "C:\inetpub\wwwroot\iisstart.*" -Force
 Download-File -sourceUrl "${scriptPath}Default.aspx"            -destinationFile "C:\inetpub\wwwroot\default.aspx"
 Download-File -sourceUrl "${scriptPath}status.aspx"             -destinationFile "C:\inetpub\wwwroot\status.aspx"
@@ -160,9 +175,11 @@ prompt for credentials:i:1
 username:s:$vmAdminUsername" | Set-Content "c:\inetpub\wwwroot\Connect.rdp"
 }
 
-Log "Turning off IE Enhanced Security Configuration"
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
-Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
+if ($WindowsInstallationType -eq "Server") {
+    Log "Turning off IE Enhanced Security Configuration"
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
+    Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
+}
 
 $setupDesktopScript = "c:\demo\SetupDesktop.ps1"
 $setupStartScript = "c:\demo\SetupStart.ps1"
@@ -311,18 +328,16 @@ Write-Host "DNS identity $dnsidentity"
     }
 }
 
-if ((Get-ComputerInfo).OsProductType -eq "Server") {
-    Log "Running Windows Server OS"
+if ($WindowsInstallationType -eq "Server") {
     if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
         Log "Installing Docker"
         Install-module DockerMsftProvider -Force
         Install-Package -Name docker -ProviderName DockerMsftProvider -Force
     }
 } else {
-    Log "Running Windows Client OS"
     if (!(Test-Path -Path "C:\Program Files\Docker\Docker\Docker for Windows.exe" -PathType Leaf)) {
-        $feature = Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart
-        $dockerexe = "C:\DEMO\DockerInstall.exe"
+        Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
+        $dockerexe = "C:\DOWNLOAD\DockerInstall.exe"
         (New-Object System.Net.WebClient).DownloadFile("https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe", $dockerexe)
         Start-Process -FilePath $dockerexe -ArgumentList "install --quiet" -Wait
     }

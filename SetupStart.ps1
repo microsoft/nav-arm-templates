@@ -8,7 +8,7 @@ function Log([string]$line, [string]$color = "Gray") {
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
-if ((Get-ComputerInfo).OsProductType -eq "Server") {
+if ($WindowsInstallationType -eq "Server") {
     Log "Starting docker"
     start-service docker
 } else {
