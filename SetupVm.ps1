@@ -75,6 +75,10 @@ Log "Enabling Font Download in IE"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\3" -Name "1604" -Value 0
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\3" -Name "1604" -Value 0
 
+Log "Show hidden files and file types"
+Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'  -Name "Hidden"      -value 1
+Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'  -Name "HideFileExt" -value 0
+
 Log "Disabling Server Manager Open At Logon"
 New-ItemProperty -Path "HKCU:\Software\Microsoft\ServerManager" -Name "DoNotOpenServerManagerAtLogon" -PropertyType "DWORD" -Value "0x1" –Force | Out-Null
 
@@ -89,17 +93,21 @@ if ($style -eq "devpreview") {
     New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://aka.ms/moderndevtools"
 }
 
+$first = $true
 $navDockerImage.Split(',') | % {
     $registry = $_.Split('/')[0]
     if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
         Log "Logging in to $registry"
         docker login "$registry" -u "$registryUsername" -p "$registryPassword"
     }
-    $imageName = $_
-    Log "Pulling $imageName (this might take ~30 minutes)"
-    if (!(DockerDo -imageName $imageName -command pull))  {
-        throw "Error pulling image"
+    if (!$first) {
+        $imageName = $_
+        Log "Pulling $imageName (this might take ~30 minutes)"
+        if (!(DockerDo -imageName $imageName -command pull))  {
+            throw "Error pulling image"
+        }
     }
+    $first = $false
 }
 
 Log "Installing Visual C++ Redist"
