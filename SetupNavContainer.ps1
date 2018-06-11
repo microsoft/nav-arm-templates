@@ -9,6 +9,23 @@ Import-Module -name navcontainerhelper -DisableNameChecking
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
+$auth = "NavUserPassword"
+if ($Office365UserName -ne "" -and $Office365Password -ne "") {
+    Log "Creating Aad Apps for Office 365 integration"
+    try {
+        . "c:\demo\SetupAAD.ps1"
+        $auth = "AAD"
+    } catch {
+        $p = Start-Process -FilePath "powershell.exe" -ArgumentList "c:\demo\SetupAAD.ps1" -PassThru -Wait
+        if ($p.ExitCode -eq 0) {
+            $auth = "AAD"
+        } else {
+            Log -Color Yellow -line $_.Exception.Message
+            Log -Color Yellow -line "Error setting up Aad Apps, reverting to NavUserPassword auth."            
+        }
+    }
+}
+
 $imageName = $navDockerImage.Split(',')[0]
 
 docker ps --filter name=$containerName -a -q | % {
@@ -86,11 +103,6 @@ if ($assignPremiumPlan -eq "Yes") {
 $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
-$auth = "NavUserPassword"
-if ($Office365UserName -ne "" -and $Office365Password -ne "") {
-    $auth = "AAD"
-}
-
 Log "Running $imageName (this will take a few minutes)"
 New-NavContainer -accept_eula @Params `
                  -containerName $containerName `
@@ -142,16 +154,6 @@ if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
 [System.IO.File]::WriteAllText("$containerFolder\Cu.txt",$cu)
 [System.IO.File]::WriteAllText("$containerFolder\Country.txt", $country)
 [System.IO.File]::WriteAllText("$containerFolder\Title.txt",$title)
-
-if ($auth -eq "AAD") {
-    Log "Creating Aad Apps for Office 365 integration"
-    $CustomConfigFile =  Join-Path $containerFolder "CustomSettings.config"
-    $CustomConfig = [xml](Get-Content $CustomConfigFile)
-    $publicWebBaseUrl = $CustomConfig.SelectSingleNode("//appSettings/add[@key='PublicWebBaseUrl']").Value
-    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
-    $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-    Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
-}
 
 # Install Certificate on host
 $certFile = Get-Item "$containerFolder\*.cer"
