@@ -65,7 +65,6 @@ $ComputerInfo = Get-ComputerInfo
 $WindowsInstallationType = $ComputerInfo.WindowsInstallationType
 $WindowsProductName = $ComputerInfo.WindowsProductName
 
-Log "Running $WindowsProductName"
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
 
 $settingsScript = "c:\demo\settings.ps1"
@@ -140,6 +139,7 @@ Set-Content "c:\DEMO\RemoteDesktopAccess.txt" -Value $RemoteDesktopAccess
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
 Log -color Green "Starting initialization"
+Log "Running $WindowsProductName"
 Log "TemplateLink: $templateLink"
 $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 
@@ -342,13 +342,6 @@ if ($WindowsInstallationType -eq "Server") {
         Start-Process -FilePath $dockerexe -ArgumentList "install --quiet" -Wait
     }
 }
-
-Log "Enabling Docker API"
-New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
-'{
-    "hosts": ["tcp://0.0.0.0:2375", "npipe://"]
-}' | Set-Content "C:\ProgramData\docker\config\daemon.json"
-netsh advfirewall firewall add rule name="Docker" dir=in action=allow protocol=TCP localport=2375
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy unrestricted -file $setupStartScript"
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
