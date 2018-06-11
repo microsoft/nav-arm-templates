@@ -10,6 +10,15 @@
                 "Description": "Select the name of the deployment"
             }
         },
+        "OperatingSystem": {
+		    "type": "string",
+            "defaultValue": "Windows Server 2016",
+            "allowedValues": [ "Windows Server 2016", "Windows 10" ],
+			"minLength": 3,
+            "metadata": {
+                "Description": "What Operating system do you want to run on your VM."
+            }
+		},
         "AcceptEula": {
 		    "type": "string",
             "defaultValue": "No",
@@ -159,9 +168,9 @@
         }
     },
     "variables": {
-        "imagePublisher": "MicrosoftWindowsServer",
-        "imageOffer": "WindowsServer",
-        "imageSku": "2016-Datacenter",
+        "imagePublisher": "[if(equals(parameters('OperatingSystem'),'Windows Server 2016'),'MicrosoftWindowsServer','MicrosoftWindowsDesktop')]",
+        "imageOffer": "[if(equals(parameters('OperatingSystem'),'Windows Server 2016'),'WindowsServer','Windows-10')]",
+        "imageSku": "[if(equals(parameters('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter','rs4-pro')]",
         "storageAccountType": "Standard_LRS",
         "vmStorageAccountContainerName": "vhds",
         "publicIPAddressName": "[concat(parameters('vmName'), '_pip')]",
