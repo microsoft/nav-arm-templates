@@ -13,7 +13,7 @@
         "OperatingSystem": {
 		    "type": "string",
             "defaultValue": "Windows Server 2016",
-            "allowedValues": [ "Windows Server 2016", "Windows 10" ],
+            "allowedValues": [ "Windows Server 2016" ],
 			"minLength": 3,
             "metadata": {
                 "Description": "What Operating system do you want to run on your VM."
