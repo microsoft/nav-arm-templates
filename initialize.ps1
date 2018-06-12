@@ -140,6 +140,7 @@ Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
 Log -color Green "Starting initialization"
 Log "Running $WindowsProductName"
+Log "Initialize, user: $env:USERNAME"
 Log "TemplateLink: $templateLink"
 $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 
@@ -338,7 +339,7 @@ if ($WindowsInstallationType -eq "Server") {
     Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
 }
 
-$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-executionpolicy unrestricted -file $setupStartScript"
+$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
 Register-ScheduledTask -TaskName "SetupStart" `
                        -Action $startupAction `
