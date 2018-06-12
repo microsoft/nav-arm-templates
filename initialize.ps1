@@ -347,4 +347,4 @@ Register-ScheduledTask -TaskName "SetupStart" `
                        -User System | Out-Null
 
 Log "Restarting computer and start Installation tasks"
-Restart-Computer -Force
+shutdown -r -t 30
