@@ -76,7 +76,7 @@ if ($WindowsInstallationType -eq "Server") {
         Start-Sleep -Seconds 30
 
         Log "Restarting computer and start Docker"
-        Restart-Computer -Force
+        shutdown -r -t 30
 
         exit
 
