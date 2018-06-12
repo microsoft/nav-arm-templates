@@ -4,7 +4,6 @@ $WarningActionPreference = "Continue"
 try {
 
 if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
-    Remove-item -Path (Join-Path $PSScriptRoot "setupStart.ps1") -Force -ErrorAction Ignore
     schtasks /DELETE /TN SetupVm /F | Out-Null
 }
 
@@ -64,6 +63,45 @@ function DockerDo {
 Import-Module -name navcontainerhelper -DisableNameChecking
 
 . (Join-Path $PSScriptRoot "settings.ps1")
+
+if ($WindowsInstallationType -eq "Server") {
+    Log "Starting docker"
+    start-service docker
+} else {
+    if (!(Test-Path -Path "C:\Program Files\Docker\Docker\Docker for Windows.exe" -PathType Leaf)) {
+        Log "Install Docker"
+        $dockerexe = "C:\DOWNLOAD\DockerInstall.exe"
+        (New-Object System.Net.WebClient).DownloadFile("https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe", $dockerexe)
+        Start-Process -FilePath $dockerexe -ArgumentList "install --quiet" -Wait
+        Start-Sleep -Seconds 30
+        Log "Restarting computer and start Docker"
+        Restart-Computer -Force
+    } else {
+        Log "Waiting for docker to start... (this should only take a few minutes)"
+        $serverOsStr = "  OS/Arch:      "
+        do {
+            Start-Sleep -Seconds 10
+            $dockerver = docker version
+        } while ($LASTEXITCODE -ne 0)
+        $serverOs = ($dockerver | where-Object { $_.startsWith($serverOsStr) }).SubString($serverOsStr.Length)
+        if (!$serverOs.startsWith("windows")) {
+            Log "Switching to Windows Containers"
+            & "c:\program files\docker\docker\dockercli" -SwitchDaemon
+        }
+    }
+}
+
+if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
+    schtasks /DELETE /TN SetupStart /F | Out-Null
+}
+
+Log "Enabling Docker API"
+New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
+'{
+    "hosts": ["tcp://0.0.0.0:2375", "npipe://"]
+}' | Set-Content "C:\ProgramData\docker\config\daemon.json"
+netsh advfirewall firewall add rule name="Docker" dir=in action=allow protocol=TCP localport=2375 | Out-Null
+
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
 
