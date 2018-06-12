@@ -73,7 +73,6 @@ if ($WindowsInstallationType -eq "Server") {
         $dockerexe = "C:\DOWNLOAD\DockerInstall.exe"
         (New-Object System.Net.WebClient).DownloadFile("https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe", $dockerexe)
         Start-Process -FilePath $dockerexe -ArgumentList "install --quiet" -Wait
-        Start-Sleep -Seconds 30
 
         Log "Restarting computer and start Docker"
         shutdown -r -t 30
