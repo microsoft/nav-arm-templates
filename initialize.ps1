@@ -341,11 +341,13 @@ if ($WindowsInstallationType -eq "Server") {
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
 Register-ScheduledTask -TaskName "SetupStart" `
                        -Action $startupAction `
                        -Trigger $startupTrigger `
-                       -RunLevel Highest `
-                       -User System | Out-Null
+                       -Settings $settings `
+                       -RunLevel "Highest" `
+                       -User "NT AUTHORITY\SYSTEM" | Out-Null
 
 Log "Restarting computer and start Installation tasks"
-shutdown -r -t 30
+Restart-Computer -force
