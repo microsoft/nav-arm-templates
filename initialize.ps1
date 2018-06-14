@@ -17,6 +17,7 @@ param
        [string] $tenantBacpacUri           = "",
        [string] $includeAppUris            = "",
        [string] $clickonce                 = "No",
+       [string] $enableTaskScheduler       = "Default",
        [string] $licenseFileUri            = "",
        [string] $certificatePfxUrl         = "",
        [string] $certificatePfxPassword    = "",
@@ -91,6 +92,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "tenantBacpacUri"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "includeAppUris"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "clickonce"              | Add-Content $settingsScript
+    Get-VariableDeclaration -name "enableTaskScheduler"    | Add-Content $settingsScript
     Get-VariableDeclaration -name "licenseFileUri"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "publicDnsName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "workshopFilesUrl"       | Add-Content $settingsScript
