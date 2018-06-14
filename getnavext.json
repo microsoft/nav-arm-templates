@@ -118,6 +118,14 @@
                 "Description": "Optional: Specify a secure Url of your NAV Partner License File for NAV. If you do not specify a license file Url here, you will have to upload the license manually later."
             }
         },
+        "SQLServerType": {
+		    "type": "string",
+            "defaultValue": "SQLExpress",
+            "allowedValues": [ "SQLExpress", "AzureSQL" ],
+            "metadata": {
+                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of NAV Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost and you will need to specify App and Tenant Bacpac Uris as Azure Storage Shared Access Signature Urls."
+            }
+        },
         "AppBacpacUri": {
             "type": "string",
             "defaultValue": "",
@@ -130,14 +138,6 @@
             "defaultValue": "",
             "metadata": {
                 "Description": "Optional: Specify a secure Url of the tenant bacpac you want to use for the Docker image. If you do not specify an tenant bacpac, you will be using the NAV database in the Docker image."
-            }
-        },
-        "SQLServerType": {
-		    "type": "string",
-            "defaultValue": "SQLExpress",
-            "allowedValues": [ "SQLExpress", "AzureSQL" ],
-            "metadata": {
-                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of NAV Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost and you will need to specify App and Tenant Bacpac Uris as Azure Storage Shared Access Signature Urls."
             }
         },
         "IncludeAppUris": {

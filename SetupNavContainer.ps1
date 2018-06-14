@@ -92,6 +92,12 @@ if ("$clickonce" -eq "Yes") {
     $additionalParameters += @("--env clickonce=Y")
 }
 
+if ("$enableTaskScheduler" -eq "Yes") {
+    $additionalParameters += @("--env CustomNavSettings=EnableTaskScheduler=true")
+} elseif ("$enableTaskScheduler" -eq "No") {
+    $additionalParameters += @("--env CustomNavSettings=EnableTaskScheduler=false")
+}
+
 if ($multitenant -eq "Yes") {
     $params += @{ "multitenant" = $true }
 }
