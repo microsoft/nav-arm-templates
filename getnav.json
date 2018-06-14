@@ -94,7 +94,7 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Optional: Specify a secure Url of your NAV Partner License File for the developer preview. If you do not specify a license file Url here, you will have to upload the license manually later."
+                "Description": "Optional: Specify a secure Url of your NAV Partner License File for NAV. If you do not specify a license file Url here, you will have to upload the license manually later."
             }
         },
         "ClickOnce": {
@@ -170,27 +170,37 @@
         "vmName": "[trim(parameters('vmName'))]",
         "TimezoneId": "[parameters('TimezoneId')]",
         "AcceptEula": "[parameters('AcceptEula')]",
-        "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
         "vmSize": "[parameters('vmSize')]",
+        "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
         "navAdminUsername": "[trim(parameters('navAdminUsername'))]",
+		"azureSqlAdminUsername": "sqladmin",
         "adminPassword": "[parameters('adminPassword')]",
         "navDockerImage": "[trim(parameters('navDockerImage'))]",
-        "registryUsername": "[parameters('registryUsername')]",
-        "registryPassword": "[parameters('registryPassword')]",
+        "registryUsername": "",
+        "registryPassword": "",
         "LicenseFileUri": "[parameters('LicenseFileUri')]",
-        "AssignPremiumPlan": "[parameters('AssignPremiumPlan')]",
-        "CreateTestUsers": "[parameters('CreateTestUsers')]",
+        "SQLServerType": "SQLExpress",
+        "AppBacpacUri": "",
+        "TenantBacpacUri": "",
+        "IncludeAppUris": "",
+        "CertificatePfxUrl": "",
+        "CertificatePfxPassword": "",
+        "PublicDnsName": "",
+        "Multitenant": "No",
+        "AssignPremiumPlan": "No",
+        "CreateTestUsers": "No",
         "ClickOnce": "[parameters('ClickOnce')]",
         "EnableTaskScheduler": "[parameters('EnableTaskScheduler')]",
-        "FinalSetupScriptUrl": "[parameters('FinalSetupScriptUrl')]",
         "Office365UserName": "[parameters('Office365UserName')]",
         "Office365Password": "[parameters('Office365Password')]",
+        "FinalSetupScriptUrl": "",
         "RunWindowsUpdate": "[parameters('RunWindowsUpdate')]",
         "UseLetsEncryptCertificate": "[parameters('UseLetsEncryptCertificate')]",
         "ContactEMailForLetsEncrypt": "[parameters('ContactEMailForLetsEncrypt')]",
         "AutoShutdown": "[parameters('AutoShutdown')]",
         "AutoShutdownTime": "[parameters('AutoShutdownTime')]",
+        "style": "demo",
         "OperatingSystem": "Windows Server 2016",
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'MicrosoftWindowsServer','MicrosoftWindowsDesktop')]",
         "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'WindowsServer','Windows-10')]",
@@ -213,9 +223,125 @@
 		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-        "ScriptCommandToExecute": "powershell.exe -executionpolicy unrestricted -file "
+        "ScriptCommandToExecute": "powershell.exe -executionpolicy unrestricted -file ",
+		"azureSqlServer": "[concat('sql', replace(tolower(variables('vmName')),'-',''))]",
+		"azureSqlServerDnsName": "[concat(variables('azureSqlServer'),'.database.windows.net')]",
+		"SqlCollation": "Latin1_General_100_CS_AS"
     },
     "resources": [
+		{
+			"apiVersion": "2014-04-01-preview",
+			"type": "Microsoft.Sql/servers",
+			"name": "[variables('azureSqlServer')]",
+			"location": "[resourceGroup().location]",
+			"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
+			"tags": {
+				"displayName": "SqlServer"
+			},
+			"properties": {
+				"administratorLogin": "[variables('azureSqlAdminUsername')]",
+				"administratorLoginPassword": "[variables('adminPassword')]",
+				"version": "12.0"
+			},
+			"resources": [
+				{
+					"apiVersion": "2014-04-01-preview",
+					"type": "firewallrules",
+					"name": "AllowAllAzureIps",
+					"location": "[resourceGroup().location]",
+					"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
+					"dependsOn": [
+						"[variables('azureSqlServer')]"
+					],
+					"properties": {
+						"endIpAddress": "0.0.0.0",
+						"startIpAddress": "0.0.0.0"
+					}
+				},
+				{
+					"apiVersion": "2014-04-01-preview",
+					"type": "databases",
+					"name": "App",
+					"location": "[resourceGroup().location]",
+					"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('AppBacpacUri'),'')))]",
+					"dependsOn": [
+						"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'))]"
+					],
+					"tags": {
+						"displayName": "App Database"
+					},
+					"properties": {
+						"collation": "[variables('SqlCollation')]",
+						"edition": "Standard",
+						"maxSizeBytes": "1073741824",
+						"requestedServiceObjectiveName": "S0"
+					},
+					"resources": [
+						{
+							"apiVersion": "2014-04-01-preview",
+							"type": "extensions",
+							"name": "Import",
+							"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('AppBacpacUri'),'')))]",
+							"dependsOn": [
+								"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'), '/databases/App')]"
+							],
+							"tags": {
+								"displayName": "Import"
+							},
+							"properties": {
+								"storageKeyType": "SharedAccessKey",
+								"storageUri": "[split(variables('AppBacpacUri'),'?')[0]]",
+								"storageKey": "[concat('?',split(variables('AppBacpacUri'),'?')[1])]",
+								"administratorLogin": "[variables('azureSqlAdminUsername')]",
+								"administratorLoginPassword": "[variables('adminPassword')]",
+								"operationMode": "Import"
+							}
+						}
+					]
+				},
+				{
+					"apiVersion": "2014-04-01-preview",
+					"type": "databases",
+					"name": "Tenant",
+					"location": "[resourceGroup().location]",
+					"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('TenantBacpacUri'),'')))]",
+					"dependsOn": [
+						"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'))]"
+					],
+					"tags": {
+						"displayName": "Tenant Template"
+					},
+					"properties": {
+						"collation": "[variables('SqlCollation')]",
+						"edition": "Standard",
+						"maxSizeBytes": "1073741824",
+						"requestedServiceObjectiveName": "S0"
+					},
+					"resources": [
+						{
+							"apiVersion": "2014-04-01-preview",
+							"type": "extensions",
+							"name": "Import",
+							"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('TenantBacpacUri'),'')))]",
+							"dependsOn": [
+								"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'), '/databases/Tenant')]"
+							],
+							"tags": {
+								"displayName": "Import"
+							},
+							"properties": {
+								"storageKeyType": "SharedAccessKey",
+								"storageUri": "[split(variables('TenantBacpacUri'),'?')[0]]",
+								"storageKey": "[concat('?',split(variables('TenantBacpacUri'),'?')[1])]",
+								"administratorLogin": "[variables('azureSqlAdminUsername')]",
+								"administratorLoginPassword": "[variables('adminPassword')]",
+								"operationMode": "Import"
+							}
+						}
+					]
+				}
+			]
+		},
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Storage/storageAccounts",
@@ -554,7 +680,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',variables('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',variables('registryPassword'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',variables('CertificatePfxPassword'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',variables('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\"')]"
                 },
                 "protectedSettings": {}
             }
