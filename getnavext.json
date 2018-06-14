@@ -10,6 +10,14 @@
                 "Description": "Select the name of the deployment"
             }
         },
+        "TimezoneId": {
+		    "type": "string",
+            "defaultValue": "GMT Standard Time",
+            "allowedValues": [ "Dateline Standard Time","UTC-11","Aleutian Standard Time","Hawaiian Standard Time","Marquesas Standard Time","Alaskan Standard Time","UTC-09","Pacific Standard Time (Mexico)","UTC-08","Pacific Standard Time","US Mountain Standard Time","Mountain Standard Time (Mexico)","Mountain Standard Time","Central America Standard Time","Central Standard Time","Easter Island Standard Time","Central Standard Time (Mexico)","Canada Central Standard Time","SA Pacific Standard Time","Eastern Standard Time (Mexico)","Eastern Standard Time","Haiti Standard Time","Cuba Standard Time","US Eastern Standard Time","Turks And Caicos Standard Time","Paraguay Standard Time","Atlantic Standard Time","Venezuela Standard Time","Central Brazilian Standard Time","SA Western Standard Time","Pacific SA Standard Time","Newfoundland Standard Time","Tocantins Standard Time","E. South America Standard Time","SA Eastern Standard Time","Argentina Standard Time","Greenland Standard Time","Montevideo Standard Time","Magallanes Standard Time","Saint Pierre Standard Time","Bahia Standard Time","UTC-02","Mid-Atlantic Standard Time","Azores Standard Time","Cape Verde Standard Time","UTC","Morocco Standard Time","GMT Standard Time","Greenwich Standard Time","W. Europe Standard Time","Central Europe Standard Time","Romance Standard Time","Central European Standard Time","W. Central Africa Standard Time","Jordan Standard Time","GTB Standard Time","Middle East Standard Time","Egypt Standard Time","E. Europe Standard Time","Syria Standard Time","West Bank Standard Time","South Africa Standard Time","FLE Standard Time","Israel Standard Time","Kaliningrad Standard Time","Sudan Standard Time","Libya Standard Time","Namibia Standard Time","Arabic Standard Time","Turkey Standard Time","Arab Standard Time","Belarus Standard Time","Russian Standard Time","E. Africa Standard Time","Iran Standard Time","Arabian Standard Time","Astrakhan Standard Time","Azerbaijan Standard Time","Russia Time Zone 3","Mauritius Standard Time","Saratov Standard Time","Georgian Standard Time","Caucasus Standard Time","Afghanistan Standard Time","West Asia Standard Time","Ekaterinburg Standard Time","Pakistan Standard Time","India Standard Time","Sri Lanka Standard Time","Nepal Standard Time","Central Asia Standard Time","Bangladesh Standard Time","Omsk Standard Time","Myanmar Standard Time","SE Asia Standard Time","Altai Standard Time","W. Mongolia Standard Time","North Asia Standard Time","N. Central Asia Standard Time","Tomsk Standard Time","China Standard Time","North Asia East Standard Time","Singapore Standard Time","W. Australia Standard Time","Taipei Standard Time","Ulaanbaatar Standard Time","North Korea Standard Time","Aus Central W. Standard Time","Transbaikal Standard Time","Tokyo Standard Time","Korea Standard Time","Yakutsk Standard Time","Cen. Australia Standard Time","AUS Central Standard Time","E. Australia Standard Time","AUS Eastern Standard Time","West Pacific Standard Time","Tasmania Standard Time","Vladivostok Standard Time","Lord Howe Standard Time","Bougainville Standard Time","Russia Time Zone 10","Magadan Standard Time","Norfolk Standard Time","Sakhalin Standard Time","Central Pacific Standard Time","Russia Time Zone 11","New Zealand Standard Time","UTC+12","Fiji Standard Time","Kamchatka Standard Time","Chatham Islands Standard Time","UTC+13","Tonga Standard Time","Samoa Standard Time","Line Islands Standard Time" ],
+            "metadata": {
+                "Description": "Timezone of VM."
+            }
+        },
         "AcceptEula": {
 		    "type": "string",
             "defaultValue": "No",
@@ -29,7 +37,7 @@
 		},
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_D2_v3",
+            "defaultValue": "Standard_D4_v3",
             "allowedValues": [
                 "Standard_D2_v2",
                 "Standard_D3_v2",
@@ -86,7 +94,7 @@
             "defaultValue": "microsoft/dynamics-nav",
             "minLength": 1,
             "metadata": {
-                "Description": "Select the NAV Docker Image to deploy. Replace -finus with -finca or -fingb to get other Financials localizations. Remove -finus to get W1."
+                "Description": "Select the NAV Docker Image to deploy. See https://hub.docker.com/r/microsoft/dynamics-nav/ for a list of public images."
             }
         },
         "registryUsername": {
@@ -145,6 +153,14 @@
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
                 "Description": "Include ClickOnce deployed Windows Client"
+            }
+        },
+        "EnableTaskScheduler": {
+		    "type": "string",
+            "defaultValue": "Yes",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Enable Task Scheduler in Container"
             }
         },
         "Multitenant": {
@@ -228,14 +244,6 @@
                 "Description": "Specifies whether you want to enable autoshutdown of the VM."
             }
         },
-        "AutoShutdownTimezoneId": {
-		    "type": "string",
-            "defaultValue": "GMT Standard Time",
-            "allowedValues": [ "Dateline Standard Time","UTC-11","Aleutian Standard Time","Hawaiian Standard Time","Marquesas Standard Time","Alaskan Standard Time","UTC-09","Pacific Standard Time (Mexico)","UTC-08","Pacific Standard Time","US Mountain Standard Time","Mountain Standard Time (Mexico)","Mountain Standard Time","Central America Standard Time","Central Standard Time","Easter Island Standard Time","Central Standard Time (Mexico)","Canada Central Standard Time","SA Pacific Standard Time","Eastern Standard Time (Mexico)","Eastern Standard Time","Haiti Standard Time","Cuba Standard Time","US Eastern Standard Time","Turks And Caicos Standard Time","Paraguay Standard Time","Atlantic Standard Time","Venezuela Standard Time","Central Brazilian Standard Time","SA Western Standard Time","Pacific SA Standard Time","Newfoundland Standard Time","Tocantins Standard Time","E. South America Standard Time","SA Eastern Standard Time","Argentina Standard Time","Greenland Standard Time","Montevideo Standard Time","Magallanes Standard Time","Saint Pierre Standard Time","Bahia Standard Time","UTC-02","Mid-Atlantic Standard Time","Azores Standard Time","Cape Verde Standard Time","UTC","Morocco Standard Time","GMT Standard Time","Greenwich Standard Time","W. Europe Standard Time","Central Europe Standard Time","Romance Standard Time","Central European Standard Time","W. Central Africa Standard Time","Jordan Standard Time","GTB Standard Time","Middle East Standard Time","Egypt Standard Time","E. Europe Standard Time","Syria Standard Time","West Bank Standard Time","South Africa Standard Time","FLE Standard Time","Israel Standard Time","Kaliningrad Standard Time","Sudan Standard Time","Libya Standard Time","Namibia Standard Time","Arabic Standard Time","Turkey Standard Time","Arab Standard Time","Belarus Standard Time","Russian Standard Time","E. Africa Standard Time","Iran Standard Time","Arabian Standard Time","Astrakhan Standard Time","Azerbaijan Standard Time","Russia Time Zone 3","Mauritius Standard Time","Saratov Standard Time","Georgian Standard Time","Caucasus Standard Time","Afghanistan Standard Time","West Asia Standard Time","Ekaterinburg Standard Time","Pakistan Standard Time","India Standard Time","Sri Lanka Standard Time","Nepal Standard Time","Central Asia Standard Time","Bangladesh Standard Time","Omsk Standard Time","Myanmar Standard Time","SE Asia Standard Time","Altai Standard Time","W. Mongolia Standard Time","North Asia Standard Time","N. Central Asia Standard Time","Tomsk Standard Time","China Standard Time","North Asia East Standard Time","Singapore Standard Time","W. Australia Standard Time","Taipei Standard Time","Ulaanbaatar Standard Time","North Korea Standard Time","Aus Central W. Standard Time","Transbaikal Standard Time","Tokyo Standard Time","Korea Standard Time","Yakutsk Standard Time","Cen. Australia Standard Time","AUS Central Standard Time","E. Australia Standard Time","AUS Eastern Standard Time","West Pacific Standard Time","Tasmania Standard Time","Vladivostok Standard Time","Lord Howe Standard Time","Bougainville Standard Time","Russia Time Zone 10","Magadan Standard Time","Norfolk Standard Time","Sakhalin Standard Time","Central Pacific Standard Time","Russia Time Zone 11","New Zealand Standard Time","UTC+12","Fiji Standard Time","Kamchatka Standard Time","Chatham Islands Standard Time","UTC+13","Tonga Standard Time","Samoa Standard Time","Line Islands Standard Time" ],
-            "metadata": {
-                "Description": "Timezone of the time on which the VM will be auto-shutdown (if enabled)."
-            }
-        },
         "AutoShutdownTime": {
 		    "type": "string",
             "defaultValue": "20:00",
@@ -245,30 +253,65 @@
         }
     },
     "variables": {
-        "imagePublisher": "MicrosoftWindowsServer",
-        "imageOffer": "WindowsServer",
-        "imageSku": "2016-Datacenter",
+        "vmName": "[trim(parameters('vmName'))]",
+        "TimezoneId": "[parameters('TimezoneId')]",
+        "AcceptEula": "[parameters('AcceptEula')]",
+        "vmSize": "[parameters('vmSize')]",
+        "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
+        "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
+        "navAdminUsername": "[trim(parameters('navAdminUsername'))]",
+		"azureSqlAdminUsername": "[trim(parameters('azureSqlAdminUsername'))]",
+        "adminPassword": "[parameters('adminPassword')]",
+        "navDockerImage": "[trim(parameters('navDockerImage'))]",
+        "registryUsername": "[parameters('registryUsername')]",
+        "registryPassword": "[parameters('registryPassword')]",
+        "LicenseFileUri": "[parameters('LicenseFileUri')]",
+        "SQLServerType": "[parameters('SQLServerType')]",
+        "AppBacpacUri": "[parameters('AppBacpacUri')]",
+        "TenantBacpacUri": "[parameters('TenantBacpacUri')]",
+        "IncludeAppUris": "[parameters('IncludeAppUris')]",
+        "CertificatePfxUrl": "[parameters('CertificatePfxUrl')]",
+        "CertificatePfxPassword": "[parameters('CertificatePfxPassword')]",
+        "PublicDnsName": "[parameters('PublicDnsName')]",
+        "Multitenant": "[parameters('Multitenant')]",
+        "AssignPremiumPlan": "No",
+        "CreateTestUsers": "No",
+        "ClickOnce": "[parameters('ClickOnce')]",
+        "EnableTaskScheduler": "[parameters('EnableTaskScheduler')]",
+        "Office365UserName": "[parameters('Office365UserName')]",
+        "Office365Password": "[parameters('Office365Password')]",
+        "FinalSetupScriptUrl": "[parameters('FinalSetupScriptUrl')]",
+        "RunWindowsUpdate": "[parameters('RunWindowsUpdate')]",
+        "UseLetsEncryptCertificate": "[parameters('UseLetsEncryptCertificate')]",
+        "ContactEMailForLetsEncrypt": "[parameters('ContactEMailForLetsEncrypt')]",
+        "AutoShutdown": "[parameters('AutoShutdown')]",
+        "AutoShutdownTime": "[parameters('AutoShutdownTime')]",
+        "style": "demo",
+        "OperatingSystem": "Windows Server 2016",
+        "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'MicrosoftWindowsServer','MicrosoftWindowsDesktop')]",
+        "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'WindowsServer','Windows-10')]",
+        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter','rs4-pro')]",
         "storageAccountType": "Standard_LRS",
         "vmStorageAccountContainerName": "vhds",
-        "publicIPAddressName": "[concat(parameters('vmName'), '_pip')]",
+        "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
-		"azureSqlServer": "[concat('sql', replace(tolower(parameters('vmName')),'-',''))]",
-		"azureSqlServerDnsName": "[concat(variables('azureSqlServer'),'.database.windows.net')]",
-        "dnsName": "[tolower(parameters('vmName'))]",
+        "dnsName": "[tolower(variables('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
         "subnetPrefix": "10.0.0.0/24",
         "virtualNetworkName": "virtualnetwork",
-        "server1Name": "[tolower(parameters('vmName'))]",
-        "nic1Name": "[concat(parameters('vmName'),'_nic')]",
+        "server1Name": "[tolower(variables('vmName'))]",
+        "nic1Name": "[concat(variables('vmName'),'_nic')]",
 		"delimiters": [ ",", ";" ],
-		"RdpAddresses": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'',parameters('RemoteDesktopAccess'))]",
+		"RdpAddresses": "[if(equals(variables('RemoteDesktopAccess'),'-'),'',variables('RemoteDesktopAccess'))]",
 		"rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
 		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-        "ScriptCommandToExecute": "powershell.exe -File  ",
+        "ScriptCommandToExecute": "powershell.exe -executionpolicy unrestricted -file ",
+		"azureSqlServer": "[concat('sql', replace(tolower(variables('vmName')),'-',''))]",
+		"azureSqlServerDnsName": "[concat(variables('azureSqlServer'),'.database.windows.net')]",
 		"SqlCollation": "Latin1_General_100_CS_AS"
     },
     "resources": [
@@ -277,13 +320,13 @@
 			"type": "Microsoft.Sql/servers",
 			"name": "[variables('azureSqlServer')]",
 			"location": "[resourceGroup().location]",
-			"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
+			"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
 			"tags": {
 				"displayName": "SqlServer"
 			},
 			"properties": {
-				"administratorLogin": "[parameters('azureSqlAdminUsername')]",
-				"administratorLoginPassword": "[parameters('adminPassword')]",
+				"administratorLogin": "[variables('azureSqlAdminUsername')]",
+				"administratorLoginPassword": "[variables('adminPassword')]",
 				"version": "12.0"
 			},
 			"resources": [
@@ -292,7 +335,7 @@
 					"type": "firewallrules",
 					"name": "AllowAllAzureIps",
 					"location": "[resourceGroup().location]",
-					"condition": "[equals(parameters('sqlServerType'),'AzureSQL')]",
+					"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
 					"dependsOn": [
 						"[variables('azureSqlServer')]"
 					],
@@ -306,7 +349,7 @@
 					"type": "databases",
 					"name": "App",
 					"location": "[resourceGroup().location]",
-					"condition": "[and(equals(parameters('sqlServerType'),'AzureSQL'),not(equals(parameters('AppBacpacUri'),'')))]",
+					"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('AppBacpacUri'),'')))]",
 					"dependsOn": [
 						"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'))]"
 					],
@@ -324,7 +367,7 @@
 							"apiVersion": "2014-04-01-preview",
 							"type": "extensions",
 							"name": "Import",
-							"condition": "[and(equals(parameters('sqlServerType'),'AzureSQL'),not(equals(parameters('AppBacpacUri'),'')))]",
+							"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('AppBacpacUri'),'')))]",
 							"dependsOn": [
 								"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'), '/databases/App')]"
 							],
@@ -333,10 +376,10 @@
 							},
 							"properties": {
 								"storageKeyType": "SharedAccessKey",
-								"storageUri": "[split(parameters('AppBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(parameters('AppBacpacUri'),'?')[1])]",
-								"administratorLogin": "[parameters('azureSqlAdminUsername')]",
-								"administratorLoginPassword": "[parameters('adminPassword')]",
+								"storageUri": "[split(variables('AppBacpacUri'),'?')[0]]",
+								"storageKey": "[concat('?',split(variables('AppBacpacUri'),'?')[1])]",
+								"administratorLogin": "[variables('azureSqlAdminUsername')]",
+								"administratorLoginPassword": "[variables('adminPassword')]",
 								"operationMode": "Import"
 							}
 						}
@@ -347,7 +390,7 @@
 					"type": "databases",
 					"name": "Tenant",
 					"location": "[resourceGroup().location]",
-					"condition": "[and(equals(parameters('sqlServerType'),'AzureSQL'),not(equals(parameters('TenantBacpacUri'),'')))]",
+					"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('TenantBacpacUri'),'')))]",
 					"dependsOn": [
 						"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'))]"
 					],
@@ -365,7 +408,7 @@
 							"apiVersion": "2014-04-01-preview",
 							"type": "extensions",
 							"name": "Import",
-							"condition": "[and(equals(parameters('sqlServerType'),'AzureSQL'),not(equals(parameters('TenantBacpacUri'),'')))]",
+							"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('TenantBacpacUri'),'')))]",
 							"dependsOn": [
 								"[concat('Microsoft.Sql/servers/', variables('azureSqlServer'), '/databases/Tenant')]"
 							],
@@ -374,10 +417,10 @@
 							},
 							"properties": {
 								"storageKeyType": "SharedAccessKey",
-								"storageUri": "[split(parameters('TenantBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(parameters('TenantBacpacUri'),'?')[1])]",
-								"administratorLogin": "[parameters('azureSqlAdminUsername')]",
-								"administratorLoginPassword": "[parameters('adminPassword')]",
+								"storageUri": "[split(variables('TenantBacpacUri'),'?')[0]]",
+								"storageKey": "[concat('?',split(variables('TenantBacpacUri'),'?')[1])]",
+								"administratorLogin": "[variables('azureSqlAdminUsername')]",
+								"administratorLoginPassword": "[variables('adminPassword')]",
 								"operationMode": "Import"
 							}
 						}
@@ -518,7 +561,7 @@
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
 			"name": "rdp-0",
-			"condition": "[not(equals(parameters('RemoteDesktopAccess'),'-'))]",
+			"condition": "[not(equals(variables('RemoteDesktopAccess'),'-'))]",
 			"dependsOn": [
 				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
 			],
@@ -539,7 +582,7 @@
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
 			"name": "[concat('rdp-', copyIndex(1))]",
-			"condition": "[not(equals(parameters('RemoteDesktopAccess'),'-'))]",
+			"condition": "[not(equals(variables('RemoteDesktopAccess'),'-'))]",
 			"dependsOn": [
 				"[concat('rdp-', copyIndex())]"
 			],
@@ -635,21 +678,22 @@
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[variables('server1Name')]",
             "location": "[resourceGroup().location]",
-			"condition": "[equals(parameters('acceptEula'),'Yes')]",
+			"condition": "[equals(variables('acceptEula'),'Yes')]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nic1Name'))]"
             ],
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "[parameters('vmSize')]"
+                    "vmSize": "[variables('vmSize')]"
                 },
                 "osProfile": {
                     "computerName": "[variables('server1Name')]",
-                    "adminUsername": "[parameters('vmAdminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]",
+                    "adminUsername": "[variables('vmAdminUsername')]",
+                    "adminPassword": "[variables('adminPassword')]",
                     "windowsConfiguration": {
-                        "provisionVmAgent": "true"
+                        "provisionVMAgent": true,
+                        "timeZone": "[variables('TimezoneId')]"
                     }
                 },
                 "storageProfile": {
@@ -686,12 +730,12 @@
                         "[concat('Microsoft.Compute/virtualMachines/',variables('server1Name'))]"
                     ],
                     "properties": {
-                        "status": "[parameters('AutoShutdown')]",
+                        "status": "[variables('AutoShutdown')]",
                         "taskType": "ComputeVmShutdownTask",
                         "dailyRecurrence": {
-                            "time": "[parameters('AutoShutdownTime')]"
+                            "time": "[variables('AutoShutdownTime')]"
                         },
-                        "timeZoneId": "[parameters('AutoShutdownTimezoneId')]",
+                        "timeZoneId": "[variables('TimezoneId')]",
                         "notificationSettings": {
                             "status": "Disabled",
                             "timeInMinutes": 15
@@ -706,7 +750,7 @@
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('server1Name'),'/vmextension1')]",
             "location": "[resourceGroup().location]",
-			"condition": "[equals(parameters('acceptEula'),'Yes')]",
+			"condition": "[equals(variables('acceptEula'),'Yes')]",
             "tags": {
                 "displayName": "PowerShellScript2"
             },
@@ -716,13 +760,13 @@
             "properties": {
                 "publisher": "Microsoft.Compute",
                 "type": "CustomScriptExtension",
-                "typeHandlerVersion": "1.4",
+                "typeHandlerVersion": "1.9",
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AzureSQLAdminUsername \"',trim(parameters('azureSqlAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -SQLServerType \"',parameters('SQLServerType'),'\" -AzureSqlServer \"',if(equals(parameters('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',parameters('AppBacpacUri'),'\" -TenantBacpacUri \"',parameters('TenantBacpacUri'),'\" -IncludeAppUris \"',parameters('IncludeAppUris'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',parameters('PublicDnsName'),'\" -Multitenant \"',parameters('Multitenant'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',variables('registryPassword'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',variables('CertificatePfxPassword'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',variables('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\"')]"
                 },
                 "protectedSettings": {}
             }
