@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "vmName": {
@@ -10,15 +10,6 @@
                 "Description": "Select the name of the deployment"
             }
         },
-        "OperatingSystem": {
-		    "type": "string",
-            "defaultValue": "Windows Server 2016",
-            "allowedValues": [ "Windows Server 2016", "Windows 10 Pro" ],
-			"minLength": 3,
-            "metadata": {
-                "Description": "What Operating system do you want to run on your VM."
-            }
-		},
         "TimezoneId": {
 		    "type": "string",
             "defaultValue": "GMT Standard Time",
@@ -114,6 +105,14 @@
                 "Description": "Include ClickOnce deployed Windows Client"
             }
         },
+        "EnableTaskScheduler": {
+		    "type": "string",
+            "defaultValue": "Yes",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Enable Task Scheduler in Container"
+            }
+        },
 		"Office365UserName": {
 			"type": "string",
 			"defaultValue": "",
@@ -168,28 +167,53 @@
         }
     },
     "variables": {
-        "imagePublisher": "[if(equals(parameters('OperatingSystem'),'Windows Server 2016'),'MicrosoftWindowsServer','MicrosoftWindowsDesktop')]",
-        "imageOffer": "[if(equals(parameters('OperatingSystem'),'Windows Server 2016'),'WindowsServer','Windows-10')]",
-        "imageSku": "[if(equals(parameters('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter','rs4-pro')]",
+        "vmName": "[trim(parameters('vmName'))]",
+        "TimezoneId": "[parameters('TimezoneId')]",
+        "AcceptEula": "[parameters('AcceptEula')]",
+        "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
+        "vmSize": "[parameters('vmSize')]",
+        "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
+        "navAdminUsername": "[trim(parameters('navAdminUsername'))]",
+        "adminPassword": "[parameters('adminPassword')]",
+        "navDockerImage": "[trim(parameters('navDockerImage'))]",
+        "registryUsername": "[parameters('registryUsername')]",
+        "registryPassword": "[parameters('registryPassword')]",
+        "LicenseFileUri": "[parameters('LicenseFileUri')]",
+        "AssignPremiumPlan": "[parameters('AssignPremiumPlan')]",
+        "CreateTestUsers": "[parameters('CreateTestUsers')]",
+        "ClickOnce": "[parameters('ClickOnce')]",
+        "EnableTaskScheduler": "[parameters('EnableTaskScheduler')]",
+        "FinalSetupScriptUrl": "[parameters('FinalSetupScriptUrl')]",
+        "Office365UserName": "[parameters('Office365UserName')]",
+        "Office365Password": "[parameters('Office365Password')]",
+        "RunWindowsUpdate": "[parameters('RunWindowsUpdate')]",
+        "UseLetsEncryptCertificate": "[parameters('UseLetsEncryptCertificate')]",
+        "ContactEMailForLetsEncrypt": "[parameters('ContactEMailForLetsEncrypt')]",
+        "AutoShutdown": "[parameters('AutoShutdown')]",
+        "AutoShutdownTime": "[parameters('AutoShutdownTime')]",
+        "OperatingSystem": "Windows Server 2016",
+        "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'MicrosoftWindowsServer','MicrosoftWindowsDesktop')]",
+        "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'WindowsServer','Windows-10')]",
+        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter','rs4-pro')]",
         "storageAccountType": "Standard_LRS",
         "vmStorageAccountContainerName": "vhds",
-        "publicIPAddressName": "[concat(parameters('vmName'), '_pip')]",
+        "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
-        "dnsName": "[tolower(parameters('vmName'))]",
+        "dnsName": "[tolower(variables('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
         "subnetPrefix": "10.0.0.0/24",
         "virtualNetworkName": "virtualnetwork",
-        "server1Name": "[tolower(parameters('vmName'))]",
-        "nic1Name": "[concat(parameters('vmName'),'_nic')]",
+        "server1Name": "[tolower(variables('vmName'))]",
+        "nic1Name": "[concat(variables('vmName'),'_nic')]",
 		"delimiters": [ ",", ";" ],
-		"RdpAddresses": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'',parameters('RemoteDesktopAccess'))]",
+		"RdpAddresses": "[if(equals(variables('RemoteDesktopAccess'),'-'),'',variables('RemoteDesktopAccess'))]",
 		"rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
 		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-        "ScriptCommandToExecute": "powershell.exe -executionpolicy unrestricted -file  "
+        "ScriptCommandToExecute": "powershell.exe -executionpolicy unrestricted -file "
     },
     "resources": [
         {
@@ -325,7 +349,7 @@
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
 			"name": "rdp-0",
-			"condition": "[not(equals(parameters('RemoteDesktopAccess'),'-'))]",
+			"condition": "[not(equals(variables('RemoteDesktopAccess'),'-'))]",
 			"dependsOn": [
 				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
 			],
@@ -346,7 +370,7 @@
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
 			"name": "[concat('rdp-', copyIndex(1))]",
-			"condition": "[not(equals(parameters('RemoteDesktopAccess'),'-'))]",
+			"condition": "[not(equals(variables('RemoteDesktopAccess'),'-'))]",
 			"dependsOn": [
 				"[concat('rdp-', copyIndex())]"
 			],
@@ -442,22 +466,22 @@
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[variables('server1Name')]",
             "location": "[resourceGroup().location]",
-			"condition": "[equals(parameters('acceptEula'),'Yes')]",
+			"condition": "[equals(variables('acceptEula'),'Yes')]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nic1Name'))]"
             ],
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "[parameters('vmSize')]"
+                    "vmSize": "[variables('vmSize')]"
                 },
                 "osProfile": {
                     "computerName": "[variables('server1Name')]",
-                    "adminUsername": "[parameters('vmAdminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]",
+                    "adminUsername": "[variables('vmAdminUsername')]",
+                    "adminPassword": "[variables('adminPassword')]",
                     "windowsConfiguration": {
                         "provisionVMAgent": true,
-                        "timeZone": "[parameters('TimezoneId')]"
+                        "timeZone": "[variables('TimezoneId')]"
                     }
                 },
                 "storageProfile": {
@@ -494,12 +518,12 @@
                         "[concat('Microsoft.Compute/virtualMachines/',variables('server1Name'))]"
                     ],
                     "properties": {
-                        "status": "[parameters('AutoShutdown')]",
+                        "status": "[variables('AutoShutdown')]",
                         "taskType": "ComputeVmShutdownTask",
                         "dailyRecurrence": {
-                            "time": "[parameters('AutoShutdownTime')]"
+                            "time": "[variables('AutoShutdownTime')]"
                         },
-                        "timeZoneId": "[parameters('TimezoneId')]",
+                        "timeZoneId": "[variables('TimezoneId')]",
                         "notificationSettings": {
                             "status": "Disabled",
                             "timeInMinutes": 15
@@ -514,7 +538,7 @@
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('server1Name'),'/vmextension1')]",
             "location": "[resourceGroup().location]",
- 			"condition": "[equals(parameters('acceptEula'),'Yes')]",
+ 			"condition": "[equals(variables('acceptEula'),'Yes')]",
             "tags": {
                 "displayName": "PowerShellScript2"
             },
@@ -530,7 +554,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -Office365UserName \"',parameters('Office365UserName'),'\" -Office365Password \"',parameters('Office365Password'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',variables('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"demo\"')]"
                 },
                 "protectedSettings": {}
             }
