@@ -235,7 +235,7 @@ if ($workshopFilesUrl -ne "") {
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
 
-$navcontainerhelperversion = "0.2.9.2"
+$navcontainerhelperversion = "0.2.9.3"
 Log "Install Nav Container Helper $navcontainerhelperversion from PowerShell Gallery"
 Install-Module -Name navcontainerhelper -RequiredVersion $navcontainerhelperversion -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
