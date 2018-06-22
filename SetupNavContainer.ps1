@@ -12,18 +12,10 @@ Import-Module -name navcontainerhelper -DisableNameChecking
 $auth = "NavUserPassword"
 if ($Office365UserName -ne "" -and $Office365Password -ne "") {
     Log "Creating Aad Apps for Office 365 integration"
-    try {
-        . "c:\demo\SetupAAD.ps1"
-        $auth = "AAD"
-    } catch {
-        $p = Start-Process -FilePath "powershell.exe" -ArgumentList "c:\demo\SetupAAD.ps1" -PassThru -Wait
-        if ($p.ExitCode -eq 0) {
-            $auth = "AAD"
-        } else {
-            Log -Color Yellow -line $_.Exception.Message
-            Log -Color Yellow -line "Error setting up Aad Apps, reverting to NavUserPassword auth."            
-        }
-    }
+    $publicWebBaseUrl = "https://$publicDnsName/NAV/"
+    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
+    $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
+    Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
 }
 
 $imageName = $navDockerImage.Split(',')[0]
