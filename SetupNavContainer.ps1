@@ -119,6 +119,13 @@ if ($CreateTestUsers -eq "Yes") {
     Setup-NavContainerTestUsers -containerName $containerName -tenant "default" -password $credential.Password
 }
 
+if ($CreateAadUsers -eq "Yes" -and $Office365UserName -ne "" -and $Office365Password -ne "") {
+    Log "Creating Aad Users"
+    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
+    $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
+    Create-AadUsersInNavContainer -containerName $containerName -tenant "default" -AadAdminCredential $Office365Credential -permissionSetId SUPER -securePassword $securePassword
+}
+
 if ($sqlServerType -eq "AzureSQL") {
     if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
         Log "Importing c:\demo\objects.fob to container"
