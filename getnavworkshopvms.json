@@ -181,7 +181,7 @@
             "type": "securestring",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specifies whether you want to use Lets Encrypt to generate a secure SSL certificate, which is valid for a 3 months. By selecting LetsEncrypt you implicit accept the subscriber agreement here https://letsencrypt.org/repository/"
+                "Description": "Optional: Specify the password of the Certificate Pfx File specified in CertificatePfxUrl."
             }
         },
         "PublicDnsName": {
@@ -191,19 +191,11 @@
                 "Description": "Public DNS Name (CNAME record pointing to your VM). A # in the name will be replaced by the VM number. If you do not specify a public DNS name, you will get a Self Signed Certificate."
             }
         },
-        "UseLetsEncryptCertificate": {
-		    "type": "string",
-            "defaultValue": "No",
-            "allowedValues": [ "Yes", "No" ],
-            "metadata": {
-                "Description": "Specifies whether you want to use Lets Encrypt to generate a secure SSL certificate, which is valid for a 3 months. You also need to specify an email address of the person accepting the subscriber agreement for LetsEncrypt."
-            }
-        },
         "ContactEMailForLetsEncrypt": {
 		    "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify the email address of the person accepting subscriber agreement for LetsEncrypt here https://letsencrypt.org/repository/"
+                "Description": "Specify an email address of the person accepting subscriber agreement for LetsEncrypt (https://letsencrypt.org/repository/) in order to use Lets Encrypt to generate a secure SSL certificate, which is valid for 3 months."
             }
         }
     },
@@ -558,7 +550,7 @@
                     ]
                 },
                 "protectedSettings": {
-					"commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -AssignPremiumPlan \"',parameters('AssignPremiumPlan'),'\" -CreateTestUsers \"',parameters('CreateTestUsers'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -UseLetsEncryptCertificate \"',parameters('UseLetsEncryptCertificate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
+					"commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -AssignPremiumPlan \"',parameters('AssignPremiumPlan'),'\" -CreateTestUsers \"',parameters('CreateTestUsers'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
 				}
             },
 			"copy": {
