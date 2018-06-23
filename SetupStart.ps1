@@ -16,6 +16,11 @@ if (!(Get-Package -Name AzureRM.Resources -ErrorAction Ignore)) {
     Install-Package AzureRM.Resources -Force -WarningAction Ignore | Out-Null
 }
 
+if (!(Get-Package -Name AzureAD -ErrorAction Ignore)) {
+    Log "Installing AzureAD PowerShell package"
+    Install-Package AzureAD -Force -WarningAction Ignore | Out-Null
+}
+
 Log "Launching SetupVm"
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
