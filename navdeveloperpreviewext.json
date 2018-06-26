@@ -73,21 +73,28 @@
             "defaultValue": "admin",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify administrator user name for NAV"
+                "Description": "Specify administrator user name for BC Sandbox"
             }
         },
+		"azureSqlAdminUsername": {
+			"type": "string",
+			"defaultValue": "sqladmin",
+			"metadata": {
+				"Description": "Specify SQL Administrator user name (only used if you select Azure SQL as your SQL Server)"
+			}
+		},
         "adminPassword": {
             "type": "securestring",
             "metadata": {
-                "Description": "Specify administrator password for VM, NAV and SQL (if applicable)"
+                "Description": "Specify administrator password for VM, BC Sandbox and SQL (if applicable)"
             }
         },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "bcinsider.azurecr.io/bcsandbox:us",
+            "defaultValue": "microsoft/bcsandbox:us",
             "minLength": 1,
             "metadata": {
-                "Description": "Select the BcSandbox Docker Image to deploy. Please obtain docker image and username/password from Collaborate (https://developer.microsoft.com/en-us/dashboard/collaborate/)"
+                "Description": "Select the BcSandbox Docker Image to deploy. For insider builds, please obtain docker image and username/password from Collaborate (https://developer.microsoft.com/en-us/dashboard/collaborate/)"
             }
         },
         "registryUsername": {
@@ -108,7 +115,7 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Optional: Specify a secure Url of your NAV Partner License File for the developer preview. If you do not specify a license file Url here, you will have to upload the license manually later."
+                "Description": "Optional: Specify a secure Url of your Partner License File for BC Sandbox. If you do not specify a license file Url here, you will have to upload the license manually later."
             }
         },
         "AssignPremiumPlan": {
@@ -125,6 +132,86 @@
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
                 "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin)."
+            }
+        },
+        "SQLServerType": {
+		    "type": "string",
+            "defaultValue": "SQLExpress",
+            "allowedValues": [ "SQLExpress", "AzureSQL" ],
+            "metadata": {
+                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost and you will need to specify App and Tenant Bacpac Uris as Azure Storage Shared Access Signature Urls."
+            }
+        },
+        "AppBacpacUri": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a secure Url of the app bacpac you want to use for the Docker image. If you do not specify an app bacpac, you will be using the database in the Docker image."
+            }
+        },
+        "TenantBacpacUri": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a secure Url of the tenant bacpac you want to use for the Docker image. If you do not specify an tenant bacpac, you will be using the database in the Docker image."
+            }
+        },
+        "IncludeAppUris": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a list of secure Urls of apps to be published and installed."
+            }
+        },
+        "Multitenant": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Should BC Sandbox be setup for multi tenancy"
+            }
+        },
+		"Office365UserName": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"Description": "Enter Office 365 Administrator Email (leave empty to skip Office 365 integration)"
+			}
+		},
+		"Office365Password": {
+			"type": "securestring",
+			"defaultValue": "",
+			"metadata": {
+				"Description": "Enter Office 365 Administrator Password (leave empty if no Office 365 integration)"
+			}
+		},
+        "CreateAadUsers": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Create users from the Aad (users in Office 365) as SUPER (only when using Office 365 integration)"
+            }
+        },
+        "CertificatePfxUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a secure Url of your Certificate Pfx File. If you do not specify a certificate, you will get a Self Signed Certificate."
+            }
+        },
+        "CertificatePfxPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Password for Certificate Pfx File. If you do not specify a certificate password, you will get a Self Signed Certificate."
+            }
+        },
+        "PublicDnsName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Public DNS Name (CNAME record pointing to your VM). A # in the name will be replaced by the VM number. If you do not specify a public DNS name, you will get a Self Signed Certificate."
             }
         },
         "FinalSetupScriptUrl": {
@@ -173,33 +260,33 @@
         "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
         "navAdminUsername": "[trim(parameters('navAdminUsername'))]",
-		"azureSqlAdminUsername": "sqladmin",
+		"azureSqlAdminUsername": "[trim(parameters('azureSqlAdminUsername'))]",
         "adminPassword": "[parameters('adminPassword')]",
         "navDockerImage": "[trim(parameters('navDockerImage'))]",
         "registryUsername": "[parameters('registryUsername')]",
         "registryPassword": "[parameters('registryPassword')]",
         "LicenseFileUri": "[parameters('LicenseFileUri')]",
-        "SQLServerType": "SQLExpress",
-        "AppBacpacUri": "",
-        "TenantBacpacUri": "",
-        "IncludeAppUris": "",
-        "CertificatePfxUrl": "",
-        "CertificatePfxPassword": "",
-        "PublicDnsName": "",
-        "Multitenant": "No",
+        "SQLServerType": "[parameters('SQLServerType')]",
+        "AppBacpacUri": "[parameters('AppBacpacUri')]",
+        "TenantBacpacUri": "[parameters('TenantBacpacUri')]",
+        "IncludeAppUris": "[parameters('IncludeAppUris')]",
+        "CertificatePfxUrl": "[parameters('CertificatePfxUrl')]",
+        "CertificatePfxPassword": "[parameters('CertificatePfxPassword')]",
+        "PublicDnsName": "[parameters('PublicDnsName')]",
+        "Multitenant": "[parameters('Multitenant')]",
         "AssignPremiumPlan": "[parameters('AssignPremiumPlan')]",
         "CreateTestUsers": "[parameters('CreateTestUsers')]",
-        "CreateAadUsers": "No",
+        "CreateAadUsers": "[parameters('CreateAadUsers')]",
         "ClickOnce": "No",
         "EnableTaskScheduler": "Default",
-        "Office365UserName": "",
-        "Office365Password": "",
+        "Office365UserName": "[parameters('Office365UserName')]",
+        "Office365Password": "[parameters('Office365Password')]",
         "FinalSetupScriptUrl": "[parameters('FinalSetupScriptUrl')]",
         "RunWindowsUpdate": "[parameters('RunWindowsUpdate')]",
         "ContactEMailForLetsEncrypt": "[parameters('ContactEMailForLetsEncrypt')]",
         "AutoShutdown": "[parameters('AutoShutdown')]",
         "AutoShutdownTime": "[parameters('AutoShutdownTime')]",
-        "style": "devpreview",
+        "style": "demo",
         "OperatingSystem": "Windows Server 2016",
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'MicrosoftWindowsServer','MicrosoftWindowsDesktop')]",
         "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'WindowsServer','Windows-10')]",
