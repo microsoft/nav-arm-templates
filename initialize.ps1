@@ -237,10 +237,17 @@ if ($workshopFilesUrl -ne "") {
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
 
-$navcontainerhelperversion = "0.2.9.7"
-Log "Install Nav Container Helper $navcontainerhelperversion from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion $navcontainerhelperversion -Force
-Import-Module -Name navcontainerhelper -DisableNameChecking
+if ($scriptPath.ToLower().EndsWith("/dev/")) {
+    Download-File -sourceUrl "https://github.com/Microsoft/navcontainerhelper/archive/master.zip" -destinationFile "c:\demo\navcontainerhelper.zip"
+    [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\navcontainerhelper.zip", "c:\demo")
+    Import-Module "C:\demo\navcontainerhelper-master\NavContainerHelper.psm1" -DisableNameChecking
+} else {
+    $navcontainerhelperversion = "0.2.9.7"
+    Log "Install Nav Container Helper $navcontainerhelperversion from PowerShell Gallery"
+    Install-Module -Name navcontainerhelper -RequiredVersion $navcontainerhelperversion -Force
+    Import-Module -Name navcontainerhelper -DisableNameChecking
+}
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
     Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"
@@ -267,48 +274,15 @@ Write-Host "DNS identity $dnsidentity"
 } elseif ("$ContactEMailForLetsEncrypt" -ne "") {
 
     Log "Using Lets Encrypt certificate"
-
     # Use Lets encrypt
     # If rate limits are hit, log an error and revert to Self Signed
-
     try {
-        Log "Installing ACMESharp PowerShell modules"
-        Install-Module -Name ACMESharp -AllowClobber -force -ErrorAction SilentlyContinue
-        Install-Module -Name ACMESharp.Providers.IIS -force -ErrorAction SilentlyContinue
-        Import-Module ACMESharp
-        Enable-ACMEExtensionModule -ModuleName ACMESharp.Providers.IIS -ErrorAction SilentlyContinue
-        
-        Log "Initializing ACMEVault"
-        Initialize-ACMEVault
-        
-        Log "Register Contact EMail address and accept Terms Of Service"
-        New-ACMERegistration -Contacts "mailto:$ContactEMailForLetsEncrypt" -AcceptTos
-        
-        Log "Creating new dns Identifier"
-        $dnsAlias = "dnsAlias"
-        New-ACMEIdentifier -Dns $publicDnsName -Alias $dnsAlias
-
-        Log "Performing Lets Encrypt challenge to default web site"
-        Complete-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01 -Handler iis -HandlerParameters @{ WebSiteRef = 'Default Web Site' }
-        Submit-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01
-        sleep -s 60
-        Update-ACMEIdentifier -IdentifierRef $dnsAlias
-        
-        Log "Requesting certificate"
-        $certAlias = "certAlias"
-        $certPassword = [GUID]::NewGuid().ToString()
+        $certPfxPassword = [GUID]::NewGuid().ToString()
         $certPfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
-        Remove-Item -Path $certPfxFilename -Force -ErrorAction Ignore
-        New-ACMECertificate -Generate -IdentifierRef $dnsAlias -Alias $certAlias
-        Submit-ACMECertificate -CertificateRef $certAlias
-        Update-ACMECertificate -CertificateRef $certAlias
-        Get-ACMECertificate -CertificateRef $certAlias -ExportPkcs12 $certPfxFilename -CertificatePassword $certPassword
-        
-        $certPemFilename = "c:\ProgramData\navcontainerhelper\certificate.pem"
-        Remove-Item -Path $certPemFilename -Force -ErrorAction Ignore
-        Get-ACMECertificate -CertificateRef $certAlias -ExportKeyPEM $certPemFilename
+        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertPfxFilename $certPfxFilename -CertPfxPassword $certPfxPassword
 
-        ('$certificatePfxPassword = "'+$certPassword+'"
+        # Override SetupCertificate.ps1 in container
+        ('$certificatePfxPassword = "'+$certPfxPassword+'"
         $certificatePfxFile = "'+$certPfxFilename+'"
         $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
         $certificateThumbprint = $cert.Thumbprint
@@ -322,6 +296,15 @@ Write-Host "DNS identity $dnsidentity"
             $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
         }
         ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
+        # Create RenewCertificate script
+        ('$certificatePfxPassword = "'+$certPfxPassword+'"
+        $certificatePfxFile = "'+$certPfxFilename+'"
+        $publicDnsName = "'+$publicDnsName+'"
+        Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -CertPfxFilename $certificatePfxFile -CertPfxPassword $certificatePfxPassword
+        Restart-NavContainer -containerName navserver -renewBindings
+        ') | Set-Content "c:\demo\RenewCertificate.ps1"
+
     } catch {
         Log -color Red $_.ErrorDetails.Message
         Log -color Red "Reverting to Self Signed Certificate"
