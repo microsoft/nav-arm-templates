@@ -194,14 +194,15 @@ $setupAadScript = "c:\demo\SetupAAD.ps1"
 
 if ($vmAdminUsername -ne $navAdminUsername) {
     '. "c:\run\SetupWindowsUsers.ps1"
-    Write-Host "Creating Host Windows user"
-    $hostUsername = "'+$vmAdminUsername+'"
-    if (!($securePassword)) {
-        # old version of the generic nav container
-        $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
-    }
-    New-LocalUser -AccountNeverExpires -FullName $hostUsername -Name $hostUsername -Password $securePassword -ErrorAction Ignore | Out-Null
-    Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ignore' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
+Write-Host "Creating Host Windows user"
+$hostUsername = "'+$vmAdminUsername+'"
+if (!($securePassword)) {
+    # old version of the generic nav container
+    $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
+}
+New-LocalUser -AccountNeverExpires -FullName $hostUsername -Name $hostUsername -Password $securePassword -ErrorAction Ignore | Out-Null
+Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ignore
+' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
 }
 
 '. "c:\run\SetupConfiguration.ps1"
@@ -242,11 +243,12 @@ if ($scriptPath.ToLower().EndsWith("/dev/")) {
     [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
     [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\navcontainerhelper.zip", "c:\demo")
     Import-Module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+    Log "Using Nav Container Helper from https://github.com/Microsoft/navcontainerhelper/tree/dev"
 } else {
-    $navcontainerhelperversion = "0.2.9.7"
-    Log "Install Nav Container Helper $navcontainerhelperversion from PowerShell Gallery"
-    Install-Module -Name navcontainerhelper -RequiredVersion $navcontainerhelperversion -Force
+    Log "Installing Latest Nav Container Helper from PowerShell Gallery"
+    Install-Module -Name navcontainerhelper -Force
     Import-Module -Name navcontainerhelper -DisableNameChecking
+    Log ("Using Nav Container Helper version "+(get-module NavContainerHelper).Version.ToString())
 }
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
@@ -283,27 +285,27 @@ Write-Host "DNS identity $dnsidentity"
 
         # Override SetupCertificate.ps1 in container
         ('$certificatePfxPassword = "'+$certPfxPassword+'"
-        $certificatePfxFile = "'+$certPfxFilename+'"
-        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
-        $certificateThumbprint = $cert.Thumbprint
-        Write-Host "Certificate File Thumbprint $certificateThumbprint"
-        if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
-            Write-Host "Import Certificate to LocalMachine\my"
-            Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
-        }
-        $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
-        if ($dnsidentity.StartsWith("*")) {
-            $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
-        }
-        ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+$certificatePfxFile = "'+$certPfxFilename+'"
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+$certificateThumbprint = $cert.Thumbprint
+Write-Host "Certificate File Thumbprint $certificateThumbprint"
+if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+    Write-Host "Import Certificate to LocalMachine\my"
+    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
+}
+$dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+if ($dnsidentity.StartsWith("*")) {
+    $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
+}
+') | Set-Content "c:\myfolder\SetupCertificate.ps1"
 
         # Create RenewCertificate script
         ('$certificatePfxPassword = "'+$certPfxPassword+'"
-        $certificatePfxFile = "'+$certPfxFilename+'"
-        $publicDnsName = "'+$publicDnsName+'"
-        Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -CertPfxFilename $certificatePfxFile -CertPfxPassword $certificatePfxPassword
-        Restart-NavContainer -containerName navserver -renewBindings
-        ') | Set-Content "c:\demo\RenewCertificate.ps1"
+$certificatePfxFile = "'+$certPfxFilename+'"
+$publicDnsName = "'+$publicDnsName+'"
+Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -CertPfxFilename $certificatePfxFile -CertPfxPassword $certificatePfxPassword
+Restart-NavContainer -containerName navserver -renewBindings
+') | Set-Content "c:\demo\RenewCertificate.ps1"
 
     } catch {
         Log -color Red $_.ErrorDetails.Message
