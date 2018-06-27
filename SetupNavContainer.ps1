@@ -147,7 +147,7 @@ if ($auth -eq "AAD") {
     Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
     $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
     Import-ObjectsToNavContainer -containerName $containerName -objectsFile $fobfile -sqlCredential $sqlCredential
-    Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName AzureAdAppSetup -Argument ($AdProperties.PowerBiAdAppId+','+$AdProperties.PowerBiAdAppKeyValue)
+    Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName SetAzureAdAppSetup -Argument ($AdProperties.PowerBiAdAppId+','+$AdProperties.PowerBiAdAppKeyValue)
 }
 
 if ($CreateTestUsers -eq "Yes") {
