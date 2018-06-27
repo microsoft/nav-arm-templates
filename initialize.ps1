@@ -238,10 +238,10 @@ if ($workshopFilesUrl -ne "") {
 }
 
 if ($scriptPath.ToLower().EndsWith("/dev/")) {
-    Download-File -sourceUrl "https://github.com/Microsoft/navcontainerhelper/archive/master.zip" -destinationFile "c:\demo\navcontainerhelper.zip"
+    Download-File -sourceUrl "https://github.com/Microsoft/navcontainerhelper/archive/dev.zip" -destinationFile "c:\demo\navcontainerhelper.zip"
     [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
     [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\navcontainerhelper.zip", "c:\demo")
-    Import-Module "C:\demo\navcontainerhelper-master\NavContainerHelper.psm1" -DisableNameChecking
+    Import-Module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
 } else {
     $navcontainerhelperversion = "0.2.9.7"
     Log "Install Nav Container Helper $navcontainerhelperversion from PowerShell Gallery"
