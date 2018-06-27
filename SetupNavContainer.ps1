@@ -29,7 +29,6 @@ Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentia
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.ExcelAdAppId+'" -WarningAction Ignore
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.SsoAdAppId+'" -WarningAction Ignore
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientSecret" -KeyValue "'+$AdProperties.SsoAdAppKeyValue+'" -WarningAction Ignore
-}
 ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
     } catch {
         Log -color Red $_.ErrorDetails.Message
@@ -120,18 +119,28 @@ if ($assignPremiumPlan -eq "Yes") {
 $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
-Log "Running $imageName (this will take a few minutes)"
-New-NavContainer -accept_eula @Params `
-                 -containerName $containerName `
-                 -useSSL `
-                 -auth $Auth `
-                 -includeCSide `
-                 -doNotExportObjectsToText `
-                 -authenticationEMail $Office365UserName `
-                 -credential $credential `
-                 -additionalParameters $additionalParameters `
-                 -myScripts $myscripts `
-                 -imageName $imageName
+try {
+    Log "Running $imageName (this will take a few minutes)"
+    New-NavContainer -accept_eula @Params `
+                     -containerName $containerName `
+                     -useSSL `
+                     -auth $Auth `
+                     -includeCSide `
+                     -doNotExportObjectsToText `
+                     -authenticationEMail $Office365UserName `
+                     -credential $credential `
+                     -additionalParameters $additionalParameters `
+                     -myScripts $myscripts `
+                     -imageName $imageName
+    
+} catch {
+    Log -color Red "Container output"
+    docker logs $containerName | % { log $_ }
+    throw
+}
+
+Log -color Green "Container output"
+docker logs $containerName | % { log $_ }
 
 if ($auth -eq "AAD") {
     $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
@@ -199,8 +208,5 @@ if ($certFile) {
     $store.add($pfx) 
     $store.close()
 }
-
-Log -color Green "Container output"
-docker logs $containerName | % { log $_ }
 
 Log -color Green "Container setup complete!"
