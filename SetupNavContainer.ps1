@@ -13,14 +13,28 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
+'. "c:\run\SetupConfiguration.ps1"
+' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 $auth = "NavUserPassword"
 if ($Office365UserName -ne "" -and $Office365Password -ne "") {
     Log "Creating Aad Apps for Office 365 integration"
     $publicWebBaseUrl = "https://$publicDnsName/NAV/"
     $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
     $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-    Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
-    $auth = "AAD"
+    try {
+        $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
+        $auth = "AAD"
+'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
+Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance nav -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.ExcelAdAppId+'" -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.SsoAdAppId+'" -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientSecret" -KeyValue "'+$AdProperties.SsoAdAppKeyValue+'" -WarningAction Ignore
+}
+' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
+    } catch {
+        Log -color Red $_.ErrorDetails.Message
+        Log -color Red "Reverting to NavUserPassword authentication"
+    }
 }
 
 $imageName = $navDockerImage.Split(',')[0]
@@ -118,6 +132,14 @@ New-NavContainer -accept_eula @Params `
                  -additionalParameters $additionalParameters `
                  -myScripts $myscripts `
                  -imageName $imageName
+
+if ($auth -eq "AAD") {
+    $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
+    Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
+    $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
+    Import-ObjectsToNavContainer -containerName $containerName -objectsFile $fobfile -sqlCredential $sqlCredential
+    Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName AzureAdAppSetup -Argument ($AdProperties.PowerBiAdAppId+','+$AdProperties.PowerBiAdAppKeyValue)
+}
 
 if ($CreateTestUsers -eq "Yes") {
     Setup-NavContainerTestUsers -containerName $containerName -tenant "default" -password $credential.Password
