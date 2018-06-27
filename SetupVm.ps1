@@ -62,8 +62,8 @@ function DockerDo {
     }
 }
 
-if (Test-Path -Path "C:\demo\navcontainerhelper-master\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-master\NavContainerHelper.psm1" -DisableNameChecking
+if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
+    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
 } else {
     Import-Module -name navcontainerhelper -DisableNameChecking
 }
@@ -135,8 +135,8 @@ Log "Add Import navcontainerhelper to PowerShell profile"
 $winPsFolder = Join-Path ([Environment]::GetFolderPath("MyDocuments")) "WindowsPowerShell"
 New-Item $winPsFolder -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 
-'if (Test-Path -Path "C:\demo\navcontainerhelper-master\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-master\NavContainerHelper.psm1" -DisableNameChecking
+'if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
+    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
 } else {
     Import-Module -name navcontainerhelper -DisableNameChecking
 }' | Set-Content (Join-Path $winPsFolder "Profile.ps1")
