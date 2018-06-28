@@ -194,22 +194,16 @@ $setupAadScript = "c:\demo\SetupAAD.ps1"
 
 if ($vmAdminUsername -ne $navAdminUsername) {
     '. "c:\run\SetupWindowsUsers.ps1"
-    Write-Host "Creating Host Windows user"
-    $hostUsername = "'+$vmAdminUsername+'"
-    if (!($securePassword)) {
-        # old version of the generic nav container
-        $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
-    }
-    New-LocalUser -AccountNeverExpires -FullName $hostUsername -Name $hostUsername -Password $securePassword -ErrorAction Ignore | Out-Null
-    Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ignore' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
+Write-Host "Creating Host Windows user"
+$hostUsername = "'+$vmAdminUsername+'"
+if (!($securePassword)) {
+    # old version of the generic nav container
+    $securePassword = ConvertTo-SecureString -String $password -AsPlainText -Force
 }
-
-'. "c:\run\SetupConfiguration.ps1"
-if ($auth -eq "AccessControlService") {
-    Write-Host "Changing Server config to NavUserPassword to enable basic web services"
-    Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
+New-LocalUser -AccountNeverExpires -FullName $hostUsername -Name $hostUsername -Password $securePassword -ErrorAction Ignore | Out-Null
+Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ignore
+' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
 }
-' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
 Download-File -sourceUrl "${scriptPath}SetupNavContainer.ps1" -destinationFile $setupNavContainerScript
@@ -237,10 +231,18 @@ if ($workshopFilesUrl -ne "") {
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
 
-$navcontainerhelperversion = "0.2.9.7"
-Log "Install Nav Container Helper $navcontainerhelperversion from PowerShell Gallery"
-Install-Module -Name navcontainerhelper -RequiredVersion $navcontainerhelperversion -Force
-Import-Module -Name navcontainerhelper -DisableNameChecking
+if ($scriptPath.ToLower().EndsWith("/dev/")) {
+    Download-File -sourceUrl "https://github.com/Microsoft/navcontainerhelper/archive/dev.zip" -destinationFile "c:\demo\navcontainerhelper.zip"
+    [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\navcontainerhelper.zip", "c:\demo")
+    Import-Module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+    Log "Using Nav Container Helper from https://github.com/Microsoft/navcontainerhelper/tree/dev"
+} else {
+    Log "Installing Latest Nav Container Helper from PowerShell Gallery"
+    Install-Module -Name navcontainerhelper -Force
+    Import-Module -Name navcontainerhelper -DisableNameChecking
+    Log ("Using Nav Container Helper version "+(get-module NavContainerHelper).Version.ToString())
+}
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
     Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"
@@ -267,63 +269,39 @@ Write-Host "DNS identity $dnsidentity"
 } elseif ("$ContactEMailForLetsEncrypt" -ne "") {
 
     Log "Using Lets Encrypt certificate"
-
     # Use Lets encrypt
     # If rate limits are hit, log an error and revert to Self Signed
-
     try {
-        Log "Installing ACMESharp PowerShell modules"
-        Install-Module -Name ACMESharp -AllowClobber -force -ErrorAction SilentlyContinue
-        Install-Module -Name ACMESharp.Providers.IIS -force -ErrorAction SilentlyContinue
-        Import-Module ACMESharp
-        Enable-ACMEExtensionModule -ModuleName ACMESharp.Providers.IIS -ErrorAction SilentlyContinue
-        
-        Log "Initializing ACMEVault"
-        Initialize-ACMEVault
-        
-        Log "Register Contact EMail address and accept Terms Of Service"
-        New-ACMERegistration -Contacts "mailto:$ContactEMailForLetsEncrypt" -AcceptTos
-        
-        Log "Creating new dns Identifier"
-        $dnsAlias = "dnsAlias"
-        New-ACMEIdentifier -Dns $publicDnsName -Alias $dnsAlias
+        $plainPfxPassword = [GUID]::NewGuid().ToString()
+        $certificatePfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
+        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
 
-        Log "Performing Lets Encrypt challenge to default web site"
-        Complete-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01 -Handler iis -HandlerParameters @{ WebSiteRef = 'Default Web Site' }
-        Submit-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01
-        sleep -s 60
-        Update-ACMEIdentifier -IdentifierRef $dnsAlias
-        
-        Log "Requesting certificate"
-        $certAlias = "certAlias"
-        $certPassword = [GUID]::NewGuid().ToString()
-        $certPfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
-        Remove-Item -Path $certPfxFilename -Force -ErrorAction Ignore
-        New-ACMECertificate -Generate -IdentifierRef $dnsAlias -Alias $certAlias
-        Submit-ACMECertificate -CertificateRef $certAlias
-        Update-ACMECertificate -CertificateRef $certAlias
-        Get-ACMECertificate -CertificateRef $certAlias -ExportPkcs12 $certPfxFilename -CertificatePassword $certPassword
-        
-        $certPemFilename = "c:\ProgramData\navcontainerhelper\certificate.pem"
-        Remove-Item -Path $certPemFilename -Force -ErrorAction Ignore
-        Get-ACMECertificate -CertificateRef $certAlias -ExportKeyPEM $certPemFilename
+        # Override SetupCertificate.ps1 in container
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force)
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+$certificateThumbprint = $cert.Thumbprint
+Write-Host "Certificate File Thumbprint $certificateThumbprint"
+if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+    Write-Host "Import Certificate to LocalMachine\my"
+    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password $certificatePfxPassword | Out-Null
+}
+$dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+if ($dnsidentity.StartsWith("*")) {
+    $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
+}
+') | Set-Content "c:\myfolder\SetupCertificate.ps1"
 
-        ('$certificatePfxPassword = "'+$certPassword+'"
-        $certificatePfxFile = "'+$certPfxFilename+'"
-        $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
-        $certificateThumbprint = $cert.Thumbprint
-        Write-Host "Certificate File Thumbprint $certificateThumbprint"
-        if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
-            Write-Host "Import Certificate to LocalMachine\my"
-            Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
-        }
-        $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
-        if ($dnsidentity.StartsWith("*")) {
-            $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
-        }
-        ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+        # Create RenewCertificate script
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force)
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$publicDnsName = "'+$publicDnsName+'"
+Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword
+Restart-NavContainer -containerName navserver -renewBindings
+') | Set-Content "c:\demo\RenewCertificate.ps1"
+
     } catch {
-        Log -color Red $_.ErrorDetails.Message
+        Log -color Red $_.Exception.Message
         Log -color Red "Reverting to Self Signed Certificate"
     }
 }
