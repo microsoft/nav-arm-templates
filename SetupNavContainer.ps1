@@ -31,7 +31,7 @@ Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryCli
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientSecret" -KeyValue "'+$AdProperties.SsoAdAppKeyValue+'" -WarningAction Ignore
 ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
     } catch {
-        Log -color Red $_.ErrorDetails.Message
+        Log -color Red $_.Exception.Message
         Log -color Red "Reverting to NavUserPassword authentication"
     }
 }
