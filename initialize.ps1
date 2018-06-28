@@ -273,9 +273,8 @@ Write-Host "DNS identity $dnsidentity"
     # If rate limits are hit, log an error and revert to Self Signed
     try {
         $plainPfxPassword = [GUID]::NewGuid().ToString()
-        $CertificatePfxPassword = (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
         $certificatePfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
-        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword $certificatePfxPassword
+        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
 
         # Override SetupCertificate.ps1 in container
         ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force)
