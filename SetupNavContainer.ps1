@@ -139,9 +139,6 @@ try {
     throw
 }
 
-Log -color Green "Container output"
-docker logs $containerName | % { log $_ }
-
 if ($auth -eq "AAD") {
     $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
     Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
@@ -208,5 +205,8 @@ if ($certFile) {
     $store.add($pfx) 
     $store.close()
 }
+
+Log -color Green "Container output"
+docker logs $containerName | % { log $_ }
 
 Log -color Green "Container setup complete!"
