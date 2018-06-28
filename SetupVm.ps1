@@ -62,7 +62,11 @@ function DockerDo {
     }
 }
 
-Import-Module -name navcontainerhelper -DisableNameChecking
+if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
+    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+} else {
+    Import-Module -name navcontainerhelper -DisableNameChecking
+}
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
@@ -130,7 +134,12 @@ if ($WindowsInstallationType -eq "Server") {
 Log "Add Import navcontainerhelper to PowerShell profile"
 $winPsFolder = Join-Path ([Environment]::GetFolderPath("MyDocuments")) "WindowsPowerShell"
 New-Item $winPsFolder -ItemType Directory -Force -ErrorAction Ignore | Out-Null
-"Import-Module navcontainerhelper -DisableNameChecking" | Set-Content (Join-Path $winPsFolder "Profile.ps1")
+
+'if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
+    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+} else {
+    Import-Module -name navcontainerhelper -DisableNameChecking
+}' | Set-Content (Join-Path $winPsFolder "Profile.ps1")
 
 Log "Adding Landing Page to Startup Group"
 New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://$publicDnsName"
