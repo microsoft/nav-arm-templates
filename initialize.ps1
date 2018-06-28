@@ -272,19 +272,20 @@ Write-Host "DNS identity $dnsidentity"
     # Use Lets encrypt
     # If rate limits are hit, log an error and revert to Self Signed
     try {
-        $certPfxPassword = [GUID]::NewGuid().ToString()
-        $certPfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
-        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertPfxFilename $certPfxFilename -CertPfxPassword $certPfxPassword
+        $plainPfxPassword = [GUID]::NewGuid().ToString()
+        $CertificatePfxPassword = (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
+        $certificatePfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
+        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword $certificatePfxPassword
 
         # Override SetupCertificate.ps1 in container
-        ('$certificatePfxPassword = "'+$certPfxPassword+'"
-$certificatePfxFile = "'+$certPfxFilename+'"
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force)
+$certificatePfxFile = "'+$certificatePfxFilename+'"
 $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
 $certificateThumbprint = $cert.Thumbprint
 Write-Host "Certificate File Thumbprint $certificateThumbprint"
 if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
     Write-Host "Import Certificate to LocalMachine\my"
-    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
+    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password $certificatePfxPassword | Out-Null
 }
 $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
 if ($dnsidentity.StartsWith("*")) {
@@ -293,10 +294,10 @@ if ($dnsidentity.StartsWith("*")) {
 ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
 
         # Create RenewCertificate script
-        ('$certificatePfxPassword = "'+$certPfxPassword+'"
-$certificatePfxFile = "'+$certPfxFilename+'"
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force)
+$certificatePfxFile = "'+$certificatePfxFilename+'"
 $publicDnsName = "'+$publicDnsName+'"
-Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -CertPfxFilename $certificatePfxFile -CertPfxPassword $certificatePfxPassword
+Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword
 Restart-NavContainer -containerName navserver -renewBindings
 ') | Set-Content "c:\demo\RenewCertificate.ps1"
 
