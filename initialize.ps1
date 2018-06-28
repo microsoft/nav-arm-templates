@@ -302,7 +302,7 @@ Restart-NavContainer -containerName navserver -renewBindings
 ') | Set-Content "c:\demo\RenewCertificate.ps1"
 
     } catch {
-        Log -color Red $_.ErrorDetails.Message
+        Log -color Red $_.Exception.Message
         Log -color Red "Reverting to Self Signed Certificate"
     }
 }
