@@ -277,7 +277,7 @@ Write-Host "DNS identity $dnsidentity"
         New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
 
         # Override SetupCertificate.ps1 in container
-        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force)
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
 $certificatePfxFile = "'+$certificatePfxFilename+'"
 $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
 $certificateThumbprint = $cert.Thumbprint
@@ -293,7 +293,7 @@ if ($dnsidentity.StartsWith("*")) {
 ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
 
         # Create RenewCertificate script
-        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force)
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
 $certificatePfxFile = "'+$certificatePfxFilename+'"
 $publicDnsName = "'+$publicDnsName+'"
 Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword
