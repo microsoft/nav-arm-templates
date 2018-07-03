@@ -203,7 +203,7 @@ if ("$bingmapskey" -ne "") {
                                     -CompanyName $_.CompanyName `
                                     -Codeunitid 50103 `
                                     -MethodName "SetBingMapsSettings" `
-                                    -Argument '{ "BingMapsKey":"' + $bingMapsKey + '","WebServicesUsername": "' + $navAdminUsername + '","WebServicesKey": "' + $webServicesKey + '"}'
+                                    -Argument ('{ "BingMapsKey":"' + $bingMapsKey + '","WebServicesUsername": "' + $navAdminUsername + '","WebServicesKey": "' + $webServicesKey + '"}')
     }
 }
 
