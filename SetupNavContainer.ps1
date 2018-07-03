@@ -180,30 +180,42 @@ if ("$includeappUris".Trim() -ne "") {
 }
 
 if ("$bingmapskey" -ne "") {
-    $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
-    if ("$webServicesKey" -eq "") {
-        $session = Get-NavContainerSession -containerName $containerName
-        Invoke-Command -Session $session -ScriptBlock { Param($navAdminUsername)
-            Set-NAVServerUser -ServerInstance NAV -Tenant "default" -UserName $navAdminUsername -CreateWebServicesKey 
-        } -ArgumentList $navAdminUsername
-        $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
+
+    $appFile = switch (([System.Version]$navVersion).Major) {
+    11 { "http://aka.ms/bingmaps11.app" }
+    12 { "http://aka.ms/bingmaps.app" }
+    13 { "http://aka.ms/bingmaps.app" }
+    default { "" }
     }
 
-    Publish-NavContainerApp -containerName $containerName `
-                            -tenant "default" `
-                            -packageType Extension `
-                            -appFile "http://aka.ms/bingmaps.app" `
-                            -skipVerification `
-                            -sync `
-                            -install
-
-    Get-CompanyInNavContainer -containerName $containerName | % {
-        Invoke-NavContainerCodeunit -containerName $containerName `
-                                    -tenant "default" `
-                                    -CompanyName $_.CompanyName `
-                                    -Codeunitid 50103 `
-                                    -MethodName "SetBingMapsSettings" `
-                                    -Argument ('{ "BingMapsKey":"' + $bingMapsKey + '","WebServicesUsername": "' + $navAdminUsername + '","WebServicesKey": "' + $webServicesKey + '"}')
+    if ($appFile -eq "") {
+        Log "BingMaps app is not supported for this version of NAV"
+    } else {
+        $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
+        if ("$webServicesKey" -eq "") {
+            $session = Get-NavContainerSession -containerName $containerName
+            Invoke-Command -Session $session -ScriptBlock { Param($navAdminUsername)
+                Set-NAVServerUser -ServerInstance NAV -Tenant "default" -UserName $navAdminUsername -CreateWebServicesKey 
+            } -ArgumentList $navAdminUsername
+            $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
+        }
+    
+        Publish-NavContainerApp -containerName $containerName `
+                                -tenant "default" `
+                                -packageType Extension `
+                                -appFile $appFile `
+                                -skipVerification `
+                                -sync `
+                                -install
+    
+        Get-CompanyInNavContainer -containerName $containerName | % {
+            Invoke-NavContainerCodeunit -containerName $containerName `
+                                        -tenant "default" `
+                                        -CompanyName $_.CompanyName `
+                                        -Codeunitid 50103 `
+                                        -MethodName "SetBingMapsSettings" `
+                                        -Argument ('{ "BingMapsKey":"' + $bingMapsKey + '","WebServicesUsername": "' + $navAdminUsername + '","WebServicesKey": "' + $webServicesKey + '"}')
+        }
     }
 }
 
