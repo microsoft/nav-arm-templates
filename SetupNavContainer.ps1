@@ -191,6 +191,7 @@ if ("$bingmapskey" -ne "") {
     if ($appFile -eq "") {
         Log "BingMaps app is not supported for this version of NAV"
     } else {
+        Log "Create Web Services Key for admin user"
         $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
         if ("$webServicesKey" -eq "") {
             $session = Get-NavContainerSession -containerName $containerName
@@ -199,7 +200,8 @@ if ("$bingmapskey" -ne "") {
             } -ArgumentList $navAdminUsername
             $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
         }
-    
+        
+        Log "Installing BingMaps app from $appFile"
         Publish-NavContainerApp -containerName $containerName `
                                 -tenant "default" `
                                 -packageType Extension `
@@ -208,6 +210,7 @@ if ("$bingmapskey" -ne "") {
                                 -sync `
                                 -install
     
+        Log "Geocode customers"
         Get-CompanyInNavContainer -containerName $containerName | % {
             Invoke-NavContainerCodeunit -containerName $containerName `
                                         -tenant "default" `
