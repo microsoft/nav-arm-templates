@@ -179,6 +179,34 @@ if ("$includeappUris".Trim() -ne "") {
     }
 }
 
+if ("$bingmapskey" -ne "") {
+    $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
+    if ("$webServicesKey" -eq "") {
+        $session = Get-NavContainerSession -containerName $containerName
+        Invoke-Command -Session $session -ScriptBlock { Param($navAdminUsername)
+            Set-NAVServerUser -ServerInstance NAV -Tenant "default" -UserName $navAdminUsername -CreateWebServicesKey 
+        } -ArgumentList $navAdminUsername
+        $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
+    }
+
+    Publish-NavContainerApp -containerName $containerName `
+                            -tenant "default" `
+                            -packageType Extension `
+                            -appFile "http://aka.ms/bingmaps.app" `
+                            -skipVerification `
+                            -sync `
+                            -install
+
+    Get-CompanyInNavContainer -containerName $containerName | % {
+        Invoke-NavContainerCodeunit -containerName $containerName `
+                                    -tenant "default" `
+                                    -CompanyName $_.CompanyName `
+                                    -Codeunitid 50103 `
+                                    -MethodName "SetBingMapsSettings" `
+                                    -Argument '{ "BingMapsKey":"' + $bingMapsKey + '","WebServicesUsername": "' + $navAdminUsername + '","WebServicesKey": "' + $webServicesKey + '"}'
+    }
+}
+
 # Copy .vsix and Certificate to container folder
 $containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
 Log "Copying .vsix and Certificate to $containerFolder"

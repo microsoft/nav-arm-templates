@@ -33,6 +33,7 @@ param
        [string] $Multitenant               = "No",
        [string] $ContactEMailForLetsEncrypt= "",
        [string] $RemoteDesktopAccess       = "*",
+       [string] $BingMapsKey               = "",
        [string] $Office365UserName         = "",
        [string] $Office365Password         = "",
        [string] $Office365CreatePortal     = "No"
@@ -105,6 +106,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "WindowsInstallationType"| Add-Content $settingsScript
     Get-VariableDeclaration -name "WindowsProductName"     | Add-Content $settingsScript
     Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settingsScript
+    Get-VariableDeclaration -name "BingMapsKey"            | Add-Content $settingsScript
 
     $passwordKey = New-Object Byte[] 16
     [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
