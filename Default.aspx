@@ -168,6 +168,33 @@ private string getSoapBaseUrl()
   return "";
 }
 
+private bool isApisEnabled()
+{
+  if (GetCustomSettings())
+  {
+    var node = customSettings.SelectSingleNode("//appSettings/add[@key='ApiServicesEnabled']");
+    if (node == null) {
+      return false;
+    }
+    return node.Attributes["value"].Value.ToLowerInvariant().Equals("true");
+  }
+  return false;
+}
+
+private string getApisBaseUrl()
+{
+  if (GetCustomSettings())
+  {
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant().replace("/odata","/api");
+    if (isMultitenant()) 
+    {
+      url += "?tenant=default";
+    }
+    return url;
+  }
+  return "";
+}
+
 private bool isHttps()
 {
   return getWebBaseUrl().StartsWith("https://");
@@ -470,8 +497,17 @@ You can view the installation status by following this link.
       <td></td>  
       <td style="white-space: nowrap"><a href="<% =getODataBaseUrl() %>" target="_blank">View OData Web Services</a></td>
     </tr>
-
 <%
+    if (isApisEnabled) {
+%>    
+    <tr>
+      <td colspan="2">The <%=getProduct() %> exposes the API endpoint. APIs are exposed using &lt;API Base Url&gt;/&lt;Publisher&gt;/&lt;Group&gt;/&lt;Version&gt;/&lt;Entity&gt;. Choose this link to get the base URL for the APIs.</td>
+      <td colspan="2">Example: <a href="<% =getApisBaseUrl() %>/microsoft/automation/beta/companies" target="_blank"><% =getApisBaseUrl() %>/microsoft/automation/beta/companies</a></td>
+      <td></td>
+      <td style="white-space: nowrap"><a href="<% =getApisBaseUrl() %>" target="_blank">View API base URL</a></td>
+    </tr>
+<%
+    }
     var vsix = System.IO.Directory.GetFiles(@"c:\programdata\navcontainerhelper\extensions\navserver", "*.vsix");
     if (vsix.Length == 1) {
 %>    
