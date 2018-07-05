@@ -128,13 +128,6 @@
 				"Description": "Enter Office 365 Administrator Password (leave empty if no Office 365 integration)"
 			}
 		},
-		"BingMapsKey": {
-			"type": "string",
-			"defaultValue": "",
-			"metadata": {
-				"Description": "Bing Maps Key (leave empty to skip Bing Maps Integration)"
-			}
-		},
         "CreateAadUsers": {
 		    "type": "string",
             "defaultValue": "No",
@@ -143,6 +136,13 @@
                 "Description": "Create users from the Aad (users in Office 365) as SUPER (only when using Office 365 integration)"
             }
         },
+		"BingMapsKey": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"Description": "Bing Maps Key for Bing Maps Integration App installation (leave empty to skip Bing Maps Integration)"
+			}
+		},
         "RunWindowsUpdate": {
 		    "type": "string",
             "defaultValue": "No",
