@@ -185,7 +185,7 @@ private string getApisBaseUrl()
 {
   if (GetCustomSettings())
   {
-    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant().replace("/odata","/api");
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant().Replace("/odata","/api");
     if (isMultitenant()) 
     {
       url += "?tenant=default";
@@ -498,7 +498,7 @@ You can view the installation status by following this link.
       <td style="white-space: nowrap"><a href="<% =getODataBaseUrl() %>" target="_blank">View OData Web Services</a></td>
     </tr>
 <%
-    if (isApisEnabled) {
+    if (isApisEnabled()) {
 %>    
     <tr>
       <td colspan="2">The <%=getProduct() %> exposes the API endpoint. APIs are exposed using &lt;API Base Url&gt;/&lt;Publisher&gt;/&lt;Group&gt;/&lt;Version&gt;/&lt;Entity&gt;. Choose this link to get the base URL for the APIs.</td>
