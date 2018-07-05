@@ -502,9 +502,11 @@ You can view the installation status by following this link.
 %>    
     <tr>
       <td colspan="2">The <%=getProduct() %> exposes the API endpoint. APIs are exposed using &lt;API Base Url&gt;/&lt;Publisher&gt;/&lt;Group&gt;/&lt;Version&gt;/&lt;Entity&gt;. Choose this link to get the base URL for the APIs.</td>
-      <td colspan="2">Example: <a href="<% =getApisBaseUrl() %>/microsoft/automation/beta/companies" target="_blank"><% =getApisBaseUrl() %>/microsoft/automation/beta/companies</a></td>
       <td></td>
-      <td style="white-space: nowrap"><a href="<% =getApisBaseUrl() %>" target="_blank">View API base URL</a></td>
+      <td style="white-space: nowrap"><a href="javascript:alert('<% =getApisBaseUrl() %>/')" target="_blank">View API base URL</a></td>
+	</tr><tr>
+      <td colspan="3">Example: <a href="<% =getApisBaseUrl() %>/microsoft/automation/beta/companies" target="_blank"><% =getApisBaseUrl() %>/microsoft/automation/beta/companies</a></td>
+      <td></td>
     </tr>
 <%
     }
