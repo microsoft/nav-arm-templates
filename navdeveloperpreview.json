@@ -78,6 +78,7 @@
         },
         "adminPassword": {
             "type": "securestring",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify administrator password for VM, NAV and SQL (if applicable)"
             }

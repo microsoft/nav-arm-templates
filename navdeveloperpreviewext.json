@@ -85,6 +85,7 @@
 		},
         "adminPassword": {
             "type": "securestring",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify administrator password for VM, BC Sandbox and SQL (if applicable)"
             }
