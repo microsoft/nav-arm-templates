@@ -27,8 +27,8 @@ if ($Office365UserName -ne "" -and $Office365Password -ne "") {
 'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.ExcelAdAppId+'" -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.SsoAdAppId+'" -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientSecret" -KeyValue "'+$AdProperties.SsoAdAppKeyValue+'" -WarningAction Ignore
+#Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.SsoAdAppId+'" -WarningAction Ignore
+#Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientSecret" -KeyValue "'+$AdProperties.SsoAdAppKeyValue+'" -WarningAction Ignore
 ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
     } catch {
         Log -color Red $_.Exception.Message
