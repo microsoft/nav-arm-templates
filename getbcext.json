@@ -90,7 +90,7 @@
                 "Description": "Specify administrator password for VM, Business Central and SQL (if applicable)"
             }
         },
-        "DockerImage": {
+        "BCDockerImage": {
             "type": "string",
             "defaultValue": "microsoft/bconprem",
             "minLength": 1,
@@ -270,7 +270,7 @@
         "navAdminUsername": "[trim(parameters('BCAdminUsername'))]",
 		"azureSqlAdminUsername": "[trim(parameters('azureSqlAdminUsername'))]",
         "adminPassword": "[parameters('adminPassword')]",
-        "navDockerImage": "[trim(parameters('DockerImage'))]",
+        "navDockerImage": "[trim(parameters('BCDockerImage'))]",
         "registryUsername": "[parameters('registryUsername')]",
         "registryPassword": "[parameters('registryPassword')]",
         "LicenseFileUri": "[parameters('LicenseFileUri')]",
