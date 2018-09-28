@@ -68,7 +68,7 @@
                 "Description": "Specify administrator user name for connecting to the VM"
             }
         },
-        "navAdminUsername": {
+        "BCAdminUsername": {
             "type": "string",
             "defaultValue": "admin",
             "minLength": 1,
@@ -83,7 +83,7 @@
                 "Description": "Specify administrator password for VM, Business Central and SQL (if applicable)"
             }
         },
-        "navDockerImage": {
+        "DockerImage": {
             "type": "string",
             "defaultValue": "microsoft/bconprem",
             "minLength": 1,
@@ -181,10 +181,10 @@
         "vmSize": "[parameters('vmSize')]",
         "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
-        "navAdminUsername": "[trim(parameters('navAdminUsername'))]",
+        "navAdminUsername": "[trim(parameters('BCAdminUsername'))]",
         "azureSqlAdminUsername": "sqladmin",
         "adminPassword": "[parameters('adminPassword')]",
-        "navDockerImage": "[trim(parameters('navDockerImage'))]",
+        "navDockerImage": "[trim(parameters('DockerImage'))]",
         "registryUsername": "",
         "registryPassword": "",
         "LicenseFileUri": "[parameters('LicenseFileUri')]",
