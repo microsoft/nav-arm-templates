@@ -100,10 +100,6 @@ if ($WindowsInstallationType -eq "Server") {
     }
 }
 
-if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
-    schtasks /DELETE /TN SetupStart /F | Out-Null
-}
-
 Log "Enabling Docker API"
 New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 '{
@@ -189,6 +185,10 @@ $finalSetupScript = (Join-Path $PSScriptRoot "FinalSetupScript.ps1")
 if (Test-Path $finalSetupScript) {
     Log "Running FinalSetupScript"
     . $finalSetupScript
+}
+
+if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
+    schtasks /DELETE /TN SetupStart /F | Out-Null
 }
 
 if ($RunWindowsUpdate -eq "Yes") {
