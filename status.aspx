@@ -15,6 +15,11 @@ private string getLandingPageUrl()
   return "http://"+getHostname();
 }
 </script>
+<%
+if (Request.Url.AbsoluteUri.Contains("?timesinceupdate")) {
+  Response.Write((int)(System.DateTime.Now - System.IO.File.GetLastWriteTime(@"c:\demo\status.txt")).TotalSeconds);
+} else {
+%>
 <html>
 <head>
     <title>Microsoft Dynamics NAV Installation Status</title>
@@ -77,3 +82,6 @@ if (Request.Url.AbsoluteUri.Contains("norefresh")) {
 %>
 </body>
 </html>
+<%
+}
+%>
