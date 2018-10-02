@@ -175,7 +175,7 @@ if ($sqlServerType -eq "AzureSQL") {
 
 if ("$includeappUris".Trim() -ne "") {
     foreach($includeApp in "$includeAppUris".Split(',;')) {
-        Publish-NavContainerApp -containerName $containerName -appFile $includeApp -sync -install
+        Publish-NavContainerApp -containerName $containerName -appFile $includeApp -sync -install -skipVerification
     }
 }
 
