@@ -27,8 +27,8 @@ if ($Office365UserName -ne "" -and $Office365Password -ne "") {
 'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.ExcelAdAppId+'" -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.SsoAdAppId+'" -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientSecret" -KeyValue "'+$AdProperties.SsoAdAppKeyValue+'" -WarningAction Ignore
+#Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.SsoAdAppId+'" -WarningAction Ignore
+#Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientSecret" -KeyValue "'+$AdProperties.SsoAdAppKeyValue+'" -WarningAction Ignore
 ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
     } catch {
         Log -color Red $_.Exception.Message
@@ -175,7 +175,7 @@ if ($sqlServerType -eq "AzureSQL") {
 
 if ("$includeappUris".Trim() -ne "") {
     foreach($includeApp in "$includeAppUris".Split(',;')) {
-        Publish-NavContainerApp -containerName $containerName -appFile $includeApp -sync -install
+        Publish-NavContainerApp -containerName $containerName -appFile $includeApp -sync -install -skipVerification
     }
 }
 
@@ -225,7 +225,7 @@ if ("$bingmapskey" -ne "") {
 # Copy .vsix and Certificate to container folder
 $containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
 Log "Copying .vsix and Certificate to $containerFolder"
-docker exec -it $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
+docker exec -t $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Program Files\Microsoft Dynamics NAV\*\Service\CustomSettings.config' -Destination '$containerFolder' -force
 if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
