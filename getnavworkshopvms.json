@@ -60,6 +60,17 @@
                 "Description": "Select the VM size of the deployment"
             }
         },
+        "StorageAccountType": {
+            "type": "string",
+            "defaultValue": "Standard_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Premium_LRS"
+            ],
+            "metadata": {
+                "Description": "Select the preferred storage account type. Standard_LRS is HDD, Premium_LRS is SSD."
+            }
+        },
         "vmAdminUsername": {
             "type": "string",
             "defaultValue": "student",
@@ -204,7 +215,7 @@
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'MicrosoftWindowsServer','MicrosoftWindowsDesktop')]",
         "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'WindowsServer','Windows-10')]",
         "imageSku": "[if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter','rs4-pro')]",
-        "storageAccountType": "Standard_LRS",
+        "storageAccountType": "[parameters('StorageAccountType')]",
         "vmStorageAccountContainerName": "vhds",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
