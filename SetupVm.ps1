@@ -49,7 +49,6 @@ function DockerDo {
     $p.StartInfo = $pinfo
     $p.Start() | Out-Null
 
-
     $outtask = $null
     $errtask = $p.StandardError.ReadToEndAsync()
     $out = ""
@@ -57,15 +56,12 @@ function DockerDo {
     
     do {
         if ($outtask -eq $null) {
-            Log "Create OutTask"
             $outtask = $p.StandardOutput.ReadLineAsync()
         }
         $outtask.Wait(100) | Out-Null
         if ($outtask.IsCompleted) {
-            Log "IsCompleted"
             $outStr = $outtask.Result
             if ($outStr -eq $null) {
-                Log "OutStr is null"
                 break
             }
             if (!$silent) {
@@ -74,7 +70,6 @@ function DockerDo {
             $out += $outStr
             $outtask = $null
             if ($outStr.StartsWith("Please login")) {
-                Log "Please login"
                 $registry = $imageName.Split("/")[0]
                 if ($registry -eq "bcinsider.azurecr.io") {
                     Log -color red "You need to login to $registry prior to pulling images. Get credentials through the ReadyToGo program on Microsoft Collaborate."
@@ -84,22 +79,16 @@ function DockerDo {
                 break
             }
         } elseif ($outtask.IsCanceled) {
-            Log "IsCanceled"
             break
         } elseif ($outtask.IsFaulted) {
-            Log "IsFaulted"
             break
         }
     } while(!($p.HasExited))
     
-    Log "Get Err"
     $err = $errtask.Result
-    Log "WaitForExit"
     $p.WaitForExit();
-    Log "Done"
 
     if ($p.ExitCode -ne 0) {
-        Log "ExitCode"
         $result = $false
         if (!$silent) {
             $err = $err.Trim()
@@ -195,21 +184,17 @@ if ($style -eq "devpreview") {
     New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://aka.ms/moderndevtools"
 }
 
-$first = $true
 $navDockerImage.Split(',') | % {
     $registry = $_.Split('/')[0]
     if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
         Log "Logging in to $registry"
         docker login "$registry" -u "$registryUsername" -p "$registryPassword"
     }
-    if (!$first) {
-        $imageName = $_
-        Log "Pulling $imageName (this might take ~30 minutes)"
-        if (!(DockerDo -imageName $imageName -command pull))  {
-            throw "Error pulling image"
-        }
+    $imageName = $_
+    Log "Pulling $imageName (this might take ~30 minutes)"
+    if (!(DockerDo -imageName $imageName -command pull))  {
+        throw "Error pulling image"
     }
-    $first = $false
 }
 
 Log "Installing Visual C++ Redist"
