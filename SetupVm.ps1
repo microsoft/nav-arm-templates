@@ -42,6 +42,7 @@ function DockerDo {
     $pinfo.FileName = "docker.exe"
     $pinfo.RedirectStandardError = $true
     $pinfo.RedirectStandardOutput = $true
+    $pinfo.CreateNoWindow = $true
     $pinfo.UseShellExecute = $false
     $pinfo.Arguments = $arguments
     $p = New-Object System.Diagnostics.Process
