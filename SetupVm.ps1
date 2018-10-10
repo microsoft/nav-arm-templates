@@ -57,12 +57,15 @@ function DockerDo {
     
     do {
         if ($outtask -eq $null) {
+            Log "Create OutTask"
             $outtask = $p.StandardOutput.ReadLineAsync()
         }
         $outtask.Wait(100) | Out-Null
         if ($outtask.IsCompleted) {
+            Log "IsCompleted"
             $outStr = $outtask.Result
             if ($outStr -eq $null) {
+                Log "OutStr is null"
                 break
             }
             if (!$silent) {
@@ -71,6 +74,7 @@ function DockerDo {
             $out += $outStr
             $outtask = $null
             if ($outStr.StartsWith("Please login")) {
+                Log "Please login"
                 $registry = $imageName.Split("/")[0]
                 if ($registry -eq "bcinsider.azurecr.io") {
                     Log -color red "You need to login to $registry prior to pulling images. Get credentials through the ReadyToGo program on Microsoft Collaborate."
@@ -80,16 +84,22 @@ function DockerDo {
                 break
             }
         } elseif ($outtask.IsCanceled) {
+            Log "IsCanceled"
             break
         } elseif ($outtask.IsFaulted) {
+            Log "IsFaulted"
             break
         }
     } while(!($p.HasExited))
     
+    Log "Get Err"
     $err = $errtask.Result
+    Log "WaitForExit"
     $p.WaitForExit();
+    Log "Done"
 
     if ($p.ExitCode -ne 0) {
+        Log "ExitCode"
         $result = $false
         if (!$silent) {
             $err = $err.Trim()
