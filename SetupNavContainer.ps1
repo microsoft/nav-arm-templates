@@ -121,7 +121,7 @@ Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
 try {
     Log "Running $imageName (this will take a few minutes)"
-    New-NavContainer -accept_eula @Params `
+    New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
                      -useSSL `
                      -auth $Auth `
