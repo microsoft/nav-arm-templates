@@ -16,19 +16,36 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 }
 
 . (Join-Path $PSScriptRoot "settings.ps1")
+Add-Type -AssemblyName System.Web
 
 $event = Get-EventLog -LogName Application -Source Application -Newest 1 | Where-Object { $_.EventID -eq $eventID }
 if ($event) {
     $event.ReplacementStrings | ForEach-Object {
         $request = $_
-        if ($request -eq "Replace-NavServerContainer") {
-            Log "Replacing NavServerContainer"
-            Replace-NavServerContainer
-        } elseif ($request -eq "Replace-NavServerContainer-AlwaysPull") {
-            Log "Replacing NavServerContainer (with alwaysPull)"
-            Replace-NavServerContainer -alwaysPull
+        $idx = $request.IndexOf("?")
+        if ($idx -gt 0) {
+            $id = $request.Substring(0,$idx)
+            if (!(Test-Path -Path "c:\demo\request")) {
+                New-Item -Path "c:\demo\request" -ItemType Directory | Out-Null
+            }
+            Start-Transcript -Path "c:\demo\request\$id.txt" 
+            $request = $request.Substring($idx)
+        }
+
+        $cmd = ([System.Web.HttpUtility]::ParseQueryString($request)).Get("cmd");
+
+        if ($cmd -eq "Replace-NavServerContainer") {
+            $log = "Request: Replace-NavServerContainer"
+            $alwaysPull = ([System.Web.HttpUtility]::ParseQueryString($request)).Get("alwayspull");
+            $parameters = @{}
+            if ($alwaysPull -eq "yes") {
+                $parameters += @{ "alwayspull" = $true }
+                $log += " -alwaysPull"
+            }
+            Log $log
+            Replace-NavServerContainer @parameters
         } else {
-            Log "Unknown request: $request"
+            Log "Unknown request: $cmd"
         }
     }
 } else {
