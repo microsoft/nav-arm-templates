@@ -22,7 +22,9 @@ if (Request.Url.AbsoluteUri.Contains("?timesinceupdate")) {
   using (EventLog eventLog = new EventLog("Application")) 
   {
       eventLog.Source = "Application";
-      eventLog.WriteEntry(HttpUtility.ParseQueryString(Request.Url.Query).Get("request"), EventLogEntryType.Information, 57711, 1); 
+      string request = HttpUtility.ParseQueryString(Request.Url.Query).Get("request");
+      eventLog.WriteEntry(request, EventLogEntryType.Information, 57711, 1);
+      Response.Write(request);
   }
 } else {
 %>
