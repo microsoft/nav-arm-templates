@@ -18,6 +18,12 @@ private string getLandingPageUrl()
 <%
 if (Request.Url.AbsoluteUri.Contains("?timesinceupdate")) {
   Response.Write((int)(System.DateTime.Now - System.IO.File.GetLastWriteTime(@"c:\demo\status.txt")).TotalSeconds);
+} else if (Request.Url.AbsoluteUri.Contains("?request")) {
+  using (EventLog eventLog = new EventLog("Application")) 
+  {
+      eventLog.Source = "Application";
+      eventLog.WriteEntry(HttpUtility.ParseQueryString(Request.Url.Query).Get("request"), EventLogEntryType.Information, 57711, 1); 
+  }
 } else {
 %>
 <html>

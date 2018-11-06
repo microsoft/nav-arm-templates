@@ -21,9 +21,15 @@ if (!(Get-Package -Name AzureAD -ErrorAction Ignore)) {
     Install-Package AzureAD -Force -WarningAction Ignore | Out-Null
 }
 
-Log "Launching SetupVm"
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
+if (!(Get-ScheduledTask -TaskName request -ErrorAction Ignore)) {
+    Log "Registering request task"
+    $xml = [System.IO.File]::ReadAllText("c:\demo\RequestTaskDef.xml")
+    Register-ScheduledTask -TaskName request -User $vmadminUsername -Password $plainPassword -Xml $xml
+}
+
+Log "Launching SetupVm"
 $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
 Register-ScheduledTask -TaskName SetupVm `
                        -Action $onceAction `
