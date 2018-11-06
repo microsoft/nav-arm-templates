@@ -167,6 +167,7 @@ if ($WindowsInstallationType -eq "Server") {
 Remove-Item -Path "C:\inetpub\wwwroot\iisstart.*" -Force
 Download-File -sourceUrl "${scriptPath}Default.aspx"            -destinationFile "C:\inetpub\wwwroot\default.aspx"
 Download-File -sourceUrl "${scriptPath}status.aspx"             -destinationFile "C:\inetpub\wwwroot\status.aspx"
+Download-File -sourceUrl "${scriptPath}request.aspx"            -destinationFile "C:\inetpub\wwwroot\request.aspx"
 Download-File -sourceUrl "${scriptPath}line.png"                -destinationFile "C:\inetpub\wwwroot\line.png"
 Download-File -sourceUrl "${scriptPath}Microsoft.png"           -destinationFile "C:\inetpub\wwwroot\Microsoft.png"
 Download-File -sourceUrl "${scriptPath}web.config"              -destinationFile "C:\inetpub\wwwroot\web.config"
