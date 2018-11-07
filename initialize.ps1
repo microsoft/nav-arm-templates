@@ -36,7 +36,8 @@ param
        [string] $BingMapsKey               = "",
        [string] $Office365UserName         = "",
        [string] $Office365Password         = "",
-       [string] $Office365CreatePortal     = "No"
+       [string] $Office365CreatePortal     = "No",
+       [string] $requestToken              = ""
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -107,6 +108,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "WindowsProductName"     | Add-Content $settingsScript
     Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settingsScript
     Get-VariableDeclaration -name "BingMapsKey"            | Add-Content $settingsScript
+    Get-VariableDeclaration -name "RequestToken"           | Add-Content $settingsScript
 
     $passwordKey = New-Object Byte[] 16
     [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
@@ -170,6 +172,9 @@ Download-File -sourceUrl "${scriptPath}status.aspx"             -destinationFile
 Download-File -sourceUrl "${scriptPath}line.png"                -destinationFile "C:\inetpub\wwwroot\line.png"
 Download-File -sourceUrl "${scriptPath}Microsoft.png"           -destinationFile "C:\inetpub\wwwroot\Microsoft.png"
 Download-File -sourceUrl "${scriptPath}web.config"              -destinationFile "C:\inetpub\wwwroot\web.config"
+if ($requestToken) {
+    Download-File -sourceUrl "${scriptPath}request.aspx"            -destinationFile "C:\inetpub\wwwroot\request.aspx"
+}
 
 $title = 'Dynamics Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
@@ -212,6 +217,14 @@ Download-File -sourceUrl "${scriptPath}SetupNavContainer.ps1" -destinationFile $
 Download-File -sourceUrl "${scriptPath}SetupAAD.ps1"          -destinationFile $setupAadScript
 Download-File -sourceUrl "${scriptPath}SetupVm.ps1"           -destinationFile $setupVmScript
 Download-File -sourceUrl "${scriptPath}SetupStart.ps1"        -destinationFile $setupStartScript
+if ($requestToken) {
+    New-Item -Path "C:\DEMO\request" -ItemType Directory | Out-Null
+    Download-File -sourceUrl "${scriptPath}Request.ps1"           -destinationFile "C:\DEMO\Request.ps1"
+    Download-File -sourceUrl "${scriptPath}RequestTaskDef.xml"    -destinationFile "C:\DEMO\RequestTaskDef.xml"
+    # Request commands
+    Download-File -sourceUrl "${scriptPath}request\Demo.ps1"                         -destinationFile "C:\DEMO\request\Demo.ps1"
+    Download-File -sourceUrl "${scriptPath}request\ReplaceNavServerContainer.ps1"    -destinationFile "C:\DEMO\request\ReplaceNavServerContainer.ps1"
+}
 Download-File -sourceUrl "${scriptPath}Install-VS2017Community.ps1" -destinationFile "C:\DEMO\Install-VS2017Community.ps1"
 
 if ($finalSetupScriptUrl) {
@@ -342,4 +355,3 @@ if ($WindowsInstallationType -eq "Server") {
     Log "Restarting computer and start Installation tasks"
     Restart-Computer -force
 }
-
