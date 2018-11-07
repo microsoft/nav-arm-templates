@@ -1,5 +1,5 @@
 ﻿Param(
-    [string] $queryString
+    [string] $parameter = "default"
 )
 
-Write-Host "This is the DEMO request ($querystring)"
+Write-Host "This is the DEMO request (parameter = '$parameter')"

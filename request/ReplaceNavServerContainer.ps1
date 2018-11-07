@@ -1,11 +1,5 @@
 ﻿Param(
-    [string] $queryString
+    [string] $alwaysPull = "no"
 )
 
-$alwaysPull = ([System.Web.HttpUtility]::ParseQueryString($queryString)).Get("alwayspull")
-$parameters = @{}
-if ($alwaysPull -eq "yes") {
-    $parameters += @{ "alwayspull" = $true }
-}
-
-Replace-NavServerContainer @parameters
+Replace-NavServerContainer -alwaysPull:($alwaysPull -eq "yes")
