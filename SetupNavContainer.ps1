@@ -77,14 +77,11 @@ $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKe
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
 $params = @{ "enableSymbolLoading" = $true 
-             "licensefile" = "$licensefileuri" }
-$additionalParameters = @("--publish  8080:8080",
-                          "--publish  443:443", 
-                          "--publish  7046-7049:7046-7049", 
-                          "--env publicFileSharePort=8080",
-                          "--env PublicDnsName=$publicdnsName",
-                          "--env RemovePasswordKeyFile=N"
-                          )
+             "licensefile" = "$licensefileuri"
+             "publishPorts" = @(8080,443,7046,7047,7048,7049)
+             "publicDnsName" = $publicDnsName }
+$additionalParameters = @("--env RemovePasswordKeyFile=N")
+
 if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
     if ("$sqlServerType" -eq "SQLExpress") {
         $additionalParameters += @("--env appbacpac=$appBacpacUri",
@@ -99,7 +96,7 @@ if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
     }
 }
 if ("$clickonce" -eq "Yes") {
-    $additionalParameters += @("--env clickonce=Y")
+    $params += @{"clickonce" = $true}
 }
 
 if ("$enableTaskScheduler" -eq "Yes") {
