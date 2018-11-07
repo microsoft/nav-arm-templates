@@ -23,10 +23,13 @@ if (!(Get-Package -Name AzureAD -ErrorAction Ignore)) {
 
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
-if (!(Get-ScheduledTask -TaskName request -ErrorAction Ignore)) {
-    Log "Registering request task"
-    $xml = [System.IO.File]::ReadAllText("c:\demo\RequestTaskDef.xml")
-    Register-ScheduledTask -TaskName request -User $vmadminUsername -Password $plainPassword -Xml $xml
+
+if ($requestToken) {
+    if (!(Get-ScheduledTask -TaskName request -ErrorAction Ignore)) {
+        Log "Registering request task"
+        $xml = [System.IO.File]::ReadAllText("c:\demo\RequestTaskDef.xml")
+        Register-ScheduledTask -TaskName request -User $vmadminUsername -Password $plainPassword -Xml $xml
+    }
 }
 
 Log "Launching SetupVm"
