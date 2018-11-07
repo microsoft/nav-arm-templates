@@ -3,10 +3,11 @@
 <%@ Page Language="c#" debug="true" %>
 <%
 Response.ContentType = "text/plain";
-var id = HttpUtility.ParseQueryString(Request.Url.Query).Get("id");
-var silent = HttpUtility.ParseQueryString(Request.Url.Query).Get("silent");
+var queryParameters = HttpUtility.ParseQueryString(Request.Url.Query);
+var id = queryParameters.Get("id");
+var silent = queryParameters.Get("silent");
 if (String.IsNullOrEmpty(id)) {
-  var cmd = HttpUtility.ParseQueryString(Request.Url.Query).Get("cmd");
+  var cmd = queryParameters.Get("cmd");
   if (System.IO.File.Exists(string.Format(@"c:\demo\request\{0}.ps1",cmd))) {
     using (EventLog eventLog = new EventLog("Application")) 
     {
@@ -18,7 +19,9 @@ if (String.IsNullOrEmpty(id)) {
         id = Guid.NewGuid().ToString();
         eventLog.WriteEntry(id + Request.Url.Query, EventLogEntryType.Information, 57711, 1);
         System.Threading.Thread.Sleep(1000);
-        Response.Redirect(Request.Url+"&id="+id);
+        queryParameters.Remove("requesttoken");
+        queryParameters.Add("id", id);
+        Response.Redirect(Request.Url.AbsolutePath+"?"+queryParameters.ToString());
       }
     }
   } else {
