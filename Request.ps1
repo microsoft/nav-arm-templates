@@ -31,15 +31,15 @@ if ($event) {
 
         $queryParameters = [System.Web.HttpUtility]::ParseQueryString($request)
 
-        $token = $QueryParameters.Get("token")
+        $token = $QueryParameters.Get("requesttoken")
         $cmd = $QueryParameters.Get("cmd")
 
         if ("$token".Equals("$requestToken")) {
             $LogStr = "$cmd"
             $Parameters = @{}
             $queryParameters.Keys | ForEach-Object {
-                if ($_ -ne "cmd" -and "$_" -ne "token") {
-                    $logStr += (" -$_ " + $queryParameters[$_])
+                if ($_ -ne "cmd" -and "$_" -ne "requesttoken") {
+                    $logStr += " -$_ '$($queryParameters[$_])'"
                     $Parameters += @{ "$_" = $queryParameters[$_] }
                 }
             }
@@ -51,7 +51,10 @@ if ($event) {
                 Log "Illegal request: $LogStr"
             }
         } else {
-            Log "Illegal request token: $token"
+            Log "Illegal RequestToken"
+        }
+        if ($idx -gt 0) {
+            Stop-Transcript
         }
     }
 } else {
