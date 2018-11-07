@@ -29,15 +29,26 @@ if ($event) {
             $request = $request.Substring($idx)
         }
 
-        $token = ([System.Web.HttpUtility]::ParseQueryString($request)).Get("token")
+        $queryParameters = [System.Web.HttpUtility]::ParseQueryString($request)
+
+        $token = $QueryParameters.Get("token")
+        $cmd = $QueryParameters.Get("cmd")
+
         if ("$token".Equals("$requestToken")) {
-            $cmd = ([System.Web.HttpUtility]::ParseQueryString($request)).Get("cmd")
+            $LogStr = "$cmd"
+            $Parameters = @{}
+            $queryParameters.Keys | ForEach-Object {
+                if ($_ -ne "cmd" -and "$_" -ne "token") {
+                    $logStr += (" -$_ " + $queryParameters[$_])
+                    $Parameters += @{ "$_" = $queryParameters[$_] }
+                }
+            }
             $script = Get-Item -Path "c:\demo\request\$cmd.ps1" -ErrorAction Ignore
             if (($script) -and ($script.FullName.ToLowerInvariant().StartsWith("c:\demo\request\"))) {
-                Log "$script -queryString $request"
-                . $script -queryString $request
+                Log "Request: $LogStr"
+                . $script @Parameters
             } else {
-                Log "Illegal request: $cmd"
+                Log "Illegal request: $LogStr"
             }
         } else {
             Log "Illegal request token: $token"
