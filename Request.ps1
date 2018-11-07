@@ -25,27 +25,22 @@ if ($event) {
         $idx = $request.IndexOf("?")
         if ($idx -gt 0) {
             $id = $request.Substring(0,$idx)
-            if (!(Test-Path -Path "c:\demo\request")) {
-                New-Item -Path "c:\demo\request" -ItemType Directory | Out-Null
-            }
             Start-Transcript -Path "c:\demo\request\$id.txt" 
             $request = $request.Substring($idx)
         }
 
-        $cmd = ([System.Web.HttpUtility]::ParseQueryString($request)).Get("cmd");
-
-        if ($cmd -eq "Replace-NavServerContainer") {
-            $log = "Request: Replace-NavServerContainer"
-            $alwaysPull = ([System.Web.HttpUtility]::ParseQueryString($request)).Get("alwayspull");
-            $parameters = @{}
-            if ($alwaysPull -eq "yes") {
-                $parameters += @{ "alwayspull" = $true }
-                $log += " -alwaysPull"
+        $token = ([System.Web.HttpUtility]::ParseQueryString($request)).Get("token")
+        if ("$token".Equals("$requestToken")) {
+            $cmd = ([System.Web.HttpUtility]::ParseQueryString($request)).Get("cmd")
+            $script = Get-Item -Path "c:\demo\request\$cmd.ps1" -ErrorAction Ignore
+            if (($script) -and ($script.FullName.ToLowerInvariant().StartsWith("c:\demo\request\"))) {
+                Log "$script -queryString $request"
+                . $script -queryString $request
+            } else {
+                Log "Illegal request: $cmd"
             }
-            Log $log
-            Replace-NavServerContainer @parameters
         } else {
-            Log "Unknown request: $cmd"
+            Log "Illegal request token: $token"
         }
     }
 } else {
