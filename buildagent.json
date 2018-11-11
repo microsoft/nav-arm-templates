@@ -57,6 +57,28 @@
             "metadata": {
                 "Description": "Specify administrator password for VM, Business Central and SQL (if applicable)"
             }
+        },
+        "DevOpsOrganization": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
+            }
+        },
+        "PersonalAccessToken": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
+            }
+        },
+        "Pool": {
+            "type": "string",
+            "defaultValue": "default",
+            "minLength": 1,
+            "metadata": {
+                "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
+            }
         }
     },
     "variables": {
@@ -305,7 +327,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initagent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initagent.ps1')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -DevOpsOrganization \"',parameters('devopsorganization'),'\" -PersonalAccessToken \"',parameters('personalaccesstoken'),'\" -Pool \"',parameters('pool'),'\" -vmName \"',variables('vmName'),'\"')]"
                 },
                 "protectedSettings": {}
             }
