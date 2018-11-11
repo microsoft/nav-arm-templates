@@ -1,13 +1,19 @@
 #usage initialize.ps1
 param
 (
-       [string] $templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
-       [string] $vmAdminUsername           = "vmadmin",
-       [string] $adminPassword             = "P@ssword1",
-       [string] $devopsorganization        = "",
-       [string] $personalaccesstoken       = "",
-       [string] $pool                      = "default",
-       [string] $vmname                    = ""
+    [string] $templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/buildagent.json",
+    [Parameter(Mandatory=$true)]
+    [string] $vmAdminUsername,
+    [Parameter(Mandatory=$true)]
+    [string] $adminPassword,
+    [Parameter(Mandatory=$true)]
+    [string] $devopsorganization,
+    [Parameter(Mandatory=$true)]
+    [string] $personalaccesstoken,
+    [Parameter(Mandatory=$true)]
+    [string] $pool,
+    [Parameter(Mandatory=$true)]
+    [string] $vmname
 )
 
 function Download-File([string]$sourceUrl, [string]$destinationFile)
