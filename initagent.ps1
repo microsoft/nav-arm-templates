@@ -34,13 +34,17 @@ Import-Module -Name navcontainerhelper -DisableNameChecking
 Install-module DockerMsftProvider -Force
 Install-Package -Name docker -ProviderName DockerMsftProvider -Force
 
+$DownloadFolder = "C:\Download"
+MkDir $DownloadFolder -ErrorAction Ignore | Out-Null
 $agentFilename = "vsts-agent-win-x64-2.141.1.zip"
+$agentFullname = Join-Path $DownloadFolder $agentFilename
 $agentUrl = "https://vstsagentpackage.azureedge.net/agent/2.141.1/$agentFilename"
-Download-File -sourceUrl $agentUrl -destinationFile "$HOME\Downloads\$agentFilename"
-mkdir c:\Agent -ErrorAction Ignore | Out-Null
-cd c:\Agent
+Download-File -sourceUrl $agentUrl -destinationFile $agentFullname
+$agentFolder = "C:\Agent"
+mkdir $agentFolder -ErrorAction Ignore | Out-Null
+cd $agentFolder
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-[System.IO.Compression.ZipFile]::ExtractToDirectory("$HOME\Downloads\$agentFilename", "C:\Agent")
+[System.IO.Compression.ZipFile]::ExtractToDirectory($agentFullname, $agentFolder)
 
 .\config.cmd --unattended --url "$devopsorganization" --auth PAT --token "$personalaccesstoken" --pool "$pool" --agent "$vmname" --runAsService --windowsLogonAccount $vmAdminUsername --windowsLogonPassword $adminPassword
 
