@@ -42,7 +42,7 @@ cd c:\Agent
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory("$HOME\Downloads\$agentFilename")
 
-.\config.cmd --unattended --url $server --auth PAT --token $token --pool $pool --agent $name --runAsService --windowsLogonAccount $vmAdminUsername --windowsLogonPassword $adminPassword
+.\config.cmd --unattended --url "$devopsorganization" --auth PAT --token "$personalaccesstoken" --pool "$pool" --agent "$vmname" --runAsService --windowsLogonAccount $vmAdminUsername --windowsLogonPassword $adminPassword
 
 Restart-Computer -force
 
