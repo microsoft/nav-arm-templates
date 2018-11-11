@@ -696,5 +696,9 @@
         }
     ],
     "outputs": {
+		"landingPage": {
+			"value": "[concat('http://',reference(variables('publicIPAddressName')).dnsSettings.fqdn)]",
+			"type": "string"
+		}
     }
 }
