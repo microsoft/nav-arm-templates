@@ -40,7 +40,7 @@ Download-File -sourceUrl $agentUrl -destinationFile "$HOME\Downloads\$agentFilen
 mkdir c:\Agent -ErrorAction Ignore | Out-Null
 cd c:\Agent
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-[System.IO.Compression.ZipFile]::ExtractToDirectory("$HOME\Downloads\$agentFilename")
+[System.IO.Compression.ZipFile]::ExtractToDirectory("$HOME\Downloads\$agentFilename", "C:\Agent")
 
 .\config.cmd --unattended --url "$devopsorganization" --auth PAT --token "$personalaccesstoken" --pool "$pool" --agent "$vmname" --runAsService --windowsLogonAccount $vmAdminUsername --windowsLogonPassword $adminPassword
 
