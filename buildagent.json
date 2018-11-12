@@ -66,7 +66,7 @@
             }
         },
         "PersonalAccessToken": {
-            "type": "string",
+            "type": "securestring",
             "minLength": 1,
             "metadata": {
                 "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
