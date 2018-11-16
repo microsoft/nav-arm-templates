@@ -213,7 +213,7 @@ Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ig
 }
 
 Download-File -sourceUrl "https://www.dropbox.com/s/1ftdg1xf724p26v/SetupWebClient.ps1?dl=1"      -destinationFile "c:\myfolder\SetupWebClient.ps1"
-Download-File -sourceUrl "https://www.dropbox.com/s/olv8g9zo8imye37/NAVWebClientManagement.psm1?dl=1"      -destinationFile "c:\myfolder\NAVWebClientManagement.psm1"
+#Download-File -sourceUrl "https://www.dropbox.com/s/olv8g9zo8imye37/NAVWebClientManagement.psm1?dl=1"      -destinationFile "c:\myfolder\NAVWebClientManagement.psm1"
 
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
