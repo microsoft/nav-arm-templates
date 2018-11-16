@@ -212,7 +212,7 @@ Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ig
 ' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
 }
 
-Download-File -sourceUrl "https://www.dropbox.com/s/sr6ideahybre3t1/SetupWebClient.ps1?dl=1"      -destinationFile "c:\myfolder\SetupWebClient.ps1"
+Download-File -sourceUrl "https://www.dropbox.com/s/1ftdg1xf724p26v/SetupWebClient.ps1?dl=1"      -destinationFile "c:\myfolder\SetupWebClient.ps1"
 Download-File -sourceUrl "https://www.dropbox.com/s/olv8g9zo8imye37/NAVWebClientManagement.psm1?dl=1"      -destinationFile "c:\myfolder\NAVWebClientManagement.psm1"
 
 Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
