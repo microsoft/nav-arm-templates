@@ -126,6 +126,7 @@ try {
                      -doNotExportObjectsToText `
                      -authenticationEMail $Office365UserName `
                      -credential $credential `
+                     -useBestContainerOS `
                      -additionalParameters $additionalParameters `
                      -myScripts $myscripts `
                      -imageName $imageName
