@@ -240,5 +240,6 @@ shutdown -r -t 30
 
 } catch {
     Log -Color Red -line $_.Exception.Message
+    $_.ScriptStackTrace.Replace("`r`n","`n").Split("`n") | % { Log -Color Red -line $_ }
     throw
 }
