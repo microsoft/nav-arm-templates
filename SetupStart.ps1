@@ -32,7 +32,7 @@ if ($requestToken) {
     }
 }
 
-Log "Launching SetupVm"
+Log "Prepare SetupVm"
 $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
 Register-ScheduledTask -TaskName SetupVm `
                        -Action $onceAction `
@@ -40,5 +40,6 @@ Register-ScheduledTask -TaskName SetupVm `
                        -User $vmAdminUsername `
                        -Password $plainPassword | Out-Null
 
+Log "Launch SetupVm"
 Start-ScheduledTask -TaskName SetupVm
 
