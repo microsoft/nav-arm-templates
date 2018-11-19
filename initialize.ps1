@@ -329,31 +329,19 @@ if ($WindowsInstallationType -eq "Server") {
         Install-module DockerMsftProvider -Force
         Install-Package -Name docker -ProviderName DockerMsftProvider -Force
     }
-    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
-    $startupTrigger = New-ScheduledTaskTrigger -AtStartup
-    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
-    Register-ScheduledTask -TaskName "SetupStart" `
-                           -Action $startupAction `
-                           -Trigger $startupTrigger `
-                           -Settings $settings `
-                           -RunLevel "Highest" `
-                           -User "NT AUTHORITY\SYSTEM" | Out-Null
-    
-    Log "Restarting computer and start Installation tasks"
-    Restart-Computer -force
 } else {
     Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
-    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
-    $startupTrigger = New-ScheduledTaskTrigger -AtStartup
-    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
-    Register-ScheduledTask -TaskName "SetupStart" `
-                           -Action $startupAction `
-                           -Trigger $startupTrigger `
-                           -Settings $settings `
-                           -RunLevel "Highest" `
-                           -User $vmAdminUserName `
-                           -Password $adminPassword | Out-Null
-    
-    Log "Restarting computer and start Installation tasks"
-    Restart-Computer -force
 }
+
+$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
+$startupTrigger = New-ScheduledTaskTrigger -AtStartup
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
+Register-ScheduledTask -TaskName "SetupStart" `
+                       -Action $startupAction `
+                       -Trigger $startupTrigger `
+                       -Settings $settings `
+                       -RunLevel "Highest" `
+                       -User "NT AUTHORITY\SYSTEM" | Out-Null
+
+Log "Restarting computer and start Installation tasks"
+Restart-Computer -force
