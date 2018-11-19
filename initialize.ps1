@@ -327,7 +327,7 @@ if ($WindowsInstallationType -eq "Server") {
     if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
         Log "Installing Docker"
         Install-module DockerMsftProvider -Force
-        Install-Package -Name docker -ProviderName DockerMsftProvider -Force -RequiredVersion "18.03.1-ee-2"
+        Install-Package -Name docker -ProviderName DockerMsftProvider -Force
     }
     $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
     $startupTrigger = New-ScheduledTaskTrigger -AtStartup
