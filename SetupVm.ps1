@@ -236,6 +236,8 @@ if ($RunWindowsUpdate -eq "Yes") {
     Log "Windows updates installed"
 }
 
+shutdown -r -t 30
+
 } catch {
     Log -Color Red -line $_.Exception.Message
     throw
