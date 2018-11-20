@@ -1,10 +1,16 @@
 ﻿$ErrorActionPreference = "Stop"
 $WarningActionPreference = "Continue"
 
+$ComputerInfo = Get-ComputerInfo
+$WindowsInstallationType = $ComputerInfo.WindowsInstallationType
+$WindowsProductName = $ComputerInfo.WindowsProductName
+
 try {
 
-if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
-    schtasks /DELETE /TN SetupVm /F | Out-Null
+if ($WindowsInstallationType -eq "Server") {
+    if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
+        schtasks /DELETE /TN SetupVm /F | Out-Null
+    }
 }
 
 function Log([string]$line, [string]$color = "Gray") {
@@ -224,8 +230,14 @@ if (Test-Path $finalSetupScript) {
     . $finalSetupScript
 }
 
-if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
-    schtasks /DELETE /TN SetupStart /F | Out-Null
+if ($WindowsInstallationType -eq "Server") {
+    if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
+        schtasks /DELETE /TN SetupStart /F | Out-Null
+    }
+} else {
+    if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
+        schtasks /DELETE /TN SetupVm /F | Out-Null
+    }
 }
 
 if ($RunWindowsUpdate -eq "Yes") {
