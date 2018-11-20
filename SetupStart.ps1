@@ -32,41 +32,12 @@ if ($requestToken) {
     }
 }
 
-$ComputerInfo = Get-ComputerInfo
-$WindowsInstallationType = $ComputerInfo.WindowsInstallationType
-$WindowsProductName = $ComputerInfo.WindowsProductName
+Log "Launch SetupVm"
+$onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
+Register-ScheduledTask -TaskName SetupVm `
+                       -Action $onceAction `
+                       -RunLevel Highest `
+                       -User $vmAdminUsername `
+                       -Password $plainPassword | Out-Null
 
-if ($WindowsInstallationType -eq "Server") {
-
-    Log "Launch SetupVm"
-    $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
-    Register-ScheduledTask -TaskName SetupVm `
-                           -Action $onceAction `
-                           -RunLevel Highest `
-                           -User $vmAdminUsername `
-                           -Password $plainPassword | Out-Null
-    
-    Start-ScheduledTask -TaskName SetupVm
-
-} else {
-
-    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
-    $startupTrigger = New-ScheduledTaskTrigger -AtStartup
-    $startupTrigger.Delay = "PT1M"
-    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
-    Register-ScheduledTask -TaskName "SetupVM" `
-                           -Action $startupAction `
-                           -Trigger $startupTrigger `
-                           -Settings $settings `
-                           -RunLevel Highest `
-                           -User $vmAdminUsername `
-                           -Password $plainPassword | Out-Null
-
-    if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
-        schtasks /DELETE /TN SetupStart /F | Out-Null
-    }
-    
-    Log "Restarting computer and launch SetupVM"
-    Shutdown -r -t 30
-
-}
+Start-ScheduledTask -TaskName SetupVm
