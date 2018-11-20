@@ -61,6 +61,10 @@ if ($WindowsInstallationType -eq "Server") {
                            -RunLevel Highest `
                            -User $vmAdminUsername `
                            -Password $plainPassword | Out-Null
+
+    if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
+        schtasks /DELETE /TN SetupStart /F | Out-Null
+    }
     
     Log "Restarting computer and launch SetupVM"
     Shutdown -r -t 30
