@@ -1,11 +1,17 @@
-#usage initialize.ps1
+#usage initdockeragent.ps1
 param
 (
-    [string] $templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/buildagent.json",
+    [string] $templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/dockeragent.json",
     [Parameter(Mandatory=$true)]
     [string] $vmAdminUsername,
     [Parameter(Mandatory=$true)]
     [string] $adminPassword,
+    [Parameter(Mandatory=$true)]
+    [string] $StorageAccountName,
+    [Parameter(Mandatory=$true)]
+    [string] $StorageAccountKey,
+    [Parameter(Mandatory=$true)]
+    [string] $Queue,
     [Parameter(Mandatory=$true)]
     [string] $vmname
 )

@@ -1,4 +1,4 @@
-#usage initialize.ps1
+#usage initbuildagent.ps1
 param
 (
     [string] $templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/buildagent.json",
