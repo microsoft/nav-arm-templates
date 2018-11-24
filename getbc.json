@@ -40,9 +40,7 @@
             "defaultValue": "Windows Server 2016",
             "allowedValues": [
                 "Windows Server 2016",
-                "Windows Server 2019",
-                "Windows 10"
-            ],
+                "Windows Server 2019"            ],
             "metadata": {
                 "Description": "Select the Operating System of the VM"
             }
