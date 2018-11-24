@@ -20,10 +20,10 @@
 		},
         "OperatingSystem": {
             "type": "string",
-            "defaultValue": "Windows Server 2016",
+            "defaultValue": "Windows Server 2019",
             "allowedValues": [
-                "Windows Server 2016",
-                "Windows Server 2019"            ],
+                "Windows Server 2019",
+                "Windows Server 2016"            ],
             "metadata": {
                 "Description": "Select the Operating System of the VM"
             }
@@ -67,26 +67,29 @@
                 "Description": "Specify administrator password for VM, Business Central and SQL (if applicable)"
             }
         },
-        "DevOpsOrganization": {
+        "StorageAccountName": {
             "type": "string",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
+                "Description": "Specify Storage Account Name to use"
             }
         },
-        "PersonalAccessToken": {
+        "StorageAccountKey": {
             "type": "securestring",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
+                "Description": "Specify Storage Account Key to use"
             }
         },
-        "Pool": {
+        "Queue": {
             "type": "string",
-            "defaultValue": "default",
-            "minLength": 1,
+            "defaultValue": "ltsc2019",
+            "allowedValues": [
+                "ltsc2019",
+                "ltsc2016"
+            ],
             "metadata": {
-                "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
+                "Description": "Select the Queue to build from"
             }
         }
     },
@@ -334,9 +337,9 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "[uri(deployment().properties.templateLink.uri, 'initbuildagent.ps1')]"
+                        "[uri(deployment().properties.templateLink.uri, 'initdockeragent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -DevOpsOrganization \"',parameters('devopsorganization'),'\" -PersonalAccessToken \"',parameters('personalaccesstoken'),'\" -Pool \"',parameters('pool'),'\" -vmName \"',variables('vmName'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initdockeragent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -StorageAccountName \"',parameters('storageaccountname'),'\" -StorageAccountKey \"',parameters('storageaccountkey'),'\" -Queue \"',parameters('Queue'),'\" -vmName \"',variables('vmName'),'\"')]"
                 },
                 "protectedSettings": {}
             }
