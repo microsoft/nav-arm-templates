@@ -13,6 +13,8 @@ param
     [Parameter(Mandatory=$true)]
     [string] $Queue,
     [Parameter(Mandatory=$true)]
+    [string] $Processes,
+    [Parameter(Mandatory=$true)]
     [string] $vmname,
     [string] $registry1 = "",
     [string] $registry1username = "",
@@ -56,6 +58,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "vmName"                 | Add-Content $settingsScript
     Get-VariableDeclaration -name "StorageAccountName"     | Add-Content $settingsScript
     Get-VariableDeclaration -name "Queue"                  | Add-Content $settingsScript
+    Get-VariableDeclaration -name "Processes"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "registry1"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "registry1username"      | Add-Content $settingsScript
     Get-VariableDeclaration -name "registry2"              | Add-Content $settingsScript

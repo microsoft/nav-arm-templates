@@ -57,6 +57,27 @@ if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
     schtasks /DELETE /TN SetupStart /F | Out-Null
 }
 
+$securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
+$plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
+
+Log "Register Launch SetupDockerAgentVm"
+1..$Processes | % {
+    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\agent\StartDockerAgent.ps1"
+    $startupTrigger = New-ScheduledTaskTrigger -AtStartup
+    $delay = (5+$_)
+    $startupTrigger.Delay = "PT${delay}M"
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
+    $task = Register-ScheduledTask -TaskName "SetupVm$_" `
+                           -Action $startupAction `
+                           -Trigger $startupTrigger `
+                           -Settings $settings `
+                           -RunLevel Highest `
+                           -User $vmAdminUsername `
+                           -Password $plainPassword
+    $task.Triggers.Repetition.Interval = "PT5M"
+    $task | Set-ScheduledTask
+}
+
 Log "Complete, and start tasks"
 
 shutdown -r -t 30
