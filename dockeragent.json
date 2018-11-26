@@ -81,54 +81,63 @@
         },
         "Registry1": {
             "type": "string",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify a registry (#1) to login to (blank for docker hub)"
             }
         },
         "Registry1UserName": {
             "type": "string",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify the registry (#1) User Name (blank for no login)"
             }
         },
         "Registry1Password": {
             "type": "securestring",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify the registry (#1) Password"
             }
         },
         "Registry2": {
             "type": "string",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify a registry (#2) to login to (blank for docker hub)"
             }
         },
         "Registry2UserName": {
             "type": "string",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify the registry (#2) User Name (blank for no login)"
             }
         },
         "Registry2Password": {
             "type": "securestring",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify the  registry (#2) Password"
             }
         },
         "Registry3": {
             "type": "string",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify a registry (#3) to login to (blank for docker hub)"
             }
         },
         "Registry3UserName": {
             "type": "string",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify the registry (#3) User Name (blank for no login)"
             }
         },
         "Registry3Password": {
             "type": "securestring",
+			"defaultValue": "",
             "metadata": {
                 "Description": "Specify the registry (#3) Password"
             }
