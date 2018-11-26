@@ -162,16 +162,12 @@
         "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter','2019-Datacenter'))]",
         "storageAccountType": "Standard_LRS",
         "vmStorageAccountContainerName": "vhds",
-        "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
-        "dnsName": "[tolower(variables('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
         "subnetPrefix": "10.0.0.0/24",
         "virtualNetworkName": "virtualnetwork",
-        "server1Name": "[tolower(variables('vmName'))]",
-        "nic1Name": "[concat(variables('vmName'),'_nic')]",
         "delimiters": [ ",", ";" ],
         "RdpAddresses": "[if(equals(variables('RemoteDesktopAccess'),'-'),'',variables('RemoteDesktopAccess'))]",
         "rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
@@ -367,7 +363,7 @@
                     "osDisk": {
                         "name": "osdisk",
                         "vhd": {
-                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('server1Name'),'.vhd')]"
+                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',tolower(parameters('vmName')),copyIndex(),'.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
