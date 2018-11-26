@@ -25,6 +25,19 @@ param
     [string] $registry3password = ""
 )
 
+function Get-VariableDeclaration([string]$name) {
+    $var = Get-Variable -Name $name
+    if ($var) {
+        ('$'+$var.Name+' = "'+$var.Value+'"')
+    } else {
+        ""
+    }
+}
+
+function Log([string]$line) {
+    ([DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line") | Add-Content -Path "c:\agent\status.txt"
+}
+
 function Download-File([string]$sourceUrl, [string]$destinationFile)
 {
     Log "Downloading $destinationFile"
@@ -32,33 +45,74 @@ function Download-File([string]$sourceUrl, [string]$destinationFile)
     (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
 }
 
-function Login-Docker([string]$registry, [string]$registryUsername, [string]$registryPassword)
-{
-    if ("$registryUsername" -ne "" -and "$registryPassword" -ne "") {
-        docker login "$registry" -u "$registryUsername" -p "$registryPassword"
+$settingsScript = "c:\agent\settings.ps1"
+if (Test-Path $settingsScript) {
+    . "$settingsScript"
+} else {
+    New-Item -Path "c:\agent" -ItemType Directory -ErrorAction Ignore | Out-Null
+    
+    Get-VariableDeclaration -name "templateLink"           | Set-Content $settingsScript
+    Get-VariableDeclaration -name "vmAdminUsername"        | Add-Content $settingsScript
+    Get-VariableDeclaration -name "vmName"                 | Add-Content $settingsScript
+    Get-VariableDeclaration -name "StorageAccountName"     | Add-Content $settingsScript
+    Get-VariableDeclaration -name "Queue"                  | Add-Content $settingsScript
+    Get-VariableDeclaration -name "registry1"              | Add-Content $settingsScript
+    Get-VariableDeclaration -name "registry1username"      | Add-Content $settingsScript
+    Get-VariableDeclaration -name "registry2"              | Add-Content $settingsScript
+    Get-VariableDeclaration -name "registry2username"      | Add-Content $settingsScript
+    Get-VariableDeclaration -name "registry3"              | Add-Content $settingsScript
+    Get-VariableDeclaration -name "registry3username"      | Add-Content $settingsScript
+
+    $passwordKey = New-Object Byte[] 16
+    [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
+    ('$passwordKey = [byte[]]@('+"$passwordKey".Replace(" ",",")+')') | Add-Content $settingsScript
+
+    'adminPassword','StorageAccountKey','registry1password','registry2password','registry3password' | % {
+        $var = Get-Variable -Name $_
+        $securePassword = ConvertTo-SecureString -String $var.Value -AsPlainText -Force
+        $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $passwordKey
+        ('$' + $_ + ' = "'+$encPassword+'"') | Add-Content $settingsScript
     }
+
 }
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
+Log "TemplateLink: $templateLink"
+$scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
+
+Log "Turning off IE Enhanced Security Configuration"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
 
+#$startDockerAgentScript = "c:\agent\StartDockerAgent.ps1"
+$setupDockerAgentStartScript = "c:\agent\SetupDockerAgentStart.ps1"
+$setupDockerAgentVMScript = "c:\agent\SetupDockerAgentVM.ps1"
+#Download-File -sourceUrl "${scriptPath}StartDockerAgent.ps1" -destinationFile $startDockerAgentScript
+Download-File -sourceUrl "${scriptPath}SetupDockerAgentStart.ps1" -destinationFile $setupDockerAgentStartScript
+Download-File -sourceUrl "${scriptPath}SetupDockerAgentVM.ps1" -destinationFile $setupDockerAgentVMScript
+
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
+    Log "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
 
-# Install Docker
+Log "Install Docker"
 Install-module DockerMsftProvider -Force
 Install-Package -Name docker -ProviderName DockerMsftProvider -Force
 
-Start-Service docker
+$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupDockerAgentScript"
+$startupTrigger = New-ScheduledTaskTrigger -AtStartup
+$startupTrigger.Delay = "PT1M"
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
+Register-ScheduledTask -TaskName "SetupStart" `
+                       -Action $startupAction `
+                       -Trigger $startupTrigger `
+                       -Settings $settings `
+                       -RunLevel "Highest" `
+                       -User "NT AUTHORITY\SYSTEM" | Out-Null
 
-Login-Docker -registry "$registry1" -registryUsername "$registry1username" -registryPassword "$registry1password"
-Login-Docker -registry "$registry2" -registryUsername "$registry2username" -registryPassword "$registry2password"
-Login-Docker -registry "$registry3" -registryUsername "$registry3username" -registryPassword "$registry3password"
-
-Restart-Computer -force
-
+Log "Restarting computer and start Installation tasks"
+Shutdown -r -t 60
