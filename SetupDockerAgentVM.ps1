@@ -67,15 +67,16 @@ Log "Register Launch SetupDockerAgentVm"
     $delay = (5+$_)
     $startupTrigger.Delay = "PT${delay}M"
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
-    $task = Register-ScheduledTask -TaskName "SetupVm$_" `
+    $task = Register-ScheduledTask -TaskName "DockerAgent$_" `
                            -Action $startupAction `
                            -Trigger $startupTrigger `
                            -Settings $settings `
                            -RunLevel Highest `
                            -User $vmAdminUsername `
                            -Password $plainPassword
+
     $task.Triggers.Repetition.Interval = "PT5M"
-    $task | Set-ScheduledTask
+    $task | Set-ScheduledTask -User $vmAdminUsername -Password $plainPassword | Out-Null
 }
 
 Log "Complete, and start tasks"
