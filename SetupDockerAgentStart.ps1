@@ -11,6 +11,11 @@ if (!(Get-Package -Name AzureRM.Storage -ErrorAction Ignore)) {
     Install-Package AzureRM.Storage -Force -WarningAction Ignore | Out-Null
 }
 
+if (!(Get-Package -Name AzureRmStorageTable -ErrorAction Ignore)) {
+    Log "Installing AzureRmStorageTable PowerShell package"
+    Install-Package AzureRmStorageTable -Force -WarningAction Ignore | Out-Null
+}
+
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 

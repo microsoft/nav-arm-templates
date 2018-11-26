@@ -1,4 +1,8 @@
-﻿$erroractionpreference = "Stop"
+﻿Param(
+    [string] $taskName
+)
+
+$erroractionpreference = "Stop"
 
 function Log([string]$line) {
     ([DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line") | Add-Content -Path "c:\agent\status.txt"
@@ -17,34 +21,40 @@ $secureStorageAccountKey = ConvertTo-SecureString -String $StorageAccountKey -Ke
 $plainStorageAccountKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureStorageAccountKey))
 
 $storageContext = New-AzureStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $plainStorageAccountKey
-$queue = Get-AzureStorageQueue -Name $queue -Context $storageContext -ErrorAction Ignore
+$azureQueue = Get-AzureStorageQueue -Name $queue -Context $storageContext -ErrorAction Ignore
+
+$table = Get-AzureStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore
+if (!($table)) {
+    $table = New-AzureStorageTable –Name "QueueStatus" –Context $storageContext
+}
 
 while ($true) {
-    $message = $queue.CloudQueue.GetMessage([TimeSpan]::FromHours(2))
+    $message = $azureQueue.CloudQueue.GetMessage([TimeSpan]::FromHours(2))
     if (!($message)) {
         break
     }
     $description = "description not set!"
     try {
         if (!(Test-Path $tempFolder -PathType Container)) {
-            Log "Downloading nav-docker repo"
             New-Item -ItemType Directory -Path $tempFolder | out-null
             (New-Object System.Net.WebClient).DownloadFile($navDockerUrl, $tempFile)
             [System.IO.Compression.ZipFile]::ExtractToDirectory($tempFile, $tempFolder)
         }
         $navDockerPath = Join-Path $tempFolder "nav-docker-master"
         $json = $message.AsString | ConvertFrom-Json
-        $description = "$($json.task) $($json.version) $($json.country) $($json.platform) ($($message.Id))"
-        Log "BUILD: $description"
+        $ht = @{"vmName" = $vmName; "TaskName" = $TaskName}
+        $json.psobject.properties | Foreach { $ht[$_.Name] = $_.Value }
+
+        Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Build"} + $ht)
         . (Join-Path $navDockerPath "$($json.task)\build-local.ps1") $json
-        Log "SUCCESS: $description"
-        $queue.CloudQueue.DeleteMessage($message)
+        Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Success"} + $ht)
+        $azureQueue.CloudQueue.DeleteMessage($message)
     } catch {
         if ($message.DequeueCount -eq 10) {
-            Log "ERROR: $description"
-            $queue.CloudQueue.DeleteMessage($message)
+            Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Error"} + $ht)
+            $azureQueue.CloudQueue.DeleteMessage($message)
         } else {
-            Log "WARNING: $description"
+            Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Warning $($message.DequeueCount)"} + $ht)
             Start-Sleep -Seconds 60
         }
     } finally {
