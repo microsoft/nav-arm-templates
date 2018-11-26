@@ -196,12 +196,12 @@
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[concat(parameters('vmName'), copyIndex(), '_pip')]",
+            "name": "[concat(variables('vmName'), copyIndex(), '_pip')]",
             "location": "[resourceGroup().location]",
             "properties": {
                 "publicIPAllocationMethod": "Dynamic",
                 "dnsSettings": {
-                    "domainNameLabel": "[concat(tolower(parameters('vmName')), copyIndex())]"
+                    "domainNameLabel": "[concat(tolower(variables('vmName')), copyIndex())]"
                 }
             },
 			"copy": {
@@ -312,10 +312,10 @@
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkInterfaces",
-            "name": "[concat(parameters('vmName'), copyIndex(), '_nic')]",
+            "name": "[concat(variables('vmName'), copyIndex(), '_nic')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/', parameters('vmName'), copyIndex(), '_pip')]",
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('vmName'), copyIndex(), '_pip')]",
                 "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
             ],
             "properties": {
@@ -325,7 +325,7 @@
                         "properties": {
                             "privateIPAllocationMethod": "Dynamic",
                             "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(parameters('vmName'), copyIndex(), '_pip'))]"
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(variables('vmName'), copyIndex(), '_pip'))]"
                             },
                             "subnet": {
                                 "id": "[variables('subnetRef')]"
@@ -342,18 +342,18 @@
         {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines",
-            "name": "[concat(tolower(parameters('vmName')),copyIndex())]",
+            "name": "[concat(tolower(variables('vmName')),copyIndex())]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-                "[concat('Microsoft.Network/networkInterfaces/', parameters('vmName'),copyIndex(),'_nic')]"
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vmName'),copyIndex(),'_nic')]"
             ],
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "[variables('vmSize')]"
                 },
                 "osProfile": {
-                    "computerName": "[concat(tolower(parameters('vmName')),copyIndex())]",
+                    "computerName": "[concat(tolower(variables('vmName')),copyIndex())]",
                     "adminUsername": "[variables('vmAdminUsername')]",
                     "adminPassword": "[variables('adminPassword')]",
                     "windowsConfiguration": {
@@ -370,7 +370,7 @@
                     "osDisk": {
                         "name": "osdisk",
                         "vhd": {
-                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',tolower(parameters('vmName')),copyIndex(),'.vhd')]"
+                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',tolower(variables('vmName')),copyIndex(),'.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
@@ -379,7 +379,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),copyIndex(),'_nic'))]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('vmName'),copyIndex(),'_nic'))]"
                         }
                     ]
                 }
@@ -394,13 +394,13 @@
         {
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(tolower(parameters('vmName')),copyIndex(),'/extension',copyIndex())]",
+            "name": "[concat(tolower(variables('vmName')),copyIndex(),'/extension',copyIndex())]",
             "location": "[resourceGroup().location]",
             "tags": {
                 "displayName": "PowerShellScript2"
             },
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/',tolower(parameters('vmName')),copyIndex())]"
+                "[concat('Microsoft.Compute/virtualMachines/',tolower(variables('vmName')),copyIndex())]"
             ],
             "properties": {
                 "publisher": "Microsoft.Compute",
@@ -411,7 +411,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initdockeragent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initdockeragent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -StorageAccountName \"',parameters('storageaccountname'),'\" -StorageAccountKey \"',parameters('storageaccountkey'),'\" -Queue \"',parameters('Queue'),'\" -Processes \"',parameters('Processes'),'\" -vmName \"',variables('vmName'),'\" -registry1 \"',parameters('registry1'),'\" -registry1username \"',parameters('registry1username'),'\" -registry1password \"',parameters('registry1Password'),'\" -registry2 \"',parameters('registry2'),'\" -registry2username \"',parameters('registry2username'),'\" -registry2password \"',parameters('registry2Password'),'\" -registry3 \"',parameters('registry3'),'\" -registry3username \"',parameters('registry3username'),'\" -registry3password \"',parameters('registry3Password'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initdockeragent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -StorageAccountName \"',parameters('storageaccountname'),'\" -StorageAccountKey \"',parameters('storageaccountkey'),'\" -Queue \"',parameters('Queue'),'\" -Processes \"',parameters('Processes'),'\" -vmName \"',variables('vmName'),CopyIndex(),'\" -registry1 \"',parameters('registry1'),'\" -registry1username \"',parameters('registry1username'),'\" -registry1password \"',parameters('registry1Password'),'\" -registry2 \"',parameters('registry2'),'\" -registry2username \"',parameters('registry2username'),'\" -registry2password \"',parameters('registry2Password'),'\" -registry3 \"',parameters('registry3'),'\" -registry3username \"',parameters('registry3username'),'\" -registry3password \"',parameters('registry3Password'),'\"')]"
                 },
                 "protectedSettings": {}
             },

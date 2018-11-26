@@ -62,12 +62,13 @@ $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([Syst
 
 Log "Register Launch SetupDockerAgentVm"
 1..$Processes | % {
-    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\agent\StartDockerAgent.ps1"
+    $taskName = "DockerAgent$_"
+    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\agent\StartDockerAgent.ps1 $taskName"
     $startupTrigger = New-ScheduledTaskTrigger -AtStartup
     $delay = (5+$_)
     $startupTrigger.Delay = "PT${delay}M"
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
-    $task = Register-ScheduledTask -TaskName "DockerAgent$_" `
+    $task = Register-ScheduledTask -TaskName $taskName `
                            -Action $startupAction `
                            -Trigger $startupTrigger `
                            -Settings $settings `
