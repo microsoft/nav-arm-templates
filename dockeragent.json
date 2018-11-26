@@ -407,7 +407,11 @@
                     "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initdockeragent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -StorageAccountName \"',parameters('storageaccountname'),'\" -StorageAccountKey \"',parameters('storageaccountkey'),'\" -Queue \"',parameters('Queue'),'\" -vmName \"',variables('vmName'),'\" -registry1 \"',parameters('registry1'),'\" -registry1username \"',parameters('registry1username'),'\" -registry1password \"',parameters('registry1Password'),'\" -registry2 \"',parameters('registry2'),'\" -registry2username \"',parameters('registry2username'),'\" -registry2password \"',parameters('registry2Password'),'\" -registry3 \"',parameters('registry3'),'\" -registry3username \"',parameters('registry3username'),'\" -registry3password \"',parameters('registry3Password'),'\"')]"
                 },
                 "protectedSettings": {}
-            }
+            },
+            "copy": {
+				"name": "vmcopy",
+				"count": "[parameters('count')]"
+			}
         }
     ],
     "outputs": {
