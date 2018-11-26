@@ -87,10 +87,10 @@ Log "Turning off IE Enhanced Security Configuration"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
 
-#$startDockerAgentScript = "c:\agent\StartDockerAgent.ps1"
+$startDockerAgentScript = "c:\agent\StartDockerAgent.ps1"
 $setupDockerAgentStartScript = "c:\agent\SetupDockerAgentStart.ps1"
 $setupDockerAgentVMScript = "c:\agent\SetupDockerAgentVM.ps1"
-#Download-File -sourceUrl "${scriptPath}StartDockerAgent.ps1" -destinationFile $startDockerAgentScript
+Download-File -sourceUrl "${scriptPath}StartDockerAgent.ps1" -destinationFile $startDockerAgentScript
 Download-File -sourceUrl "${scriptPath}SetupDockerAgentStart.ps1" -destinationFile $setupDockerAgentStartScript
 Download-File -sourceUrl "${scriptPath}SetupDockerAgentVM.ps1" -destinationFile $setupDockerAgentVMScript
 
@@ -103,7 +103,7 @@ Log "Install Docker"
 Install-module DockerMsftProvider -Force
 Install-Package -Name docker -ProviderName DockerMsftProvider -Force
 
-$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupDockerAgentScript"
+$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File ""$setupDockerAgentStartScript"""
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
 $startupTrigger.Delay = "PT1M"
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd

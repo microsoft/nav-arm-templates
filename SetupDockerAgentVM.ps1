@@ -20,6 +20,7 @@ function Login-Docker([string]$registry, [string]$registryUsername, [string]$reg
     if ("$registryUsername" -ne "" -and "$registryPassword" -ne "") {
         $securePassword = ConvertTo-SecureString -String $registryPassword -Key $passwordKey
         $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
+        Log "Login to '$registry' with $registryUsername"
         docker login "$registry" -u "$registryUsername" -p "$plainPassword"
     }
 }
@@ -55,6 +56,8 @@ Login-Docker -registry "$registry3" -registryUsername "$registry3username" -regi
 if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
     schtasks /DELETE /TN SetupStart /F | Out-Null
 }
+
+Log "Complete, and start tasks"
 
 shutdown -r -t 30
 
