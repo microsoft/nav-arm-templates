@@ -408,9 +408,9 @@
                 },
                 "protectedSettings": {}
             },
-            "copy": {
-				"name": "vmcopy",
-				"count": "[parameters('count')]"
+			"copy": {
+				"name" : "copyext",
+				"count" : "[parameters('count')]"
 			}
         }
     ],
