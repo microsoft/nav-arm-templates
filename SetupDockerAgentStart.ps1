@@ -6,9 +6,9 @@ Log "SetupDockerAgentStart, User: $env:USERNAME"
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
-if (!(Get-Package -Name AzureRM.Storage -ErrorAction Ignore)) {
-    Log "Installing AzureRM.Storage PowerShell package"
-    Install-Package AzureRM.Storage -Force -WarningAction Ignore | Out-Null
+if (!(Get-Package -Name AzureRM -ErrorAction Ignore)) {
+    Log "Installing AzureRM PowerShell package"
+    Install-Package AzureRM -Force -WarningAction Ignore | Out-Null
 }
 
 if (!(Get-Package -Name AzureRmStorageTable -ErrorAction Ignore)) {

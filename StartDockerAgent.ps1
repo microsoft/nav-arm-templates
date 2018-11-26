@@ -42,19 +42,25 @@ while ($true) {
         }
         $navDockerPath = Join-Path $tempFolder "nav-docker-master"
         $json = $message.AsString | ConvertFrom-Json
-        $ht = @{"vmName" = $vmName; "TaskName" = $TaskName}
-        $json.psobject.properties | Foreach { $ht[$_.Name] = $_.Value }
-
-        Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Build"} + $ht)
+        $ht = @{ "vmName" = $vmName
+                 "TaskName" = $taskName
+                 "Task" = $json.task
+                 "navversion" = $json.navversion
+                 "cu" = $json.cu
+                 "Country" = $json.country
+                 "Tags" = $json.tags
+                 "version" = $json.version
+               }
+        Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Build"} + $ht) | Out-Null
         . (Join-Path $navDockerPath "$($json.task)\build-local.ps1") $json
-        Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Success"} + $ht)
+        Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Success"} + $ht) | Out-Null
         $azureQueue.CloudQueue.DeleteMessage($message)
     } catch {
         if ($message.DequeueCount -eq 10) {
-            Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Error"} + $ht)
+            Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Error"} + $ht) | Out-Null
             $azureQueue.CloudQueue.DeleteMessage($message)
         } else {
-            Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Warning $($message.DequeueCount)"} + $ht)
+            Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Warning $($message.DequeueCount)"} + $ht) | Out-Null
             Start-Sleep -Seconds 60
         }
     } finally {
