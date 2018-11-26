@@ -24,6 +24,7 @@ while ($true) {
     if (!($message)) {
         break
     }
+    $description = "description not set!"
     try {
         if (!(Test-Path $tempFolder -PathType Container)) {
             Log "Downloading nav-docker repo"
@@ -33,11 +34,18 @@ while ($true) {
         }
         $navDockerPath = Join-Path $tempFolder "nav-docker-master"
         $json = $message.AsString | ConvertFrom-Json
+        $description = "$($json.task) $($json.version) $($json.country) $($json.platform) ($($message.Id))"
+        Log "BUILD: $description"
         . (Join-Path $navDockerPath "$($json.task)\build-local.ps1") $json
+        Log "SUCCESS: $description"
         $queue.CloudQueue.DeleteMessage($message)
     } catch {
         if ($message.DequeueCount -eq 10) {
+            Log "ERROR: $description"
             $queue.CloudQueue.DeleteMessage($message)
+        } else {
+            Log "WARNING: $description"
+            Start-Sleep -Seconds 60
         }
     } finally {
         Remove-Item -Path $tempFolder -Recurse -Force -ErrorAction Ignore
