@@ -30,21 +30,8 @@
         },
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_D4_v3",
+            "defaultValue": "Standard_D4s_v3",
             "allowedValues": [
-                "Standard_D2_v2",
-                "Standard_D3_v2",
-                "Standard_D4_v2",
-                "Standard_D5_v2",
-                "Standard_DS2_v2",
-                "Standard_DS3_v2",
-                "Standard_DS4_v2",
-                "Standard_DS5_v2",
-                "Standard_D2_v3",
-                "Standard_D4_v3",
-                "Standard_D8_v3",
-                "Standard_D16_v3",
-                "Standard_D2s_v3",
                 "Standard_D4s_v3",
                 "Standard_D8s_v3",
                 "Standard_D16s_v3"
@@ -90,6 +77,60 @@
             ],
             "metadata": {
                 "Description": "Select the Queue to build from"
+            }
+        },
+        "Registry1": {
+            "type": "string",
+            "metadata": {
+                "Description": "Specify a registry (#1) to login to (blank for docker hub)"
+            }
+        },
+        "Registry1UserName": {
+            "type": "string",
+            "metadata": {
+                "Description": "Specify the registry (#1) User Name (blank for no login)"
+            }
+        },
+        "Registry1Password": {
+            "type": "securestring",
+            "metadata": {
+                "Description": "Specify the registry (#1) Password"
+            }
+        },
+        "Registry2": {
+            "type": "string",
+            "metadata": {
+                "Description": "Specify a registry (#2) to login to (blank for docker hub)"
+            }
+        },
+        "Registry2UserName": {
+            "type": "string",
+            "metadata": {
+                "Description": "Specify the registry (#2) User Name (blank for no login)"
+            }
+        },
+        "Registry2Password": {
+            "type": "securestring",
+            "metadata": {
+                "Description": "Specify the  registry (#2) Password"
+            }
+        },
+        "Registry3": {
+            "type": "string",
+            "metadata": {
+                "Description": "Specify a registry (#3) to login to (blank for docker hub)"
+            }
+        },
+        "Registry3UserName": {
+            "type": "string",
+            "metadata": {
+                "Description": "Specify the registry (#3) User Name (blank for no login)"
+            }
+        },
+        "Registry3Password": {
+            "type": "securestring",
+            "metadata": {
+                "Description": "Specify the registry (#3) Password"
             }
         }
     },
@@ -339,7 +380,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initdockeragent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initdockeragent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -StorageAccountName \"',parameters('storageaccountname'),'\" -StorageAccountKey \"',parameters('storageaccountkey'),'\" -Queue \"',parameters('Queue'),'\" -vmName \"',variables('vmName'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initdockeragent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -StorageAccountName \"',parameters('storageaccountname'),'\" -StorageAccountKey \"',parameters('storageaccountkey'),'\" -Queue \"',parameters('Queue'),'\" -vmName \"',variables('vmName'),'\" -registry1 \"',parameters('registry1'),'\" -registry1username \"',parameters('registry1username'),'\" -registry1password \"',parameters('registry1Password'),'\" -registry2 \"',parameters('registry2'),'\" -registry2username \"',parameters('registry2username'),'\" -registry2password \"',parameters('registry2Password'),'\" -registry3 \"',parameters('registry3'),'\" -registry3username \"',parameters('registry3username'),'\" -registry3password \"',parameters('registry3Password'),'\"')]"
                 },
                 "protectedSettings": {}
             }
