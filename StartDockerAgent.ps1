@@ -10,6 +10,7 @@ function Log([string]$line) {
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
 [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
 
 $navDockerUrl = "https://github.com/Microsoft/nav-docker/archive/master.zip"
@@ -33,7 +34,6 @@ while ($true) {
     if (!($message)) {
         break
     }
-    $description = "description not set!"
     try {
         if (!(Test-Path $tempFolder -PathType Container)) {
             New-Item -ItemType Directory -Path $tempFolder | out-null
