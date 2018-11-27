@@ -67,4 +67,3 @@ while ($true) {
     }
 }
 
-docker system prune
