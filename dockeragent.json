@@ -369,6 +369,7 @@
                     },
                     "osDisk": {
                         "name": "osdisk",
+                        "DiskSizeGB": 1023,
                         "vhd": {
                             "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('vmName'),'-',copyIndex(),'.vhd')]"
                         },
