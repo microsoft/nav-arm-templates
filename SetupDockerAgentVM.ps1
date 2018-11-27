@@ -60,7 +60,7 @@ if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 
-$vmno = [int]$vmName.Substring($vmName.LastIndexOf('_')+1)
+$vmno = [int]$vmName.Substring($vmName.LastIndexOf('-')+1)
 
 Log "Register Build Agents"
 1..$Processes | % {
