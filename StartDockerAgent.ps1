@@ -1,5 +1,5 @@
 ﻿Param(
-    [string] $AgentName
+    [string] $AgentName = "Manual"
 )
 
 $erroractionpreference = "Stop"
