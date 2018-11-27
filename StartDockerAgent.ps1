@@ -1,12 +1,8 @@
 ﻿Param(
-    [string] $taskName
+    [string] $AgentName
 )
 
 $erroractionpreference = "Stop"
-
-function Log([string]$line) {
-    ([DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line") | Add-Content -Path "c:\agent\status.txt"
-}
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
@@ -26,8 +22,9 @@ $azureQueue = Get-AzureStorageQueue -Name $queue -Context $storageContext -Error
 
 $table = Get-AzureStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore
 if (!($table)) {
-    $table = New-AzureStorageTable –Name "QueueStatus" –Context $storageContext
+    New-AzureStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore | Out-Null
 }
+$table = Get-AzureStorageTable –Name "QueueStatus" –Context $storageContext
 
 while ($true) {
     $message = $azureQueue.CloudQueue.GetMessage([TimeSpan]::FromHours(2))
@@ -43,7 +40,6 @@ while ($true) {
         $navDockerPath = Join-Path $tempFolder "nav-docker-master"
         $json = $message.AsString | ConvertFrom-Json
         $ht = @{ "vmName" = $vmName
-                 "TaskName" = $taskName
                  "Task" = $json.task
                  "navversion" = $json.navversion
                  "cu" = $json.cu
@@ -51,16 +47,18 @@ while ($true) {
                  "Tags" = $json.tags
                  "version" = $json.version
                }
-        Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Build"} + $ht) | Out-Null
-        . (Join-Path $navDockerPath "$($json.task)\build-local.ps1") $json
-        Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Success"} + $ht) | Out-Null
+        Add-StorageTableRow -table $table -partitionKey $AgentName -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property (@{"Status" = "Build"} + $ht) | Out-Null
+        . (Join-Path $navDockerPath "$($json.task)\build.ps1") -json $json
+        Add-StorageTableRow -table $table -partitionKey $AgentName -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property (@{"Status" = "Success"} + $ht) | Out-Null
         $azureQueue.CloudQueue.DeleteMessage($message)
+        . (Join-Path $navDockerPath "$($json.task)\cleanup.ps1") -Context $storageContext -json $json
     } catch {
         if ($message.DequeueCount -eq 10) {
-            Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Error"} + $ht) | Out-Null
+            Add-StorageTableRow -table $table -partitionKey $AgentName -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property (@{"Status" = "Error"} + $ht) | Out-Null
             $azureQueue.CloudQueue.DeleteMessage($message)
+            . (Join-Path $navDockerPath "$($json.task)\cleanup.ps1") -Context $storageContext -json $json
         } else {
-            Add-StorageTableRow -table $table -partitionKey $queue -rowKey ([Guid]::NewGuid()).ToString() -property (@{"Status" = "Warning $($message.DequeueCount)"} + $ht) | Out-Null
+            Add-StorageTableRow -table $table -partitionKey $AgentName -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property (@{"Status" = "Warning $($message.DequeueCount)"} + $ht) | Out-Null
             Start-Sleep -Seconds 60
         }
     } finally {
@@ -68,3 +66,5 @@ while ($true) {
         Remove-Item -Path $tempFile -Force -ErrorAction Ignore
     }
 }
+
+docker system prune

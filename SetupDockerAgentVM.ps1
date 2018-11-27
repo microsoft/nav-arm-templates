@@ -60,9 +60,12 @@ if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 
-Log "Register Launch SetupDockerAgentVm"
+$vmno = [int]$vmName.Substring($vmName.LastIndexOf('_')+1)
+
+Log "Register Build Agents"
 1..$Processes | % {
-    $taskName = "DockerAgent$_"
+    $agentNo = $vmno*$processes+$_
+    $taskName = "$queue-$agentNo"
     $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\agent\StartDockerAgent.ps1 $taskName"
     $startupTrigger = New-ScheduledTaskTrigger -AtStartup
     $delay = (5+$_)
