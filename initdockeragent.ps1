@@ -86,6 +86,13 @@ Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 Log "TemplateLink: $templateLink"
 $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 
+$CurrentSize = (get-partition -DriveLetter C).Size
+$AvailableSize = (Get-PartitionSupportedSize -DriveLetter C).SizeMax
+if ($CurrentSize -ne $AvailableSize) {
+    Log "Resizing C drive from $currentSize to $AvailableSize"
+    Resize-Partition -DriveLetter C -Size $AvailableSize
+}
+
 Log "Turning off IE Enhanced Security Configuration"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
