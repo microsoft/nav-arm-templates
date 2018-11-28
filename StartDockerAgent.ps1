@@ -40,6 +40,7 @@ while ($true) {
         $navDockerPath = Join-Path $tempFolder "nav-docker-master"
         $json = $message.AsString | ConvertFrom-Json
         $ht = @{ "vmName" = $vmName
+                 "Queue" = $queue
                  "Task" = $json.task
                  "navversion" = $json.navversion
                  "cu" = $json.cu
