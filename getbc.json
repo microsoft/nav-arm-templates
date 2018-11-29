@@ -37,10 +37,12 @@
 		},
         "OperatingSystem": {
             "type": "string",
-            "defaultValue": "Windows Server 2016",
+            "defaultValue": "Windows Server 2019 with Containers",
             "allowedValues": [
                 "Windows Server 2016",
-                "Windows Server 2019"            ],
+                "Windows Server 2019",
+                "Windows Server 2019 with Containers"
+            ],
             "metadata": {
                 "Description": "Select the Operating System of the VM"
             }
@@ -223,7 +225,7 @@
         "OperatingSystem": "[parameters('OperatingSystem')]",
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
         "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 10'),'Windows-10','WindowsServer')]",
-        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter','2019-Datacenter'))]",
+        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
         "storageAccountType": "Standard_LRS",
         "vmStorageAccountContainerName": "vhds",
         "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
