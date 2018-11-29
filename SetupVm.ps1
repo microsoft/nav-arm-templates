@@ -59,13 +59,13 @@ function DockerDo {
     $err = ""
     
     do {
-        if ($outtask -eq $null) {
+        if ($null -eq $outtask) {
             $outtask = $p.StandardOutput.ReadLineAsync()
         }
         $outtask.Wait(100) | Out-Null
         if ($outtask.IsCompleted) {
             $outStr = $outtask.Result
-            if ($outStr -eq $null) {
+            if ($null -eq $outStr) {
                 break
             }
             if (!$silent) {
@@ -188,13 +188,40 @@ if ($style -eq "devpreview") {
     New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "CommonStartup" -Arguments "http://aka.ms/moderndevtools"
 }
 
-$navDockerImage.Split(',') | % {
+$hostOsVersion = [System.Environment]::OSVersion.Version
+$hostOs = "Unknown/Insider build"
+$bestContainerOs = "ltsc2016"
+
+if ($hostOsVersion.Major -eq 10 -and $hostOsVersion.Minor -eq 0) {
+    if ($hostOsVersion.Build -ge 17763) { 
+        if ($hostOsVersion.Build -eq 17763) { 
+            $hostOs = "ltsc2019"
+        }
+        $bestContainerOs = "ltsc2019"
+    } elseif ($hostOsVersion.Build -eq 14393) {
+        $hostOs = "ltsc2016"
+    }
+}
+
+Log "Host is $WindowsProductName"
+Log "Host OS Version: $hostOsVersion ($hostOs)"
+$navDockerImage.Split(',') | ForEach-Object {
     $registry = $_.Split('/')[0]
     if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
         Log "Logging in to $registry"
         docker login "$registry" -u "$registryUsername" -p "$registryPassword"
     }
     $imageName = $_
+
+    if (($imagename.StartsWith('microsoft/') -or 
+         $imagename.StartsWith('bcinsider.azurecr.io/') -or 
+         $imagename.StartsWith('mcr.microsoft.com/') -or 
+         $imagename.StartsWith('mcrbusinesscentral.azurecr.io/')) -and 
+        ($imagename.Substring($imagename.Length-8,4) -ne "ltsc")) {
+            # If we are using a Microsoft image without specific containeros - add best container tag
+            $imageName += "-$bestContainerOs"
+    }
+
     Log "Pulling $imageName (this might take ~30 minutes)"
     if (!(DockerDo -imageName $imageName -command pull))  {
         throw "Error pulling image"
@@ -235,7 +262,7 @@ if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
 if ($RunWindowsUpdate -eq "Yes") {
     Log "Installing Windows Updates"
     install-module PSWindowsUpdate -force
-    Get-WUInstall -install -acceptall -autoreboot | % { Log ($_.Status + " " + $_.KB + " " +$_.Title) }
+    Get-WUInstall -install -acceptall -autoreboot | ForEach-Object { Log ($_.Status + " " + $_.KB + " " +$_.Title) }
     Log "Windows updates installed"
 }
 
@@ -243,6 +270,6 @@ shutdown -r -t 30
 
 } catch {
     Log -Color Red -line $_.Exception.Message
-    $_.ScriptStackTrace.Replace("`r`n","`n").Split("`n") | % { Log -Color Red -line $_ }
+    $_.ScriptStackTrace.Replace("`r`n","`n").Split("`n") | ForEach-Object { Log -Color Red -line $_ }
     throw
 }
