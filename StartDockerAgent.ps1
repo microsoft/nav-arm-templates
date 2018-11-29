@@ -31,8 +31,8 @@ while ($true) {
     if (!($message)) {
         break
     }
-    $transcriptname = [Guid]::NewGuid().ToString()
-    $transcriptfilename = "c:\agent\$transcriptname.txt"
+    $transcriptname = ([Guid]::NewGuid().ToString()+".txt")
+    $transcriptfilename = "c:\agent\$transcriptname"
     $transcripting = $false
     try {
         if (!(Test-Path $tempFolder -PathType Container)) {
