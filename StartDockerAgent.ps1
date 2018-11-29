@@ -55,6 +55,9 @@ while ($true) {
         Add-StorageTableRow -table $table -partitionKey $AgentName -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property (@{"Status" = "Build"} + $ht) | Out-Null
         Start-Transcript -Path $transcriptfilename
         $transcripting = $true
+        Write-Host '---------------------------'
+        Write-Host $message.AsString
+        Write-Host '---------------------------'
         . (Join-Path $navDockerPath "$($json.task)\build.ps1") -json $json
         $transcripting = $false
         Stop-Transcript
