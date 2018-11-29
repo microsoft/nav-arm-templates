@@ -213,6 +213,10 @@ $navDockerImage.Split(',') | ForEach-Object {
     }
     $imageName = $_
 
+    if (!$imageName.Contains(':')) {
+        $imageName += ":latest"
+    }
+
     if (($imagename.StartsWith('microsoft/') -or 
          $imagename.StartsWith('bcinsider.azurecr.io/') -or 
          $imagename.StartsWith('mcr.microsoft.com/') -or 
