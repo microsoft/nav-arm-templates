@@ -40,11 +40,15 @@ Import-Module -Name navcontainerhelper -DisableNameChecking
 Install-module DockerMsftProvider -Force
 Install-Package -Name docker -ProviderName DockerMsftProvider -Force
 
+# Install Choco & GIT
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+choco install -y git
+
 $DownloadFolder = "C:\Download"
 MkDir $DownloadFolder -ErrorAction Ignore | Out-Null
-$agentFilename = "vsts-agent-win-x64-2.141.1.zip"
+$agentFilename = "vsts-agent-win-x64-2.142.1.zip"
 $agentFullname = Join-Path $DownloadFolder $agentFilename
-$agentUrl = "https://vstsagentpackage.azureedge.net/agent/2.141.1/$agentFilename"
+$agentUrl = "https://vstsagentpackage.azureedge.net/agent/2.142.1/$agentFilename"
 Download-File -sourceUrl $agentUrl -destinationFile $agentFullname
 $agentFolder = "C:\Agent"
 mkdir $agentFolder -ErrorAction Ignore | Out-Null
