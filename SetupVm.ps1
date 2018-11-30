@@ -1,6 +1,10 @@
 ﻿$ErrorActionPreference = "Stop"
 $WarningActionPreference = "Continue"
 
+$ComputerInfo = Get-ComputerInfo
+$WindowsInstallationType = $ComputerInfo.WindowsInstallationType
+$WindowsProductName = $ComputerInfo.WindowsProductName
+
 try {
 
 if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
@@ -55,13 +59,13 @@ function DockerDo {
     $err = ""
     
     do {
-        if ($outtask -eq $null) {
+        if ($null -eq $outtask) {
             $outtask = $p.StandardOutput.ReadLineAsync()
         }
         $outtask.Wait(100) | Out-Null
         if ($outtask.IsCompleted) {
             $outStr = $outtask.Result
-            if ($outStr -eq $null) {
+            if ($null -eq $outStr) {
                 break
             }
             if (!$silent) {
@@ -102,7 +106,6 @@ function DockerDo {
     return $result
 }
 
-
 if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
     Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
 } else {
@@ -128,6 +131,7 @@ if ($WindowsInstallationType -eq "Server") {
 
     } else {
         Log "Waiting for docker to start... (this should only take a few minutes)"
+        Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker for Windows.exe" -PassThru
         $serverOsStr = "  OS/Arch:      "
         do {
             Start-Sleep -Seconds 10
@@ -179,18 +183,20 @@ New-Item $winPsFolder -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 }' | Set-Content (Join-Path $winPsFolder "Profile.ps1")
 
 Log "Adding Landing Page to Startup Group"
-New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://$publicDnsName"
+New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "CommonStartup" -Arguments "http://$publicDnsName"
 if ($style -eq "devpreview") {
-    New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "Startup" -Arguments "http://aka.ms/moderndevtools"
+    New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "CommonStartup" -Arguments "http://aka.ms/moderndevtools"
 }
 
-$navDockerImage.Split(',') | % {
+$navDockerImage.Split(',') | ForEach-Object {
     $registry = $_.Split('/')[0]
     if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
         Log "Logging in to $registry"
         docker login "$registry" -u "$registryUsername" -p "$registryPassword"
     }
-    $imageName = $_
+
+    $imageName = Get-BestNavContainerImageName -imageName $_
+
     Log "Pulling $imageName (this might take ~30 minutes)"
     if (!(DockerDo -imageName $imageName -command pull))  {
         throw "Error pulling image"
@@ -231,11 +237,14 @@ if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
 if ($RunWindowsUpdate -eq "Yes") {
     Log "Installing Windows Updates"
     install-module PSWindowsUpdate -force
-    Get-WUInstall -install -acceptall -autoreboot | % { Log ($_.Status + " " + $_.KB + " " +$_.Title) }
+    Get-WUInstall -install -acceptall -autoreboot | ForEach-Object { Log ($_.Status + " " + $_.KB + " " +$_.Title) }
     Log "Windows updates installed"
 }
 
+shutdown -r -t 30
+
 } catch {
     Log -Color Red -line $_.Exception.Message
+    $_.ScriptStackTrace.Replace("`r`n","`n").Split("`n") | ForEach-Object { Log -Color Red -line $_ }
     throw
 }
