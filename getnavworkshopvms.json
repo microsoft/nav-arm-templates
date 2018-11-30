@@ -35,6 +35,18 @@
                 "Description": "Specify * (star) to allow all remote desktop access, specify - (minus) to deny all remote desktop access or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
             }
 		},
+        "OperatingSystem": {
+            "type": "string",
+            "defaultValue": "Windows Server 2019 with Containers",
+            "allowedValues": [
+                "Windows Server 2016",
+                "Windows Server 2019",
+                "Windows Server 2019 with Containers"
+            ],
+            "metadata": {
+                "Description": "Select the Operating System of the VM"
+            }
+        },
         "vmSize": {
             "type": "string",
             "defaultValue": "Standard_D2_v3",
@@ -218,7 +230,7 @@
         }
     },
     "variables": {
-        "OperatingSystem": "Windows Server 2016",
+        "OperatingSystem": "[parameters('OperatingSystem')]",
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
         "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 10'),'Windows-10','WindowsServer')]",
         "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
