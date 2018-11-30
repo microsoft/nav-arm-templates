@@ -36,7 +36,7 @@ Set-NAVServerConfiguration -ServerInstance nav -KeyName "ExcelAddInAzureActiveDi
     }
 }
 
-$imageName = $navDockerImage.Split(',')[0]
+$imageName = Get-BestNavContainerImageName -imageName ($navDockerImage.Split(',')[0])
 
 docker ps --filter name=$containerName -a -q | % {
     Log "Removing container $containerName"
@@ -44,7 +44,7 @@ docker ps --filter name=$containerName -a -q | % {
 }
 
 $exist = $false
-docker images -q --no-trunc | % {
+docker images -q --no-trunc | ForEach-Object {
     $inspect = docker inspect $_ | ConvertFrom-Json
     if ($inspect | % { $_.RepoTags | Where-Object { "$_" -eq "$imageName" -or "$_" -eq "${imageName}:latest"} } ) { $exist = $true }
 }
