@@ -62,6 +62,9 @@ while ($true) {
         $transcripting = $false
         Stop-Transcript
         
+        Set-AzureStorageBlobContent -File $transcriptfilename -Context $storageContext -Container $json.blobcontainer -Blob $transcriptname -Force | Out-Null
+        $ht.transcript = "https://$StorageAccountName.blob.core.windows.net/$($json.blobContainer)/$transcriptname"
+
         Add-StorageTableRow -table $table -partitionKey $AgentName -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property (@{"Status" = "Success"} + $ht) | Out-Null
         $azureQueue.CloudQueue.DeleteMessage($message)
         . (Join-Path $navDockerPath "$($json.task)\cleanup.ps1") -Context $storageContext -json $json
