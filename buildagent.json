@@ -88,6 +88,21 @@
             "metadata": {
                 "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
             }
+        },
+        "VstsAgentUrl": {
+            "type": "string",
+            "defaultValue": "https://vstsagentpackage.azureedge.net/agent/2.142.1/vsts-agent-win-x64-2.142.1.zip",
+            "minLength": 1,
+            "metadata": {
+                "Description": "Specify the URL for downloading the x64 VSTS Agent for your Azure DevOps Organization (go to https://dev.azure.com/{your_organization}/_admin/_AgentPool and click Download agent and select x64 to get the URL)"
+            }
+        },
+        "FinalSetupScriptUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a Url to a PowerShell script that should be executed on the VM to do the final setup of the VM."
+            }
         }
     },
     "variables": {
@@ -336,7 +351,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initbuildagent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -DevOpsOrganization \"',parameters('devopsorganization'),'\" -PersonalAccessToken \"',parameters('personalaccesstoken'),'\" -Pool \"',parameters('pool'),'\" -vmName \"',variables('vmName'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -DevOpsOrganization \"',parameters('devopsorganization'),'\" -PersonalAccessToken \"',parameters('personalaccesstoken'),'\" -VstsAgentUrl \"',parameters('VstsAgentUrl'),'\" -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('pool'),'\" -vmName \"',variables('vmName'),'\"')]"
                 },
                 "protectedSettings": {}
             }
