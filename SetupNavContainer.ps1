@@ -121,6 +121,7 @@ try {
     New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
                      -useSSL `
+                     -updateHosts `
                      -auth $Auth `
                      -includeCSide `
                      -doNotExportObjectsToText `
