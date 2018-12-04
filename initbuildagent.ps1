@@ -13,6 +13,10 @@ param
     [Parameter(Mandatory=$true)]
     [string] $pool,
     [Parameter(Mandatory=$true)]
+    [string] $vstsAgentUrl,
+    [Parameter(Mandatory=$false)]
+    [string] $finalSetupScriptUrl,
+    [Parameter(Mandatory=$true)]
     [string] $vmname
 )
 
@@ -37,15 +41,18 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
 Install-Module -Name navcontainerhelper -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
-Install-module DockerMsftProvider -Force
-Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+$installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
+if ($installDocker) {
+    Install-module DockerMsftProvider -Force
+    Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+}
 
 $DownloadFolder = "C:\Download"
 MkDir $DownloadFolder -ErrorAction Ignore | Out-Null
-$agentFilename = "vsts-agent-win-x64-2.141.1.zip"
+
+$agentFilename = $vstsAgentUrl.Substring($vstsAgentUrl.LastIndexOf('/')+1)
 $agentFullname = Join-Path $DownloadFolder $agentFilename
-$agentUrl = "https://vstsagentpackage.azureedge.net/agent/2.141.1/$agentFilename"
-Download-File -sourceUrl $agentUrl -destinationFile $agentFullname
+Download-File -sourceUrl $vstsAgentUrl -destinationFile $agentFullname
 $agentFolder = "C:\Agent"
 mkdir $agentFolder -ErrorAction Ignore | Out-Null
 cd $agentFolder
@@ -53,6 +60,16 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory($agentFullname, $agentFolder)
 
 .\config.cmd --unattended --url "$devopsorganization" --auth PAT --token "$personalaccesstoken" --pool "$pool" --agent "$vmname" --runAsService --windowsLogonAccount $vmAdminUsername --windowsLogonPassword $adminPassword
+
+if ($installDocker) {
+    Start-Service docker
+}
+
+if ($finalSetupScriptUrl) {
+    $finalSetupScript = Join-Path $DownloadFolder "FinalSetupScript.ps1"
+    Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
+    . $finalSetupScript
+}
 
 Restart-Computer -force
 
