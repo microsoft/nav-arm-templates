@@ -58,6 +58,8 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 .\config.cmd --unattended --url "$devopsorganization" --auth PAT --token "$personalaccesstoken" --pool "$pool" --agent "$vmname" --runAsService --windowsLogonAccount $vmAdminUsername --windowsLogonPassword $adminPassword
 
+Start-Service docker
+
 if ($finalSetupScriptUrl) {
     $finalSetupScript = Join-Path $DownloadFolder "FinalSetupScript.ps1"
     Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
