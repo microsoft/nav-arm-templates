@@ -41,8 +41,11 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
 Install-Module -Name navcontainerhelper -Force
 Import-Module -Name navcontainerhelper -DisableNameChecking
 
-Install-module DockerMsftProvider -Force
-Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+$installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
+if ($installDocker) {
+    Install-module DockerMsftProvider -Force
+    Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+}
 
 $DownloadFolder = "C:\Download"
 MkDir $DownloadFolder -ErrorAction Ignore | Out-Null
@@ -58,7 +61,9 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 .\config.cmd --unattended --url "$devopsorganization" --auth PAT --token "$personalaccesstoken" --pool "$pool" --agent "$vmname" --runAsService --windowsLogonAccount $vmAdminUsername --windowsLogonPassword $adminPassword
 
-Start-Service docker
+if ($installDocker) {
+    Start-Service docker
+}
 
 if ($finalSetupScriptUrl) {
     $finalSetupScript = Join-Path $DownloadFolder "FinalSetupScript.ps1"
