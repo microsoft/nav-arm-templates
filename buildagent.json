@@ -20,10 +20,12 @@
 		},
         "OperatingSystem": {
             "type": "string",
-            "defaultValue": "Windows Server 2016",
+            "defaultValue": "Windows Server 2019 with Containers",
             "allowedValues": [
                 "Windows Server 2016",
-                "Windows Server 2019"            ],
+                "Windows Server 2019",
+                "Windows Server 2019 with Containers"
+            ],
             "metadata": {
                 "Description": "Select the Operating System of the VM"
             }
