@@ -1,0 +1,89 @@
+﻿$ErrorActionPreference = "Stop"
+$WarningActionPreference = "Stop"
+
+# Specify which images to download
+$ImagesToDownload = @("microsoft/dynamics-nav:generic"
+                      "mcr.microsoft.com/businesscentral/onprem",
+                      "microsoft/dynamics-nav:2018")
+
+$navContainerHelperFolder = "C:\ProgramData\NavContainerHelper"
+
+Write-Host "Checking Docker Service Settings..."
+$dockerService = (Get-Service docker -ErrorAction Ignore)
+if (!($dockerService)) {
+    throw "Docker Service not found / Docker is not installed"
+}
+
+if ($dockerService.Status -ne "Running") {
+    throw "Docker Service is $($dockerService.Status) (Needs to be running)"
+}
+
+$dockerInfo = (docker info)
+$dockerOsMode = ($dockerInfo | Where-Object { $_.StartsWith('OSType: ') }).SubString(8)
+if ($dockerOsMode -ne "Windows") {
+    throw "Docker is not running Windows Containers"
+}
+
+$dockerRootDir = ($dockerInfo | Where-Object { $_.StartsWith('Docker Root Dir: ') }).SubString(17)
+if (!(Test-Path $dockerRootDir -PathType Container)) {
+    throw "Folder $dockerRootDir does not exist"
+}
+
+Write-Host -Foregroundcolor Red "This function will remove all containers, remove all images and clear the folder $dockerRootDir"
+Write-Host -Foregroundcolor Red "The function will also clear the contents of $navContainerHelperFolder."
+Write-Host -Foregroundcolor Red "Are you absolutely sure you want to do this? (This cannot be undone)"
+Write-Host -ForegroundColor Red "Type Yes to continue:" -NoNewline
+if ((Read-Host) -ne "Yes") {
+    throw "Mission aborted"
+}
+
+Write-Host "Running Docker System Prune"
+docker system prune -f
+
+Write-Host "Removing all containers (forced)"
+docker ps -a -q | % { docker rm $_ -f 2> NULL }
+
+Write-Host "Stopping Docker Service"
+stop-service docker
+
+Write-Host "Downloading Docker-Ci-Zap"
+$dockerCiZapExe = Join-Path $Env:TEMP "docker-ci-zap.exe"
+Remove-Item $dockerCiZapExe -Force -ErrorAction Ignore
+(New-Object System.Net.WebClient).DownloadFile("https://github.com/jhowardmsft/docker-ci-zap/raw/master/docker-ci-zap.exe", $dockerCiZapExe)
+Unblock-File -Path $dockerCiZapExe
+
+Write-Host "Running Docker-Ci-Zap on $dockerRootDir"
+Write-Host -ForegroundColor Yellow "Note: If this fails, please restart your computer and run this script again"
+& $dockerCiZapExe -folder $dockerRootDir
+
+Write-Host "Removing Docker-Ci-Zap"
+Remove-Item $dockerCiZapExe
+
+Write-Host "Starting Docker Service"
+Start-Service docker
+
+if (Test-Path $navContainerHelperFolder -PathType Container) {
+    Write-Host "Cleaning up $navContainerHelperFolder"
+    Get-ChildItem $navContainerHelperFolder -Force | ForEach-Object { 
+        Remove-Item $_.FullName -Recurse -force
+    }
+}
+
+$os = "ltsc2016"
+if ((Get-CimInstance win32_operatingsystem).BuildNumber -ge 17763) { $os = "ltsc2019" }
+
+Write-Host -ForegroundColor Green "Done cleaning up, pulling images for $os"
+
+# Download images needed
+$imagesToDownload.Split(',') | ForEach-Object {
+    if ($_.EndsWith('-ltsc2016') -or $_.EndsWith('-1709') -or $_.EndsWith('-1803') -or $_.EndsWith('-ltsc2019') -or
+        $_.EndsWith(':ltsc2016') -or $_.EndsWith(':1709') -or $_.EndsWith(':1803') -or $_.EndsWith(':ltsc2019')) {
+        $imageName = $_
+    } elseif ($_.Contains(':')) {
+        $imageName = "$($_)-$os"
+    } else {
+        $imageName = "$($_):$os"
+    }
+    Write-Host "Pulling $imageName"
+    docker pull $imageName
+}
