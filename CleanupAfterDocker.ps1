@@ -8,6 +8,11 @@ $ImagesToDownload = @("microsoft/dynamics-nav:generic"
 
 $navContainerHelperFolder = "C:\ProgramData\NavContainerHelper"
 
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (!($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
+    throw "This script must run with administrator privileges"
+}
+
 Write-Host "Checking Docker Service Settings..."
 $dockerService = (Get-Service docker -ErrorAction Ignore)
 if (!($dockerService)) {
@@ -69,21 +74,23 @@ if (Test-Path $navContainerHelperFolder -PathType Container) {
     }
 }
 
-$os = "ltsc2016"
-if ((Get-CimInstance win32_operatingsystem).BuildNumber -ge 17763) { $os = "ltsc2019" }
+if ($ImagesToDownload) {
+    Write-Host -ForegroundColor Green "Done cleaning up, pulling images for $os"
 
-Write-Host -ForegroundColor Green "Done cleaning up, pulling images for $os"
-
-# Download images needed
-$imagesToDownload.Split(',') | ForEach-Object {
-    if ($_.EndsWith('-ltsc2016') -or $_.EndsWith('-1709') -or $_.EndsWith('-1803') -or $_.EndsWith('-ltsc2019') -or
-        $_.EndsWith(':ltsc2016') -or $_.EndsWith(':1709') -or $_.EndsWith(':1803') -or $_.EndsWith(':ltsc2019')) {
-        $imageName = $_
-    } elseif ($_.Contains(':')) {
-        $imageName = "$($_)-$os"
-    } else {
-        $imageName = "$($_):$os"
+    $os = "ltsc2016"
+    if ((Get-CimInstance win32_operatingsystem).BuildNumber -ge 17763) { $os = "ltsc2019" }
+    
+    # Download images needed
+    $imagesToDownload | ForEach-Object {
+        if ($_.EndsWith('-ltsc2016') -or $_.EndsWith('-1709') -or $_.EndsWith('-1803') -or $_.EndsWith('-ltsc2019') -or
+            $_.EndsWith(':ltsc2016') -or $_.EndsWith(':1709') -or $_.EndsWith(':1803') -or $_.EndsWith(':ltsc2019')) {
+            $imageName = $_
+        } elseif ($_.Contains(':')) {
+            $imageName = "$($_)-$os"
+        } else {
+            $imageName = "$($_):$os"
+        }
+        Write-Host "Pulling $imageName"
+        docker pull $imageName
     }
-    Write-Host "Pulling $imageName"
-    docker pull $imageName
 }
