@@ -32,6 +32,25 @@ if ($requestToken) {
     }
 }
 
+if ("$createStorageQueue" -eq "yes") {
+    $taskName = "RunQueue"
+    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\RunQueue.ps1"
+    $startupTrigger = New-ScheduledTaskTrigger -AtStartup
+    $startupTrigger.Delay = "PT5M"
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
+    $task = Register-ScheduledTask -TaskName $taskName `
+                           -Action $startupAction `
+                           -Trigger $startupTrigger `
+                           -Settings $settings `
+                           -RunLevel Highest `
+                           -User $vmAdminUsername `
+                           -Password $plainPassword
+    
+    $task.Triggers.Repetition.Interval = "PT5M"
+    $task | Set-ScheduledTask -User $vmAdminUsername -Password $plainPassword | Out-Null
+}
+
+
 Log "Launch SetupVm"
 $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
 Register-ScheduledTask -TaskName SetupVm `
