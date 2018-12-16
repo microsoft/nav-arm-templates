@@ -4,6 +4,7 @@ param
        [string] $templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
        [string] $containerName             = "navserver",
        [string] $hostName                  = "",
+       [string] $storageConnectionString   = "",
        [string] $vmAdminUsername           = "vmadmin",
        [string] $navAdminUsername          = "admin",
        [string] $azureSqlAdminUsername     = "sqladmin",
@@ -37,7 +38,8 @@ param
        [string] $Office365UserName         = "",
        [string] $Office365Password         = "",
        [string] $Office365CreatePortal     = "No",
-       [string] $requestToken              = ""
+       [string] $requestToken              = "",
+       [string] $createStorageQueue        = ""
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -79,6 +81,7 @@ if (Test-Path $settingsScript) {
     
     Get-VariableDeclaration -name "templateLink"           | Set-Content $settingsScript
     Get-VariableDeclaration -name "hostName"               | Add-Content $settingsScript
+    Get-VariableDeclaration -name "StorageConnectionString"| Add-Content $settingsScript
     Get-VariableDeclaration -name "containerName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "vmAdminUsername"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "navAdminUsername"       | Add-Content $settingsScript
@@ -109,6 +112,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settingsScript
     Get-VariableDeclaration -name "BingMapsKey"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "RequestToken"           | Add-Content $settingsScript
+    Get-VariableDeclaration -name "CreateStorageQueue"     | Add-Content $settingsScript
 
     $passwordKey = New-Object Byte[] 16
     [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
@@ -220,12 +224,18 @@ Download-File -sourceUrl "${scriptPath}SetupAAD.ps1"          -destinationFile $
 Download-File -sourceUrl "${scriptPath}SetupVm.ps1"           -destinationFile $setupVmScript
 Download-File -sourceUrl "${scriptPath}SetupStart.ps1"        -destinationFile $setupStartScript
 if ($requestToken) {
-    New-Item -Path "C:\DEMO\request" -ItemType Directory | Out-Null
     Download-File -sourceUrl "${scriptPath}Request.ps1"           -destinationFile "C:\DEMO\Request.ps1"
     Download-File -sourceUrl "${scriptPath}RequestTaskDef.xml"    -destinationFile "C:\DEMO\RequestTaskDef.xml"
+}
+if ("$createStorageQueue" -eq "yes") {
+    Download-File -sourceUrl "${scriptPath}RunQueue.ps1"          -destinationFile "C:\DEMO\RunQueue.ps1"
+}
+if ("$requestToken" -ne "" -or "$createStorageQueue" -eq "yes") {
     # Request commands
+    New-Item -Path "C:\DEMO\request" -ItemType Directory | Out-Null
     Download-File -sourceUrl "${scriptPath}request\Demo.ps1"                         -destinationFile "C:\DEMO\request\Demo.ps1"
     Download-File -sourceUrl "${scriptPath}request\ReplaceNavServerContainer.ps1"    -destinationFile "C:\DEMO\request\ReplaceNavServerContainer.ps1"
+    Download-File -sourceUrl "${scriptPath}request\RestartComputer.ps1"              -destinationFile "C:\DEMO\request\RestartComputer.ps1"
 }
 Download-File -sourceUrl "${scriptPath}Install-VS2017Community.ps1" -destinationFile "C:\DEMO\Install-VS2017Community.ps1"
 
