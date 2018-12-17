@@ -351,7 +351,7 @@
         "vmStorageAccountContainerName": "vhds",
         "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
-        "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]",
+        "storageAccountKey": "[listKeys(variables('storageAccountName'), '2018-02-01').keys[0].value]",
         "storageConnectionString": "[Concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',variables('storageAccountKey'))]",
         "networkSecurityGroupName": "networksecuritygroup",
         "dnsName": "[tolower(variables('vmName'))]",
