@@ -85,16 +85,24 @@ $additionalParameters = @("--env RemovePasswordKeyFile=N")
 if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
     if ("$sqlServerType" -eq "SQLExpress") {
         $additionalParameters += @("--env appbacpac=$appBacpacUri",
-                                   "--env tenantbacpac=$tenantBacpacUri")
+                                "--env tenantbacpac=$tenantBacpacUri")
     } else {
         Log "using $azureSqlServer as database server"
         $params += @{ "databaseServer"     = "$azureSqlServer"
-                      "databaseInstance"   = ""
-                      "databaseName"       = "App"
-                      "databaseCredential" = $azureSqlCredential }
+                    "databaseInstance"   = ""
+                    "databaseName"       = "App"
+                    "databaseCredential" = $azureSqlCredential }
         $multitenant = "Yes"
     }
+} else {
+    # Import the classic DB-Backup file
+    if ((Test-Path "c:\myfolder\database.bak" -PathType Leaf) -and ("$sqlServerType" -eq "SQLExpress")) {
+        Log "Importing c:\myfolder\database.bak to container"
+        $additionalParameters += @('--env bakfile="c:\run\my\database.bak"')
+        $addUserToDatabase = $true
+    }
 }
+
 if ("$clickonce" -eq "Yes") {
     $params += @{"clickonce" = $true}
 }
@@ -148,6 +156,11 @@ if ($auth -eq "AAD") {
 
 if ($CreateTestUsers -eq "Yes") {
     Setup-NavContainerTestUsers -containerName $containerName -tenant "default" -password $credential.Password
+}
+
+# Add the user to the imported database and give him some rights
+if ($addUserToDatabase) {
+    New-NavContainerNavUser -containerName $containerName -tenant "default" -Credential $credential -PermissionSetId "SUPER" -ErrorAction SilentlyContinue
 }
 
 if ($CreateAadUsers -eq "Yes" -and $Office365UserName -ne "" -and $Office365Password -ne "") {
