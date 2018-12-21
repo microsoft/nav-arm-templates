@@ -16,6 +16,7 @@ param
        [string] $azureSqlServer            = "",
        [string] $appBacpacUri              = "",
        [string] $tenantBacpacUri           = "",
+       [string] $databaseBakUri            = "",
        [string] $includeAppUris            = "",
        [string] $clickonce                 = "No",
        [string] $enableTaskScheduler       = "Default",
@@ -95,6 +96,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "azureSqlServer"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "appBacpacUri"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "tenantBacpacUri"        | Add-Content $settingsScript
+    Get-VariableDeclaration -name "databaseBakUri"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "includeAppUris"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "clickonce"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "enableTaskScheduler"    | Add-Content $settingsScript
@@ -246,6 +248,11 @@ if ($finalSetupScriptUrl) {
 
 if ($fobFileUrl -ne "") {
     Download-File -sourceUrl $fobFileUrl -destinationFile "c:\demo\objects.fob"
+}
+
+# download the classic DB-Backupfile
+if ($databaseBakUri -ne "") {
+    Download-File -sourceUrl $databaseBakUri -destinationFile "c:\myfolder\database.bak"
 }
 
 if ($workshopFilesUrl -ne "") {
