@@ -80,7 +80,9 @@ $params = @{ "enableSymbolLoading" = $true
              "licensefile" = "$licensefileuri"
              "publishPorts" = @(8080,443,7046,7047,7048,7049)
              "publicDnsName" = $publicDnsName }
-$additionalParameters = @("--env RemovePasswordKeyFile=N")
+
+$additionalParameters = @("--env RemovePasswordKeyFile=N",
+                          "--storage-opt size=100GB")
 
 if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
     if ("$sqlServerType" -eq "SQLExpress") {
