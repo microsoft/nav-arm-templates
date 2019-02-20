@@ -2,9 +2,7 @@
 $WarningActionPreference = "Stop"
 
 # Specify which images to download
-$ImagesToDownload = @("microsoft/dynamics-nav:generic"
-                      "mcr.microsoft.com/businesscentral/onprem",
-                      "microsoft/dynamics-nav:2018")
+$ImagesToDownload = @()
 
 $navContainerHelperFolder = "C:\ProgramData\NavContainerHelper"
 
