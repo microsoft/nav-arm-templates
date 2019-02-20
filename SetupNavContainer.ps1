@@ -31,8 +31,10 @@ Set-NAVServerConfiguration -ServerInstance nav -KeyName "ExcelAddInAzureActiveDi
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "ValidAudiences" -KeyValue "'+$AdProperties.SsoAdAppId+'" -WarningAction Ignore -ErrorAction Ignore
 ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
 
-        "`$SsoAdAppId = $($AdProperties.SsoAdAppId)" | Add-Content $settingsScript
-        "`$SsoAdAppKeyValue = $($AdProperties.SsoAdAppKeyValue)" | Add-Content $settingsScript
+        $settings = Get-Content -path "c:\demo\settings.ps1" | Where-Object { !($_.Startswith('$SsoAdAppId = ') -or $_.Startswith('$SsoAdAppKeyValue = ')) }
+        $settings += "`$SsoAdAppId = '$($AdProperties.SsoAdAppId)'"
+        $settings += "`$SsoAdAppKeyValue = '$($AdProperties.SsoAdAppKeyValue)'"
+        Set-Content -Path $settingsScript -Value $settings
 
     } catch {
         Log -color Red $_.Exception.Message
