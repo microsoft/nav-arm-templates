@@ -1,5 +1,6 @@
 ﻿Param(
+    [string] $imageName = "",
     [string] $alwaysPull = "no"
 )
 
-Replace-NavServerContainer -alwaysPull:($alwaysPull -eq "yes")
+Replace-NavServerContainer -imageName $imageName -alwaysPull:($alwaysPull -eq "yes")
