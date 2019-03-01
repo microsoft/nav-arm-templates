@@ -56,7 +56,7 @@ if (Test-Path "C:\ProgramData\navcontainerhelper\Extensions\$containerName\*.vsi
     if ($vsixFileName -ne "") {
     
         Log "Installing .vsix"
-        & $codeCmd @('--install-extension', $VsixFileName) | Out-Null
+        try { & $codeCmd @('--install-extension', $VsixFileName) | Out-Null } catch {}
     
         $username = [Environment]::UserName
         if (Test-Path -path "c:\Users\Default\.vscode" -PathType Container -ErrorAction Ignore) {
