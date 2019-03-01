@@ -11,7 +11,8 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
     Import-Module -name navcontainerhelper -DisableNameChecking
 }
 
-. (Join-Path $PSScriptRoot "settings.ps1")
+$settingsScript = Join-Path $PSScriptRoot "settings.ps1"
+. "$settingsScript"
 
 '. "c:\run\SetupConfiguration.ps1"
 ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
@@ -27,9 +28,14 @@ if ($Office365UserName -ne "" -and $Office365Password -ne "") {
 'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
 Set-NAVServerConfiguration -ServerInstance nav -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.ExcelAdAppId+'" -WarningAction Ignore
-#Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.SsoAdAppId+'" -WarningAction Ignore
-#Set-NAVServerConfiguration -ServerInstance nav -KeyName "AzureActiveDirectoryClientSecret" -KeyValue "'+$AdProperties.SsoAdAppKeyValue+'" -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance nav -KeyName "ValidAudiences" -KeyValue "'+$AdProperties.SsoAdAppId+'" -WarningAction Ignore -ErrorAction Ignore
 ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
+
+        $settings = Get-Content -path "c:\demo\settings.ps1" | Where-Object { !($_.Startswith('$SsoAdAppId = ') -or $_.Startswith('$SsoAdAppKeyValue = ')) }
+        $settings += "`$SsoAdAppId = '$($AdProperties.SsoAdAppId)'"
+        $settings += "`$SsoAdAppKeyValue = '$($AdProperties.SsoAdAppKeyValue)'"
+        Set-Content -Path $settingsScript -Value $settings
+
     } catch {
         Log -color Red $_.Exception.Message
         Log -color Red "Reverting to NavUserPassword authentication"
