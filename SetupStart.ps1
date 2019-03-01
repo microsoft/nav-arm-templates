@@ -37,6 +37,12 @@ if ("$createStorageQueue" -eq "yes") {
         Log "Installing Azure.Storage PowerShell package"
         Install-Package Azure.Storage -Force -WarningAction Ignore | Out-Null
     }
+
+    if (!(Get-Package -Name AzureRmStorageTable -ErrorAction Ignore)) {
+        Log "Installing AzureRmStorageTable PowerShell package"
+        Install-Package AzureRmStorageTable -Force -WarningAction Ignore | Out-Null
+    }
+
     $taskName = "RunQueue"
     $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\RunQueue.ps1"
     $startupTrigger = New-ScheduledTaskTrigger -AtStartup
