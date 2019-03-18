@@ -150,6 +150,35 @@
                 "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of NAV Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost and you will need to specify App and Tenant Bacpac Uris as Azure Storage Shared Access Signature Urls."
             }
         },
+        "AzureSQLTenantDatabasePerformanceLevel": {
+            "type": "string",
+            "defaultValue": "S0",
+            "allowedValues": [
+                "S0",
+                "S1",
+                "S2",
+                "S3",
+                "S4",
+                "S6",
+                "S7",
+                "S9",
+                "S12"
+            ],
+            "metadata": {
+                "Description": "Select the AzureSQL Performance Level."
+            }
+        },
+        "AzureSQLTenantDatabaseMaxSizeBytes": {
+            "type": "int",
+            "defaultvalue": 1073741824,
+            "allowedValues": [
+                1073741824,
+                2147483648
+            ],
+            "metadata": {
+                "Description": "Specify the max size in bytes of the Azure SQL database."
+            }
+        },
         "AppBacpacUri": {
             "type": "string",
             "defaultValue": "",
@@ -440,8 +469,8 @@
 					"properties": {
 						"collation": "[variables('SqlCollation')]",
 						"edition": "Standard",
-						"maxSizeBytes": "1073741824",
-						"requestedServiceObjectiveName": "S0"
+						"maxSizeBytes": "[parameters('AzureSQLTenantDatabaseMaxSizeBytes')]",
+						"requestedServiceObjectiveName": "[parameters('AzureSQLTenantDatabasePerformanceLevel')]"
 					},
 					"resources": [
 						{
