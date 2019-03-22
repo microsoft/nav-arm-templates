@@ -150,6 +150,11 @@ if ($auth -eq "AAD") {
     $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
     Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
     $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
+
+    if($sqlServerType -eq 'AzureSQL'){
+        $sqlCredential = $azureSqlCredential
+    }
+
     Import-ObjectsToNavContainer -containerName $containerName -objectsFile $fobfile -sqlCredential $sqlCredential
     Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName SetupAzureAdApp -Argument ($AdProperties.PowerBiAdAppId+','+$AdProperties.PowerBiAdAppKeyValue)
 }
