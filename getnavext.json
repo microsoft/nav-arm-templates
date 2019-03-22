@@ -173,7 +173,10 @@
             "defaultvalue": 1073741824,
             "allowedValues": [
                 1073741824,
-                2147483648
+                2147483648,
+                3221225472,
+                4294967296,
+                5368709120
             ],
             "metadata": {
                 "Description": "Specify the max size in bytes of the Azure SQL database."
