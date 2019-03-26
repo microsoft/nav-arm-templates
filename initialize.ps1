@@ -295,8 +295,9 @@ Write-Host "DNS identity $dnsidentity"
 
 # Temporary workaround for Azure SQL.
 ('Copy-NavDatabase -SourceDatabaseName "tenant" -DestinationDatabaseName default -DatabaseServer $databaseServer -DatabaseInstance $databaseInstance -DatabaseCredentials $databaseCredentials
-Mount-NavDatabase -TenantId default -DatabaseName default -DatabaseServer $databaseServer -DatabaseInstance $databaseInstance -DatabaseCredentials $databaseCredentials
 ') | Add-Content "c:\myfolder\AdditionalSetup.ps1"
+
+#Mount-NavDatabase -TenantId default -DatabaseName default -DatabaseServer $databaseServer -DatabaseInstance $databaseInstance -DatabaseCredentials $databaseCredentials
 
 } elseif ("$ContactEMailForLetsEncrypt" -ne "") {
 
