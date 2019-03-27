@@ -195,6 +195,25 @@ private string getApisBaseUrl()
   return "";
 }
 
+private string getApisSampleUrl()
+{
+  System.Version version = System.Version.Parse("1.0.0.0");
+  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt"))
+  {
+    version = System.Version.Parse(System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt").Trim());
+  }
+  var query = "/microsoft/automation/beta/companies";
+  if (version.Major >= 14) {
+    query = "/v1.0/companies";
+  }
+  var url = getApisBaseUrl();
+  var idx = url.IndexOf('?');
+  if (idx < 0) {
+    idx = url.Length;
+  }
+  return url.Insert(idx, query);
+}
+
 private bool isHttps()
 {
   return getWebBaseUrl().StartsWith("https://");
@@ -505,7 +524,7 @@ You can view the installation status by following this link.
       <td></td>
       <td style="white-space: nowrap"><a href="javascript:alert('<% =getApisBaseUrl() %>/')" target="_blank">View API base URL</a></td>
 	</tr><tr>
-      <td colspan="3">Example: <a href="<% =getApisBaseUrl() %>/microsoft/automation/beta/companies" target="_blank"><% =getApisBaseUrl() %>/microsoft/automation/beta/companies</a></td>
+      <td colspan="3">Example: <a href="<% =getApisSampleUrl() %>" target="_blank"><% =getApisSampleUrl() %></a></td>
       <td></td>
     </tr>
 <%
