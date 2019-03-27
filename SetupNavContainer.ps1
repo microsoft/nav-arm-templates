@@ -147,15 +147,33 @@ try {
 }
 
 if ($auth -eq "AAD") {
-    $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
-    Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
-    $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
-    Import-ObjectsToNavContainer -containerName $containerName -objectsFile $fobfile -sqlCredential $sqlCredential
-    Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName SetupAzureAdApp -Argument ($AdProperties.PowerBiAdAppId+','+$AdProperties.PowerBiAdAppKeyValue)
+    if (([System.Version]$navVersion).Major -lt 13) {
+        $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
+        Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
+        $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
+        Import-ObjectsToNavContainer -containerName $containerName -objectsFile $fobfile -sqlCredential $sqlCredential
+        Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName SetupAzureAdApp -Argument ($AdProperties.PowerBiAdAppId+','+$AdProperties.PowerBiAdAppKeyValue)
+    } 
+    else {
+        $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
+        Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
+
+        Publish-NavContainerApp -containerName $containerName -appFile $appFile -skipVerification -install -sync
+
+        $companyId = Get-NavContainerApiCompanyId -containerName $containerName -tenant "default" -credential $credential
+
+        $parameters = @{ 
+            "name" = "SetupAzureAdApp"
+            "value" = "$($AdProperties.PowerBiAdAppId),$($AdProperties.PowerBiAdAppKeyValue)"
+        }
+        Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
+
+        UnPublish-NavContainerApp -containerName $containerName -appName AzureAdAppSetup -unInstall
+    }
 }
 
 if ($CreateTestUsers -eq "Yes") {
-    Setup-NavContainerTestUsers -containerName $containerName -tenant "default" -password $credential.Password
+    Setup-NavContainerTestUsers -containerName $containerName -tenant "default" -password $credential.Password -credential $credential
 }
 
 if ($CreateAadUsers -eq "Yes" -and $Office365UserName -ne "" -and $Office365Password -ne "") {
@@ -189,10 +207,10 @@ if ("$includeappUris".Trim() -ne "") {
 if ("$bingmapskey" -ne "") {
 
     $appFile = switch (([System.Version]$navVersion).Major) {
+     9 { "" }
+    10 { "" }
     11 { "http://aka.ms/bingmaps11.app" }
-    12 { "http://aka.ms/bingmaps.app" }
-    13 { "http://aka.ms/bingmaps.app" }
-    default { "" }
+    default { "http://aka.ms/bingmaps.app" }
     }
 
     if ($appFile -eq "") {
