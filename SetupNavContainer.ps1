@@ -168,7 +168,7 @@ if ($auth -eq "AAD") {
         }
         Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
 
-        UnPublish-NavContainerApp -containerName $containerName -appName CreateTestUsers -unInstall
+        UnPublish-NavContainerApp -containerName $containerName -appName AzureAdAppSetup -unInstall
     }
 }
 
