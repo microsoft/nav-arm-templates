@@ -160,13 +160,13 @@ if ($auth -eq "AAD") {
 
         Publish-NavContainerApp -containerName $containerName -appFile $appFile -skipVerification -install -sync
 
-        $companyId = Get-NavContainerApiCompanyId -containerName $containerName -tenant $tenant -credential $credential
+        $companyId = Get-NavContainerApiCompanyId -containerName $containerName -tenant "default" -credential $credential
 
         $parameters = @{ 
             "name" = "SetupAzureAdApp"
             "value" = "$($AdProperties.PowerBiAdAppId),$($AdProperties.PowerBiAdAppKeyValue)"
         }
-        Invoke-NavContainerApi -containerName $containerName -tenant $tenant -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
+        Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
 
         UnPublish-NavContainerApp -containerName $containerName -appName CreateTestUsers -unInstall
     }
