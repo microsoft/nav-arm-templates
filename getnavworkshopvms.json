@@ -536,7 +536,6 @@
                     "osDisk": {
                         "createOption": "FromImage",
                         "osType": "Windows",
-                        "name": "[variables('OSDiskName')]",
                         "name": "[concat(tolower(parameters('vmName')), string(add(copyIndex(),parameters('offset'))), '_osdisk')]",
                         "caching": "ReadWrite",
                         "managedDisk": {
