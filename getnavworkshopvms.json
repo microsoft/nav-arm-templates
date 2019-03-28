@@ -505,7 +505,7 @@
 			}
         },
         {
-            "apiVersion": "2015-06-15",
+            "apiVersion": "2018-10-01",
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]",
             "location": "[resourceGroup().location]",
@@ -534,12 +534,15 @@
                         "version": "latest"
                     },
                     "osDisk": {
-                        "name": "osdisk",
-                        "vhd": {
-                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))),'.vhd')]"
-                        },
+                        "createOption": "FromImage",
+                        "osType": "Windows",
+                        "name": "[variables('OSDiskName')]",
+                        "name": "[concat(tolower(parameters('vmName')), string(add(copyIndex(),parameters('offset'))), '_osdisk')]",
                         "caching": "ReadWrite",
-                        "createOption": "FromImage"
+                        "managedDisk": {
+                          "storageAccountType": "[variables('storageAccountType')]"
+                        },
+                        "diskSizeGB": 128
                     }
                 },
                 "networkProfile": {
