@@ -121,6 +121,8 @@ if ($assignPremiumPlan -eq "Yes") {
     $params += @{ "assignPremiumPlan" = $true }
 }
 
+$additionalParameters += @("--env CustomNavSettings=EnableDeadlockMonitoring=false")
+
 $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
