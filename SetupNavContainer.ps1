@@ -146,6 +146,22 @@ try {
     throw
 }
 
+if ($sqlServerType -eq "AzureSQL") {
+    if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
+        Log "Importing c:\demo\objects.fob to container"
+        Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $azureSqlCredential
+    }
+    New-NavContainerTenant -containerName $containerName -tenantId "default" -sqlCredential $azureSqlCredential
+    New-NavContainerNavUser -containerName $containerName -tenant "default" -Credential $credential -AuthenticationEmail $Office365UserName -ChangePasswordAtNextLogOn:$false -PermissionSetId "SUPER"
+}else{
+    if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
+        Log "Importing c:\demo\objects.fob to container"
+        $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
+        Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $sqlCredential
+    }
+}
+
+#region Moved for AzureSQL, default database is not yet there and the tenant is not mounted.
 if ($auth -eq "AAD") {
     $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
     Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
@@ -169,21 +185,7 @@ if ($CreateAadUsers -eq "Yes" -and $Office365UserName -ne "" -and $Office365Pass
     $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
     Create-AadUsersInNavContainer -containerName $containerName -tenant "default" -AadAdminCredential $Office365Credential -permissionSetId SUPER -securePassword $securePassword
 }
-
-if ($sqlServerType -eq "AzureSQL") {
-    if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
-        Log "Importing c:\demo\objects.fob to container"
-        Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $azureSqlCredential
-    }
-    New-NavContainerTenant -containerName $containerName -tenantId "default" -sqlCredential $azureSqlCredential
-    New-NavContainerNavUser -containerName $containerName -tenant "default" -Credential $credential -AuthenticationEmail $Office365UserName -ChangePasswordAtNextLogOn:$false -PermissionSetId "SUPER"
-} else {
-    if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
-        Log "Importing c:\demo\objects.fob to container"
-        $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
-        Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $sqlCredential
-    }
-}
+#endregion
 
 if ("$includeappUris".Trim() -ne "") {
     foreach($includeApp in "$includeAppUris".Split(',;')) {

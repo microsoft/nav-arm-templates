@@ -293,13 +293,6 @@ Write-Host "DNS identity $dnsidentity"
 ('Write-Host "DNS identity $dnsidentity"
 ') | Set-Content "c:\myfolder\AdditionalSetup.ps1"
 
-# Temporary workaround for Azure SQL.
-('Copy-NavDatabase -SourceDatabaseName "tenant" -DestinationDatabaseName default -DatabaseServer $databaseServer -DatabaseInstance $databaseInstance -DatabaseCredentials $databaseCredentials
-') | Add-Content "c:\myfolder\AdditionalSetup.ps1"
-
-#Dismount-NAVTenant -ServerInstance nav -Tenant default -Confirm:$false -Force
-#Mount-NavDatabase -TenantId default -DatabaseName default -DatabaseServer $databaseServer -DatabaseInstance $databaseInstance -DatabaseCredentials $databaseCredentials
-
 } elseif ("$ContactEMailForLetsEncrypt" -ne "") {
 
     Log "Using Lets Encrypt certificate"
