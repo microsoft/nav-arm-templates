@@ -190,7 +190,7 @@ if ($auth -eq "AAD") {
         $parameters = @{ 
             "name" = "SetupAzureAdApp"
             "value" = "$($AdProperties.PowerBiAdAppId),$($AdProperties.PowerBiAdAppKeyValue)"
-        }\
+        }
         Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
 
         UnPublish-NavContainerApp -containerName $containerName -appName AzureAdAppSetup -unInstall
