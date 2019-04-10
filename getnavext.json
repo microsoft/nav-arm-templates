@@ -332,7 +332,7 @@
         "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 10'),'Windows-10','WindowsServer')]",
         "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
         "storageAccountType": "[parameters('StorageAccountType')]",
-        "vmStorageAccountContainerName": "vhds",
+        "OSDiskName": "[concat(variables('vmName'),'_osdisk')]",
         "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
@@ -744,12 +744,14 @@
                         "version": "latest"
                     },
                     "osDisk": {
-                        "name": "osdisk",
-                        "vhd": {
-                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('server1Name'),'.vhd')]"
-                        },
+                        "createOption": "FromImage",
+                        "osType": "Windows",
+                        "name": "[variables('OSDiskName')]",
                         "caching": "ReadWrite",
-                        "createOption": "FromImage"
+                        "managedDisk": {
+                          "storageAccountType": "[variables('storageAccountType')]"
+                        },
+                        "diskSizeGB": 128
                     }
                 },
                 "networkProfile": {
