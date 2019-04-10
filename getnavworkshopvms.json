@@ -80,7 +80,7 @@
                 "Premium_LRS"
             ],
             "metadata": {
-                "Description": "Select the preferred storage account type. Standard_LRS is HDD, Premium_LRS is SSD."
+                "Description": "Select the preferred storage account type. Standard_LRS is HDD, Premium_LRS is SSD. Premium is not available for all VM sizes, please refer to Azure documentation."
             }
         },
         "vmAdminUsername": {
@@ -119,6 +119,14 @@
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
                 "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin)."
+            }
+        },
+        "EnableSymbolLoading": {
+		    "type": "string",
+            "defaultValue": "Yes",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "EnableSymbolLoading to support hybrid development"
             }
         },
         "navDockerImage": {
@@ -235,7 +243,6 @@
         "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 10'),'Windows-10','WindowsServer')]",
         "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
         "storageAccountType": "[parameters('StorageAccountType')]",
-        "vmStorageAccountContainerName": "vhds",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
         "addressPrefix": "10.0.0.0/8",
@@ -505,7 +512,7 @@
 			}
         },
         {
-            "apiVersion": "2015-06-15",
+            "apiVersion": "2018-10-01",
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]",
             "location": "[resourceGroup().location]",
@@ -534,12 +541,14 @@
                         "version": "latest"
                     },
                     "osDisk": {
-                        "name": "osdisk",
-                        "vhd": {
-                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))),'.vhd')]"
-                        },
+                        "createOption": "FromImage",
+                        "osType": "Windows",
+                        "name": "[concat(tolower(parameters('vmName')), string(add(copyIndex(),parameters('offset'))), '_osdisk')]",
                         "caching": "ReadWrite",
-                        "createOption": "FromImage"
+                        "managedDisk": {
+                          "storageAccountType": "[variables('storageAccountType')]"
+                        },
+                        "diskSizeGB": 128
                     }
                 },
                 "networkProfile": {
@@ -580,7 +589,7 @@
                     ]
                 },
                 "protectedSettings": {
-					"commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RequestToken \"',parameters('RequestToken'),'\" -AssignPremiumPlan \"',parameters('AssignPremiumPlan'),'\" -CreateTestUsers \"',parameters('CreateTestUsers'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
+					"commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RequestToken \"',parameters('RequestToken'),'\" -AssignPremiumPlan \"',parameters('AssignPremiumPlan'),'\" -CreateTestUsers \"',parameters('CreateTestUsers'),'\" -EnableSymbolLoading \"',parameters('EnableSymbolLoading'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
 				}
             },
 			"copy": {
