@@ -17,6 +17,7 @@ param
        [string] $appBacpacUri              = "",
        [string] $tenantBacpacUri           = "",
        [string] $includeAppUris            = "",
+       [string] $enableSymbolLoading       = "Yes",
        [string] $clickonce                 = "No",
        [string] $enableTaskScheduler       = "Default",
        [string] $licenseFileUri            = "",
@@ -96,6 +97,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "appBacpacUri"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "tenantBacpacUri"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "includeAppUris"         | Add-Content $settingsScript
+    Get-VariableDeclaration -name "enableSymbolLoading"    | Add-Content $settingsScript
     Get-VariableDeclaration -name "clickonce"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "enableTaskScheduler"    | Add-Content $settingsScript
     Get-VariableDeclaration -name "licenseFileUri"         | Add-Content $settingsScript
