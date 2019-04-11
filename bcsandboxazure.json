@@ -218,7 +218,7 @@
         "AssignPremiumPlan": "[parameters('AssignPremiumPlan')]",
         "CreateTestUsers": "[parameters('CreateTestUsers')]",
         "CreateAadUsers": "No",
-        "EnableSymbolLoading": "Yes",
+        "EnableSymbolLoading": "No",
         "ClickOnce": "No",
         "EnableTaskScheduler": "Default",
         "Office365UserName": "",
