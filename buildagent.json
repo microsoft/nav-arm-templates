@@ -6,6 +6,7 @@
             "type": "string",
 			"defaultValue": "",
             "minLength": 3,
+            "maxLength": 15,            
             "metadata": {
                 "Description": "Select the name of the deployment"
             }
