@@ -162,8 +162,12 @@ if ($sqlServerType -eq "AzureSQL") {
         Log "Importing c:\demo\objects.fob to container"
         Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $azureSqlCredential
     }
-    New-NavContainerTenant -containerName $containerName -tenantId "default" -sqlCredential $azureSqlCredential
-    New-NavContainerNavUser -containerName $containerName -tenant "default" -Credential $credential -AuthenticationEmail $Office365UserName -ChangePasswordAtNextLogOn:$false -PermissionSetId "SUPER"
+    # Check for Multitenant & Included "-ErrorAction Continue" to prevent an exit
+    if ($multitenant -eq "Yes") {
+        New-NavContainerTenant -containerName $containerName -tenantId "default" -sqlCredential $azureSqlCredential -ErrorAction Continue
+    }    
+    # Included "-ErrorAction Continue" to prevent an exit
+    New-NavContainerNavUser -containerName $containerName -tenant "default" -Credential $credential -AuthenticationEmail $Office365UserName -ChangePasswordAtNextLogOn:$false -PermissionSetId "SUPER" -ErrorAction Continue
 } else {
     if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
         Log "Importing c:\demo\objects.fob to container"
