@@ -89,6 +89,7 @@ $params = @{ "licensefile" = "$licensefileuri"
 $additionalParameters = @("--env RemovePasswordKeyFile=N",
                           "--storage-opt size=100GB")
 
+<#
 if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
     if ("$sqlServerType" -eq "SQLExpress") {
         $additionalParameters += @("--env appbacpac=$appBacpacUri",
@@ -100,6 +101,24 @@ if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
                       "databaseName"       = "App"
                       "databaseCredential" = $azureSqlCredential }
         $multitenant = "Yes"
+    }
+}
+#>
+# Enabled the setup of Azure SQL for existing $appBacpacUri 
+if ("$appBacpacUri" -ne "") {
+    if ("$sqlServerType" -eq "SQLExpress" -and "$tenantBacpacUri" -ne "") {
+        $additionalParameters += @("--env appbacpac=$appBacpacUri",
+                                   "--env tenantbacpac=$tenantBacpacUri")
+    } else {
+        Log "using $azureSqlServer as database server"
+        $params += @{ "databaseServer"     = "$azureSqlServer"
+                      "databaseInstance"   = ""
+                      "databaseName"       = "App"
+                      "databaseCredential" = $azureSqlCredential }
+        # $tenantBacpacUri for check multi tenant included 
+        if ("$tenantBacpacUri" -ne "") {
+            $multitenant = "Yes"
+        }
     }
 }
 if ("$clickonce" -eq "Yes") {
