@@ -382,7 +382,7 @@
     },
     "resources": [
 		{
-			"apiVersion": "2014-04-01-preview",
+			"apiVersion": "2014-04-01",
 			"type": "Microsoft.Sql/servers",
 			"name": "[variables('azureSqlServer')]",
 			"location": "[resourceGroup().location]",
@@ -397,8 +397,8 @@
 			},
 			"resources": [
 				{
-					"apiVersion": "2014-04-01-preview",
-					"type": "firewallrules",
+					"apiVersion": "2014-04-01",
+					"type": "firewallRules",
 					"name": "AllowAllAzureIps",
 					"location": "[resourceGroup().location]",
 					"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
@@ -411,7 +411,7 @@
 					}
 				},
 				{
-					"apiVersion": "2014-04-01-preview",
+					"apiVersion": "2014-04-01",
 					"type": "databases",
 					"name": "App",
 					"location": "[resourceGroup().location]",
@@ -430,7 +430,7 @@
 					},
 					"resources": [
 						{
-							"apiVersion": "2014-04-01-preview",
+							"apiVersion": "2014-04-01",
 							"type": "extensions",
 							"name": "Import",
 							"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('AppBacpacUri'),'')))]",
@@ -452,7 +452,7 @@
 					]
 				},
 				{
-					"apiVersion": "2014-04-01-preview",
+					"apiVersion": "2014-04-01",
 					"type": "databases",
 					"name": "Tenant",
 					"location": "[resourceGroup().location]",
@@ -471,7 +471,7 @@
 					},
 					"resources": [
 						{
-							"apiVersion": "2014-04-01-preview",
+							"apiVersion": "2014-04-01",
 							"type": "extensions",
 							"name": "Import",
 							"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('TenantBacpacUri'),'')))]",
