@@ -443,7 +443,7 @@
 							"properties": {
 								"storageKeyType": "SharedAccessKey",
 								"storageUri": "[split(variables('AppBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(variables('AppBacpacUri'),'?')[1])]",
+								"storageKey": "[concat('?',split(variables('AppBacpacUri'),'?'))[1]]",
 								"administratorLogin": "[variables('azureSqlAdminUsername')]",
 								"administratorLoginPassword": "[variables('adminPassword')]",
 								"operationMode": "Import"
@@ -484,7 +484,7 @@
 							"properties": {
 								"storageKeyType": "SharedAccessKey",
 								"storageUri": "[split(variables('TenantBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(variables('TenantBacpacUri'),'?')[1])]",
+								"storageKey": "[concat('?',split(variables('TenantBacpacUri'),'?'))[1]]",
 								"administratorLogin": "[variables('azureSqlAdminUsername')]",
 								"administratorLoginPassword": "[variables('adminPassword')]",
 								"operationMode": "Import"
