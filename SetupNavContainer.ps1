@@ -107,9 +107,9 @@ if ("$clickonce" -eq "Yes") {
 }
 
 if ("$enableTaskScheduler" -eq "Yes") {
-    $additionalParameters += @("--env CustomNavSettings=EnableTaskScheduler=true")
+    $customNavSettings = "EnableTaskScheduler=true"
 } elseif ("$enableTaskScheduler" -eq "No") {
-    $additionalParameters += @("--env CustomNavSettings=EnableTaskScheduler=false")
+    $customNavSettings = "EnableTaskScheduler=false"
 }
 
 if ($enableSymbolLoading -eq "Yes") {
@@ -126,6 +126,49 @@ if ($assignPremiumPlan -eq "Yes") {
 
 $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
+
+if ($AddTraefik) {
+    Log "Add params for traefik"
+    $myscripts += "c:\traefikforbc\my\CheckHealth.ps1"
+
+    $restPart = "/${containerName}rest/" 
+    $soapPart = "/${containerName}soap/"
+    $devPart = "/${containerName}dev/"
+    $dlPart = "/${containerName}dl/"
+    $webclientPart = "/$containerName/"
+    $baseUrl = "https://$publicDnsName"
+    $restUrl = $baseUrl + $restPart
+    $soapUrl = $baseUrl + $soapPart
+    $webclientUrl = $baseUrl + $webclientPart
+
+    $customNavSettings += ",PublicODataBaseUrl=$restUrl,PublicSOAPBaseUrl=$soapUrl,PublicWebBaseUrl=$webclientUrl"
+    $webclientRule="PathPrefix:$webclientPart"
+    $soapRule="PathPrefix:${soapPart};ReplacePathRegex: ^${soapPart}(.*) /NAV/WS/`$1"
+    $restRule="PathPrefix:${restPart};ReplacePathRegex: ^${restPart}(.*) /NAV/OData/`$1"
+    $devRule="PathPrefix:${devPart};ReplacePathRegex: ^${devPart}(.*) /NAV/`$1"
+    $dlRule="PathPrefixStrip:${dlPart}"
+    $hostname = $publicDnsName.Substring(0, $publicDnsName.IndexOf("."))
+
+    $additionalTraefikParameters = @("--hostname $hostname",
+                "-e webserverinstance=$containerName",
+                "-e publicdnsname=$publicDnsName", 
+                "-e customNavSettings=$customNavSettings",
+                "-l `"traefik.web.frontend.rule=$webclientRule`"", 
+                "-l `"traefik.web.port=80`"",
+                "-l `"traefik.soap.frontend.rule=$soapRule`"", 
+                "-l `"traefik.soap.port=7047`"",
+                "-l `"traefik.rest.frontend.rule=$restRule`"", 
+                "-l `"traefik.rest.port=7048`"",
+                "-l `"traefik.dev.frontend.rule=$devRule`"", 
+                "-l `"traefik.dev.port=7049`"",
+                "-l `"traefik.dl.frontend.rule=$dlRule`"", 
+                "-l `"traefik.dl.port=8080`"",
+                "-l `"traefik.enable=true`"",
+                "-l `"traefik.frontend.entryPoints=https`""
+    )
+
+    $additionalTraefikParameters | % { $additionalParameters += $_ }
+}
 
 try {
     Log "Running $imageName (this will take a few minutes)"

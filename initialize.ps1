@@ -40,7 +40,8 @@ param
        [string] $Office365Password         = "",
        [string] $Office365CreatePortal     = "No",
        [string] $requestToken              = "",
-       [string] $createStorageQueue        = ""
+       [string] $createStorageQueue        = "",
+       [string] $AddTraefik                = "No"
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -115,6 +116,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "BingMapsKey"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "RequestToken"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "CreateStorageQueue"     | Add-Content $settingsScript
+    Get-VariableDeclaration -name "AddTraefik"             | Add-Content $settingsScript
 
     $passwordKey = New-Object Byte[] 16
     [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
@@ -152,7 +154,7 @@ Set-Content "c:\DEMO\RemoteDesktopAccess.txt" -Value $RemoteDesktopAccess
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
-Log -color Green "Starting initialization"
+Log -color Green "Starting initialization including Traefik"
 Log "Running $WindowsProductName"
 Log "Initialize, user: $env:USERNAME"
 Log "TemplateLink: $templateLink"
@@ -185,6 +187,26 @@ if ($requestToken) {
 $title = 'Dynamics Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
+
+if ($AddTraefik -eq "Yes") {
+    Log "Pulling and running traefik"
+    docker pull stefanscherer/traefik-windows
+    docker run -p 8080:8080 -p 443:443 -p 80:80 -d -v c:/traefikforbc/config:c:/etc/traefik -v \\.\pipe\docker_engine:\\.\pipe\docker_engine stefanscherer/traefik-windows --docker.endpoint=npipe:////./pipe/docker_engine
+
+    Log "Creating folder structure at c:\traefikforbc"
+    mkdir c:\traefikforbc
+    mkdir c:\traefikforbc\my
+    mkdir c:\traefikforbc\config
+    New-Item -Path c:\traefikforbc\config\acme.json
+
+    Download-File -sourceUrl "${scriptPath}traefik/template_traefik.toml" -destinationFile "c:\traefikforbc\config\template_traefik.toml"
+    Download-File -sourceUrl "${scriptPath}traefik/CheckHealth.ps1" -destinationFile "c:\traefikforbc\my\CheckHealth.ps1"
+
+    Write-Host "Create traefik config file"
+    $template = Get-Content 'c:\traefikforbc\config\template_traefik.toml' -Raw
+    $expanded = Invoke-Expression "@`"`r`n$template`r`n`"@"
+    $expanded | Out-File "c:\traefikforbc\config\traefik.toml" -Encoding ASCII
+}
 
 if ("$RemoteDesktopAccess" -ne "") {
 Log "Creating Connect.rdp"
@@ -295,7 +317,7 @@ Write-Host "DNS identity $dnsidentity"
 ('Write-Host "DNS identity $dnsidentity"
 ') | Set-Content "c:\myfolder\AdditionalSetup.ps1"
 
-} elseif ("$ContactEMailForLetsEncrypt" -ne "") {
+} elseif ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
 
     Log "Using Lets Encrypt certificate"
     # Use Lets encrypt
