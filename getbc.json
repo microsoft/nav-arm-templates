@@ -196,7 +196,7 @@
         },
         "AddTraefik": {
 		    "type": "string",
-            "defaultValue": "Yes",
+            "defaultValue": "No",
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
                 "Description": "Add traefik.io as reverse proxy"
