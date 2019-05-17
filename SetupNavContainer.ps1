@@ -175,7 +175,21 @@ if ($AddTraefik) {
 
 try {
     Log "Running $imageName (this will take a few minutes)"
-    New-NavContainer -accept_eula -accept_outdated @Params `
+    if ($AddTraefik) {
+        New-NavContainer -accept_eula -accept_outdated @Params `
+                     -containerName $containerName `
+                     -updateHosts `
+                     -auth $Auth `
+                     -includeCSide `
+                     -doNotExportObjectsToText `
+                     -authenticationEMail $Office365UserName `
+                     -credential $credential `
+                     -useBestContainerOS `
+                     -additionalParameters $additionalParameters `
+                     -myScripts $myscripts `
+                     -imageName $imageName
+    } else {
+        New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
                      -useSSL `
                      -updateHosts `
@@ -188,6 +202,7 @@ try {
                      -additionalParameters $additionalParameters `
                      -myScripts $myscripts `
                      -imageName $imageName
+    }
     
 } catch {
     Log -color Red "Container output"
