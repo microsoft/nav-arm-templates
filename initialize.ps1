@@ -189,9 +189,8 @@ $title = 'Dynamics Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
 
 if ($AddTraefik -eq "Yes") {
-    Log "Pulling and running traefik"
-    docker pull stefanscherer/traefik-windows
-    docker run -p 8080:8080 -p 443:443 -p 80:80 -d -v c:/traefikforbc/config:c:/etc/traefik -v \\.\pipe\docker_engine:\\.\pipe\docker_engine stefanscherer/traefik-windows --docker.endpoint=npipe:////./pipe/docker_engine
+    Log "Change standard port as Traefik will handle that"
+    Set-WebBinding -Name 'Default Web Site' -BindingInformation "*:80:" -PropertyName Port -Value 8180
 
     Log "Creating folder structure at c:\traefikforbc"
     mkdir c:\traefikforbc
@@ -206,6 +205,11 @@ if ($AddTraefik -eq "Yes") {
     $template = Get-Content 'c:\traefikforbc\config\template_traefik.toml' -Raw
     $expanded = Invoke-Expression "@`"`r`n$template`r`n`"@"
     $expanded | Out-File "c:\traefikforbc\config\traefik.toml" -Encoding ASCII
+
+    Log "Pulling and running traefik"
+    # FIXME: Revert to stefansscherer/traefik-windows when auth problem is fixed
+    docker pull tobiasfenster/temp-traefik-windows:latest
+    docker run -p 8080:8080 -p 443:443 -p 80:80 -d -v c:/traefikforbc/config:c:/etc/traefik -v \\.\pipe\docker_engine:\\.\pipe\docker_engine tobiasfenster/temp-traefik-windows:latest --docker.endpoint=npipe:////./pipe/docker_engine
 }
 
 if ("$RemoteDesktopAccess" -ne "") {
