@@ -83,8 +83,11 @@ $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKe
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
 $params = @{ "licensefile" = "$licensefileuri"
-             "publishPorts" = @(8080,443,7046,7047,7048,7049)
              "publicDnsName" = $publicDnsName }
+
+if ($AddTraefik -ne "Yes") {
+    $params.Add("publishPorts", @(8080,443,7046,7047,7048,7049))
+}
 
 $additionalParameters = @("--env RemovePasswordKeyFile=N",
                           "--storage-opt size=100GB")
@@ -167,7 +170,7 @@ if ($AddTraefik) {
                 "-l `"traefik.frontend.entryPoints=https`""
     )
 
-    $additionalTraefikParameters | % { $additionalParameters += $_ }
+    $additionalTraefikParameters | ForEach-Object { $additionalParameters += $_ }
 }
 
 try {
