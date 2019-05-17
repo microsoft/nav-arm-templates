@@ -370,7 +370,7 @@
                     "osDisk": {
                         "createOption": "FromImage",
                         "osType": "Windows",
-                        "name": "[[concat(variables('vmName'),copyIndex(),'_osdisk')]",
+                        "name": "[concat(variables('vmName'),copyIndex(),'_osdisk')]",
                         "caching": "ReadWrite",
                         "managedDisk": {
                           "storageAccountType": "[variables('storageAccountType')]"
