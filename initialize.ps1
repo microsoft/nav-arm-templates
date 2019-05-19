@@ -207,9 +207,8 @@ if ($AddTraefik -eq "Yes") {
     $expanded | Out-File "c:\traefikforbc\config\traefik.toml" -Encoding ASCII
 
     Log "Pulling and running traefik"
-    # FIXME: Revert to stefansscherer/traefik-windows when auth problem is fixed
-    docker pull tobiasfenster/temp-traefik-windows:latest
-    docker run -p 8080:8080 -p 443:443 -p 80:80 -d -v c:/traefikforbc/config:c:/etc/traefik -v \\.\pipe\docker_engine:\\.\pipe\docker_engine tobiasfenster/temp-traefik-windows:latest --docker.endpoint=npipe:////./pipe/docker_engine
+    docker pull stefansscherer/traefik-windows
+    docker run -p 8080:8080 -p 443:443 -p 80:80 --restart always -d -v c:/traefikforbc/config:c:/etc/traefik -v \\.\pipe\docker_engine:\\.\pipe\docker_engine stefansscherer/traefik-windows --docker.endpoint=npipe:////./pipe/docker_engine
 }
 
 if ("$RemoteDesktopAccess" -ne "") {
