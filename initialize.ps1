@@ -154,7 +154,7 @@ Set-Content "c:\DEMO\RemoteDesktopAccess.txt" -Value $RemoteDesktopAccess
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
-Log -color Green "Starting initialization including Traefik"
+Log -color Green "Starting initialization"
 Log "Running $WindowsProductName"
 Log "Initialize, user: $env:USERNAME"
 Log "TemplateLink: $templateLink"
