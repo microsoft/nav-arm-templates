@@ -207,8 +207,8 @@ if ($AddTraefik -eq "Yes") {
     $expanded | Out-File "c:\traefikforbc\config\traefik.toml" -Encoding ASCII
 
     Log "Pulling and running traefik"
-    docker pull stefansscherer/traefik-windows
-    docker run -p 8080:8080 -p 443:443 -p 80:80 --restart always -d -v c:/traefikforbc/config:c:/etc/traefik -v \\.\pipe\docker_engine:\\.\pipe\docker_engine stefansscherer/traefik-windows --docker.endpoint=npipe:////./pipe/docker_engine
+    docker pull stefanscherer/traefik-windows
+    docker run -p 8080:8080 -p 443:443 -p 80:80 --restart always -d -v c:/traefikforbc/config:c:/etc/traefik -v \\.\pipe\docker_engine:\\.\pipe\docker_engine stefanscherer/traefik-windows --docker.endpoint=npipe:////./pipe/docker_engine
 }
 
 if ("$RemoteDesktopAccess" -ne "") {
