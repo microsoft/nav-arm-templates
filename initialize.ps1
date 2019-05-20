@@ -189,8 +189,10 @@ $title = 'Dynamics Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
 
 if ($AddTraefik -eq "Yes") {
+    [System.IO.File]::Create("C:\inetpub\wwwroot\traefik.txt")
     Log "Change standard port as Traefik will handle that"
     Set-WebBinding -Name 'Default Web Site' -BindingInformation "*:80:" -PropertyName Port -Value 8180
+    New-NetFirewallRule -DisplayName "Allow 8180" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8180
 
     Log "Creating folder structure at c:\traefikforbc"
     mkdir c:\traefikforbc
