@@ -130,7 +130,7 @@ if ($assignPremiumPlan -eq "Yes") {
 $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
-if ($AddTraefik) {
+if ($AddTraefik -eq "Yes") {
     Log "Add params for traefik"
     $myscripts += "c:\traefikforbc\my\CheckHealth.ps1"
 
@@ -175,7 +175,7 @@ if ($AddTraefik) {
 
 try {
     Log "Running $imageName (this will take a few minutes)"
-    if ($AddTraefik) {
+    if ($AddTraefik -eq "Yes") {
         New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
                      -updateHosts `
