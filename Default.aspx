@@ -563,7 +563,11 @@ You can view the installation status by following this link.
     <tr><td colspan="4" style="font-family: Courier, Monaco, monospace">&nbsp;&nbsp;"server": "https://<%=getHostname() %>",<br>
       &nbsp;&nbsp;"serverInstance": "<%=getServerInstance() %>",<br>
       &nbsp;&nbsp;"tenant": "<%=getTenant() %>",<br>
-      &nbsp;&nbsp;"authentication": "UserPassword",</td></tr>
+      &nbsp;&nbsp;"authentication": "UserPassword",
+      <% if (isTraefikUsed()) { %>
+        <br>&nbsp;&nbsp;"port": 443,
+      <% } %>
+    </td></tr>
 <%
     }
   }
