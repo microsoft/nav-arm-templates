@@ -134,10 +134,10 @@ if ($AddTraefik) {
     Log "Add params for traefik"
     $myscripts += "c:\traefikforbc\my\CheckHealth.ps1"
 
-    $restPart = "/${containerName}rest/" 
-    $soapPart = "/${containerName}soap/"
-    $devPart = "/${containerName}dev/"
-    $dlPart = "/${containerName}dl/"
+    $restPart = "/${containerName}rest" 
+    $soapPart = "/${containerName}soap"
+    $devPart = "/${containerName}dev"
+    $dlPart = "/${containerName}dl"
     $webclientPart = "/$containerName/"
     $baseUrl = "https://$publicDnsName"
     $restUrl = $baseUrl + $restPart
