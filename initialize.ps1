@@ -188,31 +188,6 @@ $title = 'Dynamics Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
 
-if ($AddTraefik -eq "Yes") {
-    [System.IO.File]::Create("C:\inetpub\wwwroot\traefik.txt")
-    Log "Change standard port as Traefik will handle that"
-    Set-WebBinding -Name 'Default Web Site' -BindingInformation "*:80:" -PropertyName Port -Value 8180
-    New-NetFirewallRule -DisplayName "Allow 8180" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8180
-
-    Log "Creating folder structure at c:\traefikforbc"
-    mkdir c:\traefikforbc
-    mkdir c:\traefikforbc\my
-    mkdir c:\traefikforbc\config
-    New-Item -Path c:\traefikforbc\config\acme.json
-
-    Download-File -sourceUrl "${scriptPath}traefik/template_traefik.toml" -destinationFile "c:\traefikforbc\config\template_traefik.toml"
-    Download-File -sourceUrl "${scriptPath}traefik/CheckHealth.ps1" -destinationFile "c:\traefikforbc\my\CheckHealth.ps1"
-
-    Write-Host "Create traefik config file"
-    $template = Get-Content 'c:\traefikforbc\config\template_traefik.toml' -Raw
-    $expanded = Invoke-Expression "@`"`r`n$template`r`n`"@"
-    $expanded | Out-File "c:\traefikforbc\config\traefik.toml" -Encoding ASCII
-
-    Log "Pulling and running traefik"
-    docker pull stefanscherer/traefik-windows
-    docker run -p 8080:8080 -p 443:443 -p 80:80 --restart always -d -v c:/traefikforbc/config:c:/etc/traefik -v \\.\pipe\docker_engine:\\.\pipe\docker_engine stefanscherer/traefik-windows --docker.endpoint=npipe:////./pipe/docker_engine
-}
-
 if ("$RemoteDesktopAccess" -ne "") {
 Log "Creating Connect.rdp"
 "full address:s:${publicDnsName}:3389
@@ -298,6 +273,10 @@ if ($scriptPath.ToLower().EndsWith("/dev/")) {
     Install-Module -Name navcontainerhelper -Force
     Import-Module -Name navcontainerhelper -DisableNameChecking
     Log ("Using Nav Container Helper version "+(get-module NavContainerHelper).Version.ToString())
+}
+
+if ($AddTraefik -eq "Yes") {
+    Setup-TraefikContainerForNavContainers -overrideDefaultBinding
 }
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
