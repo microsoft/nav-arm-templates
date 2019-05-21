@@ -264,7 +264,7 @@ private string getAzureSQL()
 
 private bool isTraefikUsed()
 {
-  return System.IO.File.Exists(Server.MapPath(".")+@"\traefik.txt");
+  return System.IO.File.Exists(@"c:\programdata\navcontainerhelper\traefikforbc\traefik.txt");
 }
 
 </script>
