@@ -1,9 +1,3 @@
-# Deployment
-
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Ftfenster%2Fnav-arm-templates%2Fmaster%2Fgetbc.json" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a>
-
 # Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
