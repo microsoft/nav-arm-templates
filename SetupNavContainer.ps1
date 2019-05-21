@@ -146,7 +146,7 @@ try {
                      -additionalParameters $additionalParameters `
                      -myScripts $myscripts `
                      -imageName $imageName
- 
+    
 } catch {
     Log -color Red "Container output"
     docker logs $containerName | % { log $_ }
