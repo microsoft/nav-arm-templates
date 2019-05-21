@@ -4,9 +4,9 @@
         Write-Host -ForegroundColor $color $line 
     }
 }
-# FIXME Revert
-if (Test-Path -Path "C:\demo\navcontainerhelper-master\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-master\NavContainerHelper.psm1" -DisableNameChecking
+
+if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
+    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
 } else {
     Import-Module -name navcontainerhelper -DisableNameChecking
 }
