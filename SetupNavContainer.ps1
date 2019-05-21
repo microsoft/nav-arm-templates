@@ -110,9 +110,9 @@ if ("$clickonce" -eq "Yes") {
 }
 
 if ("$enableTaskScheduler" -eq "Yes") {
-    $customNavSettings = "EnableTaskScheduler=true"
+    $additionalParameters += @("--env CustomNavSettings=EnableTaskScheduler=true")
 } elseif ("$enableTaskScheduler" -eq "No") {
-    $customNavSettings = "EnableTaskScheduler=false"
+    $additionalParameters += @("--env CustomNavSettings=EnableTaskScheduler=false")
 }
 
 if ($enableSymbolLoading -eq "Yes") {
@@ -145,7 +145,8 @@ try {
                      -useBestContainerOS `
                      -additionalParameters $additionalParameters `
                      -myScripts $myscripts `
-                     -imageName $imageName    
+                     -imageName $imageName
+                     
 } catch {
     Log -color Red "Container output"
     docker logs $containerName | % { log $_ }
