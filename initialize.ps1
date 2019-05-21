@@ -262,12 +262,13 @@ if ($workshopFilesUrl -ne "") {
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
 
-if ($scriptPath.ToLower().EndsWith("/dev/")) {
-    Download-File -sourceUrl "https://github.com/Microsoft/navcontainerhelper/archive/dev.zip" -destinationFile "c:\demo\navcontainerhelper.zip"
+# FIXME: Revert
+if ($scriptPath.ToLower().Contains("tfenster")) {
+    Download-File -sourceUrl "https://github.com/tfenster/navcontainerhelper/archive/master.zip" -destinationFile "c:\demo\navcontainerhelper.zip"
     [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
     [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\navcontainerhelper.zip", "c:\demo")
-    Import-Module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
-    Log "Using Nav Container Helper from https://github.com/Microsoft/navcontainerhelper/tree/dev"
+    Import-Module "C:\demo\navcontainerhelper-master\NavContainerHelper.psm1" -DisableNameChecking
+    Log "Using Nav Container Helper from https://github.com/tfenster/navcontainerhelper"
 } else {
     Log "Installing Latest Nav Container Helper from PowerShell Gallery"
     Install-Module -Name navcontainerhelper -Force
