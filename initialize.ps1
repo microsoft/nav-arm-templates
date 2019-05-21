@@ -277,7 +277,7 @@ if ($scriptPath.ToLower().Contains("tfenster")) {
 }
 
 if ($AddTraefik -eq "Yes") {
-    Setup-TraefikContainerForNavContainers -overrideDefaultBinding
+    Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
 }
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
