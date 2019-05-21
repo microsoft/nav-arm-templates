@@ -132,23 +132,9 @@ Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
 try {
     Log "Running $imageName (this will take a few minutes)"
-    if ($AddTraefik -eq "Yes") {
-        New-NavContainer -accept_eula -accept_outdated @Params `
+    New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
-                     -useTraefik `
-                     -updateHosts `
-                     -auth $Auth `
-                     -includeCSide `
-                     -doNotExportObjectsToText `
-                     -authenticationEMail $Office365UserName `
-                     -credential $credential `
-                     -useBestContainerOS `
-                     -additionalParameters $additionalParameters `
-                     -myScripts $myscripts `
-                     -imageName $imageName
-    } else {
-        New-NavContainer -accept_eula -accept_outdated @Params `
-                     -containerName $containerName `
+                     -useTraefik:($AddTraefik -eq "Yes") `
                      -useSSL `
                      -updateHosts `
                      -auth $Auth `
@@ -159,9 +145,7 @@ try {
                      -useBestContainerOS `
                      -additionalParameters $additionalParameters `
                      -myScripts $myscripts `
-                     -imageName $imageName
-    }
-    
+                     -imageName $imageName    
 } catch {
     Log -color Red "Container output"
     docker logs $containerName | % { log $_ }
