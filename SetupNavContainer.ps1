@@ -87,6 +87,7 @@ $params = @{ "licensefile" = "$licensefileuri"
 
 if ($AddTraefik -ne "Yes") {
     $params.Add("publishPorts", @(8080,443,7046,7047,7048,7049))
+    $params += @{ "useTraefik" = $true }
 }
 
 $additionalParameters = @("--env RemovePasswordKeyFile=N",
@@ -134,7 +135,6 @@ try {
     Log "Running $imageName (this will take a few minutes)"
     New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
-                     -useTraefik:($AddTraefik -eq "Yes") `
                      -useSSL `
                      -updateHosts `
                      -auth $Auth `
