@@ -191,7 +191,6 @@
             "metadata": {
                 "Description": "Time of day on which the VM will be auto-shutdown (if enabled)."
             }
-        
         },
         "AddTraefik": {
 		    "type": "string",
