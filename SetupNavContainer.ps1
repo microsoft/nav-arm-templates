@@ -83,8 +83,11 @@ $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKe
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
 $params = @{ "licensefile" = "$licensefileuri"
-             "publishPorts" = @(8080,443,7046,7047,7048,7049)
              "publicDnsName" = $publicDnsName }
+
+if ($AddTraefik -ne "Yes") {
+    $params.Add("publishPorts", @(8080,443,7046,7047,7048,7049))
+}
 
 $additionalParameters = @("--env RemovePasswordKeyFile=N",
                           "--storage-opt size=100GB")
@@ -131,6 +134,7 @@ try {
     Log "Running $imageName (this will take a few minutes)"
     New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
+                     -useTraefik:($AddTraefik -eq "Yes") `
                      -useSSL `
                      -updateHosts `
                      -auth $Auth `
