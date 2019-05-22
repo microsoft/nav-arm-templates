@@ -192,6 +192,15 @@
             "metadata": {
                 "Description": "Time of day on which the VM will be auto-shutdown (if enabled)."
             }
+        
+        },
+        "AddTraefik": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Add traefik.io as reverse proxy"
+            }
         }
     },
     "variables": {
@@ -230,6 +239,7 @@
         "ContactEMailForLetsEncrypt": "[parameters('ContactEMailForLetsEncrypt')]",
         "AutoShutdown": "[parameters('AutoShutdown')]",
         "AutoShutdownTime": "[parameters('AutoShutdownTime')]",
+        "AddTraefik": "[parameters('AddTraefik')]",
         "style": "demo",
         "OperatingSystem": "[parameters('OperatingSystem')]",
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
@@ -497,6 +507,20 @@
                             "priority": 260,
                             "direction": "Inbound"
                         }
+                    },
+                    {
+                        "name": "Log",
+                        "properties": {
+                            "description": "Access to status log if Traefik is used",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8180",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 270,
+                            "direction": "Inbound"
+                        }
                     }
                 ]
             }
@@ -712,7 +736,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',variables('registryPassword'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',variables('CertificatePfxPassword'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',variables('registryPassword'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',variables('CertificatePfxPassword'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\" -AddTraefik \"',variables('AddTraefik'),'\"')]"
                 },
                 "protectedSettings": {}
             }
