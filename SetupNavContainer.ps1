@@ -134,7 +134,6 @@ try {
     Log "Running $imageName (this will take a few minutes)"
     New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
-                     -useTraefik:($AddTraefik -eq "Yes") `
                      -useSSL `
                      -updateHosts `
                      -auth $Auth `
