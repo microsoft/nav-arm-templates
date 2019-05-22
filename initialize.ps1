@@ -278,12 +278,21 @@ if ($scriptPath.ToLower().EndsWith("/dev/")) {
 if ($AddTraefik -eq "Yes") {
 
     if (-not $ContactEMailForLetsEncrypt) {
-        Log -color Red "Contact EMail for LetsEncrypt not specified, cannot Add Traefik"
+        Log -color Red "Contact EMail for LetsEncrypt not specified, cannot add Traefik"
         $AddTraefik = "No"
-        Get-VariableDeclaration -name "AddTraefik" | Add-Content $settingsScript
     }
 
-    Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
+    if ($clickonce -eq "Yes") {
+        Log -color Red "ClickOnce specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($AddTraefik -eq "Yes") {
+        Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
+    }
+    else {
+        Get-VariableDeclaration -name "AddTraefik" | Add-Content $settingsScript
+    }
 }
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {

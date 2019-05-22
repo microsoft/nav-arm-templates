@@ -151,7 +151,7 @@ private string getODataBaseUrl()
 {
   if (GetCustomSettings())
   {
-    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant();
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant()+"/";
     if (isMultitenant()) 
     {
       url += "?tenant=default";
