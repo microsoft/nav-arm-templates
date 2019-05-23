@@ -281,7 +281,6 @@
             "metadata": {
                 "Description": "Time of day on which the VM will be auto-shutdown (if enabled)."
             }
-        
         },
         "AddTraefik": {
 		    "type": "string",
@@ -420,7 +419,7 @@
 							"properties": {
 								"storageKeyType": "SharedAccessKey",
 								"storageUri": "[split(variables('AppBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(variables('AppBacpacUri'),'?')[1])]",
+								"storageKey": "[if(contains(variables('AppBacpacUri'),'?'),concat('?',split(variables('AppBacpacUri'),'?')[1]),'')]",
 								"administratorLogin": "[variables('azureSqlAdminUsername')]",
 								"administratorLoginPassword": "[variables('adminPassword')]",
 								"operationMode": "Import"
@@ -461,7 +460,7 @@
 							"properties": {
 								"storageKeyType": "SharedAccessKey",
 								"storageUri": "[split(variables('TenantBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(variables('TenantBacpacUri'),'?')[1])]",
+								"storageKey": "[if(contains(variables('TenantBacpacUri'),'?'),concat('?',split(variables('TenantBacpacUri'),'?')[1]),'')]",
 								"administratorLogin": "[variables('azureSqlAdminUsername')]",
 								"administratorLoginPassword": "[variables('adminPassword')]",
 								"operationMode": "Import"

@@ -85,7 +85,10 @@ $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azur
 $params = @{ "licensefile" = "$licensefileuri"
              "publicDnsName" = $publicDnsName }
 
-if ($AddTraefik -ne "Yes") {
+if ($AddTraefik -eq "Yes") {
+    $params += @{ "useTraefik" = $true }
+}
+else {
     $params.Add("publishPorts", @(8080,443,7046,7047,7048,7049))
 }
 

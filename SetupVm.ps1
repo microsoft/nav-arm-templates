@@ -183,7 +183,13 @@ New-Item $winPsFolder -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 }' | Set-Content (Join-Path $winPsFolder "Profile.ps1")
 
 Log "Adding Landing Page to Startup Group"
-New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "CommonStartup" -Arguments "http://$publicDnsName"
+if ($AddTraefik -eq "Yes") {
+    $landingPageUrl = "http://${publicDnsName}:8180"
+}
+else {
+    $landingPageUrl = "http://${publicDnsName}"
+}
+New-DesktopShortcut -Name "Landing Page" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "CommonStartup" -Arguments $landingPageUrl
 if ($style -eq "devpreview") {
     New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "CommonStartup" -Arguments "http://aka.ms/moderndevtools"
 }

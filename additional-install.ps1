@@ -24,3 +24,8 @@ choco install firefox
     Log "Install VSCode Extension: $_"
     code --install-extension $_
 }
+
+. "C:\DEMO\Settings.ps1"
+& git config --global core.safecrlf false
+& git config --global user.email "$($vmAdminUsername)@$($hostName)"
+& git config --global user.name "$vmAdminUsername"
