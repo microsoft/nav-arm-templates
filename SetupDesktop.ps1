@@ -75,7 +75,13 @@ if ($disableVsCodeUpdate) {
 }
 
 Log "Creating Desktop Shortcuts"
-New-DesktopShortcut -Name "Landing Page" -TargetPath "http://${publicDnsName}" -IconLocation "C:\Program Files\Internet Explorer\iexplore.exe, 3"
+if ($AddTraefik -eq "Yes") {
+    $landingPageUrl = "http://${publicDnsName}:8180"
+}
+else {
+    $landingPageUrl = "http://${publicDnsName}"
+}
+New-DesktopShortcut -Name "Landing Page" -TargetPath $landingPageUrl -IconLocation "C:\Program Files\Internet Explorer\iexplore.exe, 3"
 New-DesktopShortcut -Name "Visual Studio Code" -TargetPath $codeExe
 New-DesktopShortcut -Name "PowerShell ISE" -TargetPath "C:\Windows\system32\WindowsPowerShell\v1.0\powershell_ise.exe" -WorkingDirectory "c:\demo"
 New-DesktopShortcut -Name "Command Prompt" -TargetPath "C:\Windows\system32\cmd.exe" -WorkingDirectory "c:\demo"

@@ -311,7 +311,6 @@
             "metadata": {
                 "Description": "Time of day on which the VM will be auto-shutdown (if enabled)."
             }
-        
         },
         "AddTraefik": {
 		    "type": "string",
@@ -392,7 +391,7 @@
     },
     "resources": [
 		{
-			"apiVersion": "2014-04-01-preview",
+			"apiVersion": "2014-04-01",
 			"type": "Microsoft.Sql/servers",
 			"name": "[variables('azureSqlServer')]",
 			"location": "[resourceGroup().location]",
@@ -407,8 +406,8 @@
 			},
 			"resources": [
 				{
-					"apiVersion": "2014-04-01-preview",
-					"type": "firewallrules",
+					"apiVersion": "2014-04-01",
+					"type": "firewallRules",
 					"name": "AllowAllAzureIps",
 					"location": "[resourceGroup().location]",
 					"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
@@ -421,7 +420,7 @@
 					}
 				},
 				{
-					"apiVersion": "2014-04-01-preview",
+					"apiVersion": "2014-04-01",
 					"type": "databases",
 					"name": "App",
 					"location": "[resourceGroup().location]",
@@ -440,7 +439,7 @@
 					},
 					"resources": [
 						{
-							"apiVersion": "2014-04-01-preview",
+							"apiVersion": "2014-04-01",
 							"type": "extensions",
 							"name": "Import",
 							"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('AppBacpacUri'),'')))]",
@@ -453,7 +452,7 @@
 							"properties": {
 								"storageKeyType": "SharedAccessKey",
 								"storageUri": "[split(variables('AppBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(variables('AppBacpacUri'),'?')[1])]",
+								"storageKey": "[if(contains(variables('AppBacpacUri'),'?'),concat('?',split(variables('AppBacpacUri'),'?')[1]),'')]",
 								"administratorLogin": "[variables('azureSqlAdminUsername')]",
 								"administratorLoginPassword": "[variables('adminPassword')]",
 								"operationMode": "Import"
@@ -462,7 +461,7 @@
 					]
 				},
 				{
-					"apiVersion": "2014-04-01-preview",
+					"apiVersion": "2014-04-01",
 					"type": "databases",
 					"name": "Tenant",
 					"location": "[resourceGroup().location]",
@@ -481,7 +480,7 @@
 					},
 					"resources": [
 						{
-							"apiVersion": "2014-04-01-preview",
+							"apiVersion": "2014-04-01",
 							"type": "extensions",
 							"name": "Import",
 							"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('TenantBacpacUri'),'')))]",
@@ -494,7 +493,7 @@
 							"properties": {
 								"storageKeyType": "SharedAccessKey",
 								"storageUri": "[split(variables('TenantBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(variables('TenantBacpacUri'),'?')[1])]",
+								"storageKey": "[if(contains(variables('TenantBacpacUri'),'?'),concat('?',split(variables('TenantBacpacUri'),'?')[1]),'')]",
 								"administratorLogin": "[variables('azureSqlAdminUsername')]",
 								"administratorLoginPassword": "[variables('adminPassword')]",
 								"operationMode": "Import"
