@@ -198,7 +198,7 @@
             "defaultValue": "No",
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
-                "Description": "Add traefik.io as reverse proxy"
+                "Description": "Add traefik.io as reverse proxy. When using traefik, you will find the landing page on http://publicdnsname:8180."
             }
         }
     },
@@ -453,6 +453,7 @@
                     },
                     {
                         "name": "Client",
+                        "condition": "[equals(variables('AddTraefik'),'No')]",
                         "properties": {
                             "description": "Access for Windows Client",
                             "protocol": "Tcp",
@@ -467,6 +468,7 @@
                     },
                     {
                         "name": "Soap",
+                        "condition": "[equals(variables('AddTraefik'),'No')]",
                         "properties": {
                             "description": "Access to Soap Web Services",
                             "protocol": "Tcp",
@@ -481,6 +483,7 @@
                     },
                     {
                         "name": "OData",
+                        "condition": "[equals(variables('AddTraefik'),'No')]",
                         "properties": {
                             "description": "Access to OData Services",
                             "protocol": "Tcp",
@@ -495,6 +498,7 @@
                     },
                     {
                         "name": "Developer",
+                        "condition": "[equals(variables('AddTraefik'),'No')]",
                         "properties": {
                             "description": "Access to Developer Services",
                             "protocol": "Tcp",
@@ -508,7 +512,7 @@
                         }
                     },
                     {
-                        "name": "Log",
+                        "name": "Traefik",
                         "properties": {
                             "description": "Access to status log if Traefik is used",
                             "protocol": "Tcp",
