@@ -110,22 +110,6 @@
                 "Description": "Optional: Specify a secure Url of your Partner License File. If you do not specify a license file Url here, you will have to upload the license manually later."
             }
         },
-        "EnableSymbolLoading": {
-		    "type": "string",
-            "defaultValue": "Yes",
-            "allowedValues": [ "Yes", "No" ],
-            "metadata": {
-                "Description": "EnableSymbolLoading to support hybrid development"
-            }
-        },
-        "ClickOnce": {
-		    "type": "string",
-            "defaultValue": "No",
-            "allowedValues": [ "Yes", "No" ],
-            "metadata": {
-                "Description": "Include ClickOnce deployed Windows Client"
-            }
-        },
         "EnableTaskScheduler": {
 		    "type": "string",
             "defaultValue": "Yes",
@@ -227,8 +211,8 @@
         "AssignPremiumPlan": "No",
         "CreateTestUsers": "No",
         "CreateAadUsers": "[parameters('CreateAadUsers')]",
-        "EnableSymbolLoading": "[parameters('EnableSymbolLoading')]",
-        "ClickOnce": "[parameters('ClickOnce')]",
+        "EnableSymbolLoading": "No",
+        "ClickOnce": "No",
         "EnableTaskScheduler": "[parameters('EnableTaskScheduler')]",
         "Office365UserName": "[parameters('Office365UserName')]",
         "Office365Password": "[parameters('Office365Password')]",
