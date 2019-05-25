@@ -17,7 +17,7 @@ param
        [string] $appBacpacUri              = "",
        [string] $tenantBacpacUri           = "",
        [string] $includeAppUris            = "",
-       [string] $enableSymbolLoading       = "Yes",
+       [string] $enableSymbolLoading       = "No",
        [string] $clickonce                 = "No",
        [string] $enableTaskScheduler       = "Default",
        [string] $licenseFileUri            = "",

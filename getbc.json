@@ -437,20 +437,6 @@
                         }
                     },
                     {
-                        "name": "Client",
-                        "properties": {
-                            "description": "Access for Windows Client",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "7046",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 230,
-                            "direction": "Inbound"
-                        }
-                    },
-                    {
                         "name": "Soap",
                         "properties": {
                             "description": "Access to Soap Web Services",
@@ -460,7 +446,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 240,
+                            "priority": 230,
                             "direction": "Inbound"
                         }
                     },
@@ -474,7 +460,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 250,
+                            "priority": 240,
                             "direction": "Inbound"
                         }
                     },
@@ -488,7 +474,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 260,
+                            "priority": 250,
                             "direction": "Inbound"
                         }
                     }
@@ -555,7 +541,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 270,
+                            "priority": 230,
                             "direction": "Inbound"
                         }
                     }
