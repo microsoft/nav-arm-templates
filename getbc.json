@@ -103,6 +103,22 @@
                 "Description": "Select the Business Central Docker Image to deploy. See https://hub.docker.com/r/microsoft/bconprem/ for a list of public images."
             }
         },
+        "AssignPremiumPlan": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Assign Premium Plan to admin user. This setting only makes sense for Sandbox images (mcr.microsoft.com/businesscentral/sandbox:*)."
+            }
+        },
+        "CreateTestUsers": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin). This setting only makes sense for Sandbox images (mcr.microsoft.com/businesscentral/sandbox:*)."
+            }
+        },
         "LicenseFileUri": {
             "type": "string",
             "defaultValue": "",
@@ -208,8 +224,8 @@
         "CertificatePfxPassword": "",
         "PublicDnsName": "",
         "Multitenant": "No",
-        "AssignPremiumPlan": "No",
-        "CreateTestUsers": "No",
+        "AssignPremiumPlan": "[parameters('AssignPremiumPlan')]",
+        "CreateTestUsers": "[parameters('CreateTestUsers')]",
         "CreateAadUsers": "[parameters('CreateAadUsers')]",
         "EnableSymbolLoading": "No",
         "ClickOnce": "No",

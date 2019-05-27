@@ -135,6 +135,22 @@
                 "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/bconprem:<tag>)"
             }
         },
+        "AssignPremiumPlan": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Assign Premium Plan to admin user. This setting only makes sense for Sandbox images (mcr.microsoft.com/businesscentral/sandbox:*)."
+            }
+        },
+        "CreateTestUsers": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin). This setting only makes sense for Sandbox images (mcr.microsoft.com/businesscentral/sandbox:*)."
+            }
+        },
         "LicenseFileUri": {
             "type": "string",
             "defaultValue": "",
@@ -320,8 +336,8 @@
         "CertificatePfxPassword": "[parameters('CertificatePfxPassword')]",
         "PublicDnsName": "[parameters('PublicDnsName')]",
         "Multitenant": "[parameters('Multitenant')]",
-        "AssignPremiumPlan": "No",
-        "CreateTestUsers": "No",
+        "AssignPremiumPlan": "[parameters('AssignPremiumPlan')]",
+        "CreateTestUsers": "[parameters('CreateTestUsers')]",
         "CreateAadUsers": "[parameters('CreateAadUsers')]",
         "EnableSymbolLoading": "No",
         "ClickOnce": "No",
