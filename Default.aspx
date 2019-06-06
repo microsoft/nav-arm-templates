@@ -38,7 +38,7 @@ private string createQrImg(string link, string title, int width = 100, int heigh
 private string getLandingPageUrl()
 {
   if (isTraefikUsed())
-    return getHostname() + ":8180";
+    return getHostname() + "/landing";
   else
     return getHostname();
 }

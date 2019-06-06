@@ -184,7 +184,7 @@ New-Item $winPsFolder -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 
 Log "Adding Landing Page to Startup Group"
 if ($AddTraefik -eq "Yes") {
-    $landingPageUrl = "http://${publicDnsName}:8180"
+    $landingPageUrl = "http://${publicDnsName}/landing"
 }
 else {
     $landingPageUrl = "http://${publicDnsName}"

@@ -76,7 +76,7 @@ if ($disableVsCodeUpdate) {
 
 Log "Creating Desktop Shortcuts"
 if ($AddTraefik -eq "Yes") {
-    $landingPageUrl = "http://${publicDnsName}:8180"
+    $landingPageUrl = "http://${publicDnsName}/landing"
 }
 else {
     $landingPageUrl = "http://${publicDnsName}"

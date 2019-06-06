@@ -13,7 +13,7 @@ private string getHostname()
 private string getLandingPageUrl()
 {
   if (isTraefikUsed())
-    return getHostname() + ":8180";
+    return getHostname() + "/landing";
   else
     return getHostname();
 }

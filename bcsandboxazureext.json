@@ -595,20 +595,6 @@
                             "priority": 260,
                             "direction": "Inbound"
                         }
-                    },
-                    {
-                        "name": "Log",
-                        "properties": {
-                            "description": "Access to status log if Traefik is used",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "8180",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 270,
-                            "direction": "Inbound"
-                        }
                     }
                 ]
             }

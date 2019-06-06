@@ -198,7 +198,7 @@
             "defaultValue": "No",
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
-                "Description": "Add traefik.io as reverse proxy. When using traefik, you will find the landing page on http://publicdnsname:8180."
+                "Description": "Add traefik.io as reverse proxy. When using traefik, you will find the landing page on https://publicdnsname/landing."
             }
         }
     },
@@ -504,20 +504,6 @@
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
                             "priority": 260,
-                            "direction": "Inbound"
-                        }
-                    },
-                    {
-                        "name": "Log",
-                        "properties": {
-                            "description": "Access to status log if Traefik is used",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "8180",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 270,
                             "direction": "Inbound"
                         }
                     }
