@@ -386,8 +386,7 @@
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
             "sku": {
-                "name": "[variables('storageAccountType')]",
-                "restrictions": []
+                "name": "[variables('storageAccountType')]"
             },
             "kind": "StorageV2",
             "location": "[resourceGroup().location]",
