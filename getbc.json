@@ -726,10 +726,7 @@
                         "managedDisk": {
                           "storageAccountType": "[variables('storageAccountType')]"
                         },
-                        "diskSizeGB": 128,
-                        "encryptionSettings": {
-                            "enabled": true
-                        }
+                        "diskSizeGB": 128
                     }
                 },
                 "networkProfile": {
