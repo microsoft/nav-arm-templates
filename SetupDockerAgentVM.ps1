@@ -52,6 +52,7 @@ New-ItemProperty -Path "HKCU:\Software\Microsoft\ServerManager" -Name "DoNotOpen
 Login-Docker -registry "$registry1" -registryUsername "$registry1username" -registryPassword "$registry1password"
 Login-Docker -registry "$registry2" -registryUsername "$registry2username" -registryPassword "$registry2password"
 Login-Docker -registry "$registry3" -registryUsername "$registry3username" -registryPassword "$registry3password"
+Login-Docker -registry "$registry4" -registryUsername "$registry4username" -registryPassword "$registry4password"
 
 if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
     schtasks /DELETE /TN SetupStart /F | Out-Null
