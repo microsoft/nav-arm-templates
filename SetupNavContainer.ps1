@@ -1,6 +1,6 @@
 ﻿if (!(Test-Path function:Log)) {
     function Log([string]$line, [string]$color = "Gray") {
-        ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt" -ErrorAction SilentlyContinue
+        ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt"
         Write-Host -ForegroundColor $color $line 
     }
 }
@@ -82,10 +82,15 @@ Log "Locale $locale"
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
-$params = @{ "enableSymbolLoading" = $true 
-             "licensefile" = "$licensefileuri"
-             "publishPorts" = @(8080,443,7046,7047,7048,7049)
+$params = @{ "licensefile" = "$licensefileuri"
              "publicDnsName" = $publicDnsName }
+
+if ($AddTraefik -eq "Yes") {
+    $params += @{ "useTraefik" = $true }
+}
+else {
+    $params.Add("publishPorts", @(8080,443,7046,7047,7048,7049))
+}
 
 $additionalParameters = @("--env RemovePasswordKeyFile=N",
                           "--storage-opt size=100GB")
@@ -113,16 +118,16 @@ if ("$enableTaskScheduler" -eq "Yes") {
     $additionalParameters += @("--env CustomNavSettings=EnableTaskScheduler=false")
 }
 
+if ($enableSymbolLoading -eq "Yes") {
+    $params += @{ "enableSymbolLoading" = $true }
+}
+
 if ($multitenant -eq "Yes") {
     $params += @{ "multitenant" = $true }
 }
 
 if ($assignPremiumPlan -eq "Yes") {
     $params += @{ "assignPremiumPlan" = $true }
-}
-
-if ($sqlServerType -eq "AzureSQL") {
-    $additionalParameters += @("--env CustomNavSettings=EnableDeadlockMonitoring=false")
 }
 
 $myScripts = @()
@@ -150,35 +155,14 @@ try {
     throw
 }
 
-if ($sqlServerType -eq "AzureSQL") {
-    if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
-        Log "Importing c:\demo\objects.fob to container"
-        Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $azureSqlCredential
-    }
-    New-NavContainerTenant -containerName $containerName -tenantId "default" -sqlCredential $azureSqlCredential
-    New-NavContainerNavUser -containerName $containerName -tenant "default" -Credential $credential -AuthenticationEmail $Office365UserName -ChangePasswordAtNextLogOn:$false -PermissionSetId "SUPER"
-} else {
-    if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
-        Log "Importing c:\demo\objects.fob to container"
-        $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
-        Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $sqlCredential
-    }
-}
-
-#region Moved for AzureSQL, default database is not yet there and the tenant is not mounted.
 if ($auth -eq "AAD") {
     if (([System.Version]$navVersion).Major -lt 13) {
         $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
         Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
         $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
-
-        if($sqlServerType -eq 'AzureSQL'){
-            $sqlCredential = $azureSqlCredential
-        }
-
         Import-ObjectsToNavContainer -containerName $containerName -objectsFile $fobfile -sqlCredential $sqlCredential
         Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName SetupAzureAdApp -Argument ($AdProperties.PowerBiAdAppId+','+$AdProperties.PowerBiAdAppKeyValue)
-    }
+    } 
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
         Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
@@ -198,7 +182,7 @@ if ($auth -eq "AAD") {
 }
 
 if ($CreateTestUsers -eq "Yes") {
-    Setup-NavContainerTestUsers -containerName $containerName -tenant "default" -password $credential.Password
+    Setup-NavContainerTestUsers -containerName $containerName -tenant "default" -password $credential.Password -credential $credential
 }
 
 if ($CreateAadUsers -eq "Yes" -and $Office365UserName -ne "" -and $Office365Password -ne "") {
@@ -207,7 +191,25 @@ if ($CreateAadUsers -eq "Yes" -and $Office365UserName -ne "" -and $Office365Pass
     $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
     Create-AadUsersInNavContainer -containerName $containerName -tenant "default" -AadAdminCredential $Office365Credential -permissionSetId SUPER -securePassword $securePassword
 }
-#endregion
+
+if ($sqlServerType -eq "AzureSQL") {
+    if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
+        Log "Importing c:\demo\objects.fob to container"
+        Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $azureSqlCredential
+    }
+    # Check for Multitenant & Included "-ErrorAction Continue" to prevent an exit
+    if ($multitenant -eq "Yes") {
+        New-NavContainerTenant -containerName $containerName -tenantId "default" -sqlCredential $azureSqlCredential -ErrorAction Continue
+    }    
+    # Included "-ErrorAction Continue" to prevent an exit
+    New-NavContainerNavUser -containerName $containerName -tenant "default" -Credential $credential -AuthenticationEmail $Office365UserName -ChangePasswordAtNextLogOn:$false -PermissionSetId "SUPER" -ErrorAction Continue
+} else {
+    if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
+        Log "Importing c:\demo\objects.fob to container"
+        $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
+        Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $sqlCredential
+    }
+}
 
 if ("$includeappUris".Trim() -ne "") {
     foreach($includeApp in "$includeAppUris".Split(',;')) {
@@ -218,10 +220,10 @@ if ("$includeappUris".Trim() -ne "") {
 if ("$bingmapskey" -ne "") {
 
     $appFile = switch (([System.Version]$navVersion).Major) {
+     9 { "" }
+    10 { "" }
     11 { "http://aka.ms/bingmaps11.app" }
-    12 { "http://aka.ms/bingmaps.app" }
-    13 { "http://aka.ms/bingmaps.app" }
-    default { "" }
+    default { "http://aka.ms/bingmaps.app" }
     }
 
     if ($appFile -eq "") {

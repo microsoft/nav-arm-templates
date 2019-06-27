@@ -12,7 +12,14 @@ private string getHostname()
 }
 private string getLandingPageUrl()
 {
-  return "http://"+getHostname();
+  if (isTraefikUsed())
+    return getHostname() + ":8180";
+  else
+    return getHostname();
+}
+private bool isTraefikUsed()
+{
+  return System.IO.File.Exists(@"c:\programdata\navcontainerhelper\traefikforbc\traefik.txt");
 }
 </script>
 <%
@@ -50,15 +57,15 @@ function refresh()
 </head>
 <body onload="JavaScript:timeRefresh(10000);">
 <p>
-<a href="<%=getLandingPageUrl() %>">View Landing Page</a>&nbsp;&nbsp;
+<a href="http://<%=getLandingPageUrl() %>">View Landing Page</a>&nbsp;&nbsp;
 <%
 if (Request.Url.AbsoluteUri.Contains("norefresh")) {
 %>
-  <a href="<%=getLandingPageUrl() %>/status.aspx">Enable refresh</a>&nbsp;&nbsp;
+  <a href="http://<%=getLandingPageUrl() %>/status.aspx">Enable refresh</a>&nbsp;&nbsp;
 <%
 } else {
 %>
-  <a href="<%=getLandingPageUrl() %>/status.aspx?norefresh">Disable refresh</a>
+  <a href="http://<%=getLandingPageUrl() %>/status.aspx?norefresh">Disable refresh</a>
 <%
 }
 %>

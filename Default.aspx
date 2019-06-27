@@ -37,12 +37,19 @@ private string createQrImg(string link, string title, int width = 100, int heigh
 
 private string getLandingPageUrl()
 {
-  return getHostname();
+  if (isTraefikUsed())
+    return getHostname() + ":8180";
+  else
+    return getHostname();
 }
 
 private string getConfigureAppUrl()
 {
-  var url = "ms-dynamicsnav://"+getHostname()+"/nav";
+  var url = "";
+  if (isTraefikUsed())
+    url = "ms-dynamicsnav://"+getHostname()+"/navserver";
+  else
+    url = "ms-dynamicsnav://"+getHostname()+"/nav";
   if (isMultitenant()) 
     {
       url += "?tenant=default";
@@ -144,7 +151,7 @@ private string getODataBaseUrl()
 {
   if (GetCustomSettings())
   {
-    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant();
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant()+"/";
     if (isMultitenant()) 
     {
       url += "?tenant=default";
@@ -195,6 +202,25 @@ private string getApisBaseUrl()
   return "";
 }
 
+private string getApisSampleUrl()
+{
+  System.Version version = System.Version.Parse("1.0.0.0");
+  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt"))
+  {
+    version = System.Version.Parse(System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt").Trim());
+  }
+  var query = "/microsoft/automation/beta/companies";
+  if (version.Major >= 14) {
+    query = "/v1.0/companies";
+  }
+  var url = getApisBaseUrl();
+  var idx = url.IndexOf('?');
+  if (idx < 0) {
+    idx = url.Length;
+  }
+  return url.Insert(idx, query);
+}
+
 private bool isHttps()
 {
   return getWebBaseUrl().StartsWith("https://");
@@ -211,6 +237,10 @@ private string getCompanyName()
 
 private string getServerInstance()
 {
+  if (isTraefikUsed())
+  {
+    return "navserverdev";
+  }
   if (GetCustomSettings())
   {
     return customSettings.SelectSingleNode("//appSettings/add[@key='ServerInstance']").Attributes["value"].Value;
@@ -230,6 +260,11 @@ private string getAzureSQL()
     return "SQL Server<br />"+DatabaseServer+DatabaseInstance+"<br />"+DatabaseName;
   }
   return "";
+}
+
+private bool isTraefikUsed()
+{
+  return System.IO.File.Exists(@"c:\programdata\navcontainerhelper\traefikforbc\traefik.txt");
 }
 
 </script>
@@ -375,7 +410,7 @@ function refresh()
     </tr>
     <tr><td colspan="4"><img src="line.png" width="100%" height="14"></td></tr>
 <%
-    if (GetCustomSettings() && File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\Certificate.cer")) {
+    if (GetCustomSettings() && File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\Certificate.cer") && ! isTraefikUsed()) {
 %>
     <tr><td colspan="4"><h3>Download Self Signed Certificate</h3></td></tr>
     <tr>
@@ -505,25 +540,34 @@ You can view the installation status by following this link.
       <td></td>
       <td style="white-space: nowrap"><a href="javascript:alert('<% =getApisBaseUrl() %>/')" target="_blank">View API base URL</a></td>
 	</tr><tr>
-      <td colspan="3">Example: <a href="<% =getApisBaseUrl() %>/microsoft/automation/beta/companies" target="_blank"><% =getApisBaseUrl() %>/microsoft/automation/beta/companies</a></td>
+      <td colspan="3">Example: <a href="<% =getApisSampleUrl() %>" target="_blank"><% =getApisSampleUrl() %></a></td>
       <td></td>
     </tr>
 <%
     }
     var vsix = System.IO.Directory.GetFiles(@"c:\programdata\navcontainerhelper\extensions\navserver", "*.vsix");
     if (vsix.Length == 1) {
+      var vsixURL = "";
+      if (isTraefikUsed())
+        vsixURL = "https://"  + getHostname() + "/navserverdl/" + System.IO.Path.GetFileName(vsix[0]);
+      else 
+        vsixURL = "http://" + getLandingPageUrl() + ":8080/" + System.IO.Path.GetFileName(vsix[0]);
 %>    
     <tr><td colspan="4"><h3>Access the <%=getProduct() %> using Visual Studio Code</h3></td></tr>
     <tr>
       <td colspan="2">Download the AL Language Customization for Visual Studio Code (.vsix)</td>
       <td></td>  
-      <td style="white-space: nowrap"><a href="http://<%=getLandingPageUrl() %>:8080/<% =System.IO.Path.GetFileName(vsix[0]) %>"><% =System.IO.Path.GetFileNameWithoutExtension(vsix[0]) %></a></td>
+      <td style="white-space: nowrap"><a href="<%=vsixURL %>"><% =System.IO.Path.GetFileNameWithoutExtension(vsix[0]) %></a></td>
     </tr>
     <tr><td colspan="4">launch.json settings:</td></tr>
     <tr><td colspan="4" style="font-family: Courier, Monaco, monospace">&nbsp;&nbsp;"server": "https://<%=getHostname() %>",<br>
-      &nbsp;&nbsp;"serverInstance": "NAV",<br>
+      &nbsp;&nbsp;"serverInstance": "<%=getServerInstance() %>",<br>
       &nbsp;&nbsp;"tenant": "<%=getTenant() %>",<br>
-      &nbsp;&nbsp;"authentication": "UserPassword",</td></tr>
+      &nbsp;&nbsp;"authentication": "UserPassword",
+      <% if (isTraefikUsed()) { %>
+        <br>&nbsp;&nbsp;"port": 443,
+      <% } %>
+    </td></tr>
 <%
     }
   }

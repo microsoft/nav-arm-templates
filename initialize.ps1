@@ -17,6 +17,7 @@ param
        [string] $appBacpacUri              = "",
        [string] $tenantBacpacUri           = "",
        [string] $includeAppUris            = "",
+       [string] $enableSymbolLoading       = "Yes",
        [string] $clickonce                 = "No",
        [string] $enableTaskScheduler       = "Default",
        [string] $licenseFileUri            = "",
@@ -39,7 +40,8 @@ param
        [string] $Office365Password         = "",
        [string] $Office365CreatePortal     = "No",
        [string] $requestToken              = "",
-       [string] $createStorageQueue        = ""
+       [string] $createStorageQueue        = "",
+       [string] $AddTraefik                = "No"
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -96,6 +98,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "appBacpacUri"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "tenantBacpacUri"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "includeAppUris"         | Add-Content $settingsScript
+    Get-VariableDeclaration -name "enableSymbolLoading"    | Add-Content $settingsScript
     Get-VariableDeclaration -name "clickonce"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "enableTaskScheduler"    | Add-Content $settingsScript
     Get-VariableDeclaration -name "licenseFileUri"         | Add-Content $settingsScript
@@ -113,6 +116,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "BingMapsKey"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "RequestToken"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "CreateStorageQueue"     | Add-Content $settingsScript
+    Get-VariableDeclaration -name "AddTraefik"             | Add-Content $settingsScript
 
     $passwordKey = New-Object Byte[] 16
     [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
@@ -271,6 +275,26 @@ if ($scriptPath.ToLower().EndsWith("/dev/")) {
     Log ("Using Nav Container Helper version "+(get-module NavContainerHelper).Version.ToString())
 }
 
+if ($AddTraefik -eq "Yes") {
+
+    if (-not $ContactEMailForLetsEncrypt) {
+        Log -color Red "Contact EMail for LetsEncrypt not specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($clickonce -eq "Yes") {
+        Log -color Red "ClickOnce specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($AddTraefik -eq "Yes") {
+        Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
+    }
+    else {
+        Get-VariableDeclaration -name "AddTraefik" | Add-Content $settingsScript
+    }
+}
+
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
     Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"
 
@@ -293,7 +317,7 @@ Write-Host "DNS identity $dnsidentity"
 ('Write-Host "DNS identity $dnsidentity"
 ') | Set-Content "c:\myfolder\AdditionalSetup.ps1"
 
-} elseif ("$ContactEMailForLetsEncrypt" -ne "") {
+} elseif ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
 
     Log "Using Lets Encrypt certificate"
     # Use Lets encrypt

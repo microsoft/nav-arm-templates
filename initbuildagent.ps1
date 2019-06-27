@@ -22,7 +22,6 @@ param
 
 function Download-File([string]$sourceUrl, [string]$destinationFile)
 {
-    Log "Downloading $destinationFile"
     Remove-Item -Path $destinationFile -Force -ErrorAction Ignore
     (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
 }
@@ -71,5 +70,4 @@ if ($finalSetupScriptUrl) {
     . $finalSetupScript
 }
 
-Restart-Computer -force
-
+Shutdown -r -t 60
