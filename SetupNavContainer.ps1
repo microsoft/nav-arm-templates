@@ -122,6 +122,13 @@ if ($enableSymbolLoading -eq "Yes") {
     $params += @{ "enableSymbolLoading" = $true }
 }
 
+if ($includeCSIDE -eq "Yes") {
+    $params += @{ 
+        "includeCSIDE" = $true
+        "doNotExportObjectsToText" = $true
+    }
+}
+
 if ($multitenant -eq "Yes") {
     $params += @{ "multitenant" = $true }
 }
@@ -140,8 +147,6 @@ try {
                      -useSSL `
                      -updateHosts `
                      -auth $Auth `
-                     -includeCSide `
-                     -doNotExportObjectsToText `
                      -authenticationEMail $Office365UserName `
                      -credential $credential `
                      -useBestContainerOS `
