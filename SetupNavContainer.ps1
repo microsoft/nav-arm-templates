@@ -129,6 +129,13 @@ if ($includeCSIDE -eq "Yes") {
     }
 }
 
+if ($includeAL -eq "Yes") {
+    $params += @{ 
+        "includeAL" = $true
+        "doNotExportObjectsToText" = $true
+    }
+}
+
 if ($multitenant -eq "Yes") {
     $params += @{ "multitenant" = $true }
 }
