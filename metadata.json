@@ -1,0 +1,7 @@
+{
+    "itemDisplayName": "Microsoft Dynamics 365 Business Central",
+    "description": "This template deploys an Azure VM with Docker installed and runs the specified Business Central container in the VM. Setup can be configured through parameters.",
+    "summary": "",
+    "githubUsername": "FreddyK",
+    "dateUpdated": "2019-06-14"
+  }

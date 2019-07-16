@@ -24,7 +24,10 @@ param
     [string] $registry2password = "",
     [string] $registry3 = "",
     [string] $registry3username = "",
-    [string] $registry3password = ""
+    [string] $registry3password = "",
+    [string] $registry4 = "",
+    [string] $registry4username = "",
+    [string] $registry4password = ""
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -65,12 +68,14 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "registry2username"      | Add-Content $settingsScript
     Get-VariableDeclaration -name "registry3"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "registry3username"      | Add-Content $settingsScript
+    Get-VariableDeclaration -name "registry4"              | Add-Content $settingsScript
+    Get-VariableDeclaration -name "registry4username"      | Add-Content $settingsScript
 
     $passwordKey = New-Object Byte[] 16
     [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($passwordKey)
     ('$passwordKey = [byte[]]@('+"$passwordKey".Replace(" ",",")+')') | Add-Content $settingsScript
 
-    'adminPassword','StorageAccountKey','registry1password','registry2password','registry3password' | % {
+    'adminPassword','StorageAccountKey','registry1password','registry2password','registry3password','registry4password' | % {
         $var = Get-Variable -Name $_
         $securePassword = ConvertTo-SecureString -String $var.Value -AsPlainText -Force
         $encPassword = ConvertFrom-SecureString -SecureString $securePassword -Key $passwordKey

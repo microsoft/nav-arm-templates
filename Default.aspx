@@ -375,7 +375,12 @@ function show(selected) {
 
 function timeRefresh(timeoutPeriod) 
 {
-  setTimeout("refresh();",timeoutPeriod);
+  if (window.location.protocol == "https:") {
+    window.location.href = "http://<%=getLandingPageUrl() %>"
+  }
+  else {
+    setTimeout("refresh();",timeoutPeriod);
+  }
 }
 
 function refresh() 
