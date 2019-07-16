@@ -131,7 +131,7 @@
         },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "microsoft/bcsandbox:us",
+            "defaultValue": "mcr.microsoft.com/businesscentral/sandbox:us",
             "minLength": 1,
             "metadata": {
                 "Description": "Select the BcSandbox Docker Image to deploy. See https://hub.docker.com/r/microsoft/bcsandbox/ for a list of public images."
@@ -259,12 +259,16 @@
     },
     "resources": [
         {
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2019-04-01",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
+            "sku": {
+                "name": "[variables('storageAccountType')]"
+            },
+            "kind": "StorageV2",
             "location": "[resourceGroup().location]",
             "properties": {
-                "accountType": "[variables('storageAccountType')]"
+                "supportsHttpsTrafficOnly": true
             }
         },
         {
@@ -482,15 +486,19 @@
             }
         },
         {
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2018-11-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_nic')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIPAddresses/', parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')]",
-                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
             ],
             "properties": {
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                },
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",

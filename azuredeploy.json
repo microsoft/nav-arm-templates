@@ -91,12 +91,12 @@
                 "Description": "Specify administrator user name for connecting to the VM"
             }
         },
-        "navAdminUsername": {
+        "BCAdminUsername": {
             "type": "string",
             "defaultValue": "admin",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify administrator user name for BC Sandbox"
+                "Description": "Specify administrator user name for Business Central"
             }
         },
 		"azureSqlAdminUsername": {
@@ -110,52 +110,52 @@
             "type": "securestring",
 			"defaultValue": "",
             "metadata": {
-                "Description": "Specify administrator password for VM, BC Sandbox and SQL (if applicable)"
+                "Description": "Specify administrator password for VM, Business Central and SQL (if applicable)"
             }
         },
-        "navDockerImage": {
+        "BCDockerImage": {
             "type": "string",
-            "defaultValue": "microsoft/bcsandbox:us",
+            "defaultValue": "mcr.microsoft.com/businesscentral/onprem",
             "minLength": 1,
             "metadata": {
-                "Description": "Select the BcSandbox Docker Image to deploy. For insider builds, please obtain docker image and username/password from Collaborate (https://developer.microsoft.com/en-us/dashboard/collaborate/)"
+                "Description": "Select the Docker Image to deploy. See https://hub.docker.com/r/microsoft/bconprem/ for a list of public images."
             }
         },
         "registryUsername": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/bcsandbox)"
+                "Description": "Specify username for private Docker Registry (leave blank for public Docker hub == microsoft/bconprem:<tag>)"
             }
         },
         "registryPassword": {
             "type": "securestring",
             "defaultValue": "",
             "metadata": {
-                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/bcsandbox)"
+                "Description": "Specify password for private Docker Registry (leave blank for public Docker hub == microsoft/bconprem:<tag>)"
+            }
+        },
+        "AssignPremiumPlan": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Assign Premium Plan to admin user. This setting only makes sense for Sandbox images (mcr.microsoft.com/businesscentral/sandbox:*)."
+            }
+        },
+        "CreateTestUsers": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin). This setting only makes sense for Sandbox images (mcr.microsoft.com/businesscentral/sandbox:*)."
             }
         },
         "LicenseFileUri": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Optional: Specify a secure Url of your Partner License File for BC Sandbox. If you do not specify a license file Url here, you will have to upload the license manually later."
-            }
-        },
-        "AssignPremiumPlan": {
-		    "type": "string",
-            "defaultValue": "Yes",
-            "allowedValues": [ "Yes", "No" ],
-            "metadata": {
-                "Description": "Assign Premium Plan to admin user"
-            }
-        },
-        "CreateTestUsers": {
-		    "type": "string",
-            "defaultValue": "Yes",
-            "allowedValues": [ "Yes", "No" ],
-            "metadata": {
-                "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin)."
+                "Description": "Optional: Specify a secure Url of your Partner License File. If you do not specify a license file Url here, you will have to upload the license manually later."
             }
         },
         "SQLServerType": {
@@ -163,7 +163,7 @@
             "defaultValue": "SQLExpress",
             "allowedValues": [ "SQLExpress", "AzureSQL" ],
             "metadata": {
-                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost and you will need to specify App and Tenant Bacpac Uris as Azure Storage Shared Access Signature Urls."
+                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of the Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost and you will need to specify App and Tenant Bacpac Uris as Azure Storage Shared Access Signature Urls."
             }
         },
         "AppBacpacUri": {
@@ -187,12 +187,20 @@
                 "Description": "Optional: Specify a list of secure Urls of apps to be published and installed."
             }
         },
+        "EnableTaskScheduler": {
+		    "type": "string",
+            "defaultValue": "Yes",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Enable Task Scheduler in Container"
+            }
+        },
         "Multitenant": {
 		    "type": "string",
             "defaultValue": "No",
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
-                "Description": "Should BC Sandbox be setup for multi tenancy"
+                "Description": "Should Business Central be setup for multi tenancy"
             }
         },
 		"Office365UserName": {
@@ -221,14 +229,14 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Optional: Specify a secure Url of your Certificate Pfx File. If you do not specify a certificate, you will get a Self Signed Certificate."
+                "Description": "Optional: Specify a secure Url of your Certificate Pfx File. If you do not specify a certificate, you will get a Self Signed Certificate. Note: This will not work with Traefik."
             }
         },
         "CertificatePfxPassword": {
             "type": "securestring",
             "defaultValue": "",
             "metadata": {
-                "Description": "Optional: Password for Certificate Pfx File. If you do not specify a certificate password, you will get a Self Signed Certificate."
+                "Description": "Optional: Password for Certificate Pfx File. If you do not specify a certificate password, you will get a Self Signed Certificate. Note: This will not work with Traefik."
             }
         },
         "PublicDnsName": {
@@ -245,6 +253,13 @@
                 "Description": "Optional: Specify a Url to a PowerShell script that should be executed on the VM to do the final setup of the VM."
             }
         },
+		"BingMapsKey": {
+			"type": "string",
+			"defaultValue": "",
+			"metadata": {
+				"Description": "Bing Maps Key for Bing Maps Integration App installation (leave empty to skip Bing Maps Integration)"
+			}
+		},
 		"RequestToken": {
 			"type": "string",
 			"defaultValue": "",
@@ -252,6 +267,14 @@
 				"Description": "Request Token for http request service allowing predefined commands to be invoked through a simple http request"
 			}
 		},
+        "CreateStorageQueue": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Create storage queue and listen to messages in the queue for predefined commands to be invoked"
+            }
+        },
         "RunWindowsUpdate": {
 		    "type": "string",
             "defaultValue": "No",
@@ -281,6 +304,14 @@
             "metadata": {
                 "Description": "Time of day on which the VM will be auto-shutdown (if enabled)."
             }
+        },
+        "AddTraefik": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Add traefik.io as reverse proxy. When using traefik, you will find the landing page on http://publicdnsname:8180."
+            }
         }
     },
     "variables": {
@@ -290,10 +321,10 @@
         "vmSize": "[parameters('vmSize')]",
         "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
-        "navAdminUsername": "[trim(parameters('navAdminUsername'))]",
+        "navAdminUsername": "[trim(parameters('BCAdminUsername'))]",
 		"azureSqlAdminUsername": "[trim(parameters('azureSqlAdminUsername'))]",
         "adminPassword": "[parameters('adminPassword')]",
-        "navDockerImage": "[trim(parameters('navDockerImage'))]",
+        "navDockerImage": "[trim(parameters('BCDockerImage'))]",
         "registryUsername": "[parameters('registryUsername')]",
         "registryPassword": "[parameters('registryPassword')]",
         "LicenseFileUri": "[parameters('LicenseFileUri')]",
@@ -308,17 +339,20 @@
         "AssignPremiumPlan": "[parameters('AssignPremiumPlan')]",
         "CreateTestUsers": "[parameters('CreateTestUsers')]",
         "CreateAadUsers": "[parameters('CreateAadUsers')]",
-        "EnableSymbolLoading": "Yes",
+        "EnableSymbolLoading": "No",
         "ClickOnce": "No",
-        "EnableTaskScheduler": "Default",
+        "EnableTaskScheduler": "[parameters('EnableTaskScheduler')]",
         "Office365UserName": "[parameters('Office365UserName')]",
         "Office365Password": "[parameters('Office365Password')]",
+        "BingMapsKey": "[parameters('BingMapsKey')]",
         "RequestToken": "[parameters('RequestToken')]",
+        "CreateStorageQueue": "[parameters('CreateStorageQueue')]",
         "FinalSetupScriptUrl": "[parameters('FinalSetupScriptUrl')]",
         "RunWindowsUpdate": "[parameters('RunWindowsUpdate')]",
         "ContactEMailForLetsEncrypt": "[parameters('ContactEMailForLetsEncrypt')]",
         "AutoShutdown": "[parameters('AutoShutdown')]",
         "AutoShutdownTime": "[parameters('AutoShutdownTime')]",
+        "AddTraefik": "[parameters('AddTraefik')]",
         "style": "demo",
         "OperatingSystem": "[parameters('OperatingSystem')]",
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
@@ -326,9 +360,10 @@
         "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
         "storageAccountType": "[parameters('StorageAccountType')]",
         "OSDiskName": "[concat(variables('vmName'),'_osdisk')]",
+        "vmStorageAccountContainerName": "vhds",
         "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
-        "networkSecurityGroupName": "networksecuritygroup",
+        "networkSecurityGroupName": "[concat('networksecuritygroup',if(equals(parameters('AddTraefik'),'Yes'),'_traefik',''))]",
         "dnsName": "[tolower(variables('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
@@ -349,7 +384,7 @@
     },
     "resources": [
 		{
-			"apiVersion": "2014-04-01-preview",
+			"apiVersion": "2014-04-01",
 			"type": "Microsoft.Sql/servers",
 			"name": "[variables('azureSqlServer')]",
 			"location": "[resourceGroup().location]",
@@ -364,8 +399,8 @@
 			},
 			"resources": [
 				{
-					"apiVersion": "2014-04-01-preview",
-					"type": "firewallrules",
+					"apiVersion": "2014-04-01",
+					"type": "firewallRules",
 					"name": "AllowAllAzureIps",
 					"location": "[resourceGroup().location]",
 					"condition": "[equals(variables('sqlServerType'),'AzureSQL')]",
@@ -378,7 +413,7 @@
 					}
 				},
 				{
-					"apiVersion": "2014-04-01-preview",
+					"apiVersion": "2014-04-01",
 					"type": "databases",
 					"name": "App",
 					"location": "[resourceGroup().location]",
@@ -397,7 +432,7 @@
 					},
 					"resources": [
 						{
-							"apiVersion": "2014-04-01-preview",
+							"apiVersion": "2014-04-01",
 							"type": "extensions",
 							"name": "Import",
 							"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('AppBacpacUri'),'')))]",
@@ -410,7 +445,7 @@
 							"properties": {
 								"storageKeyType": "SharedAccessKey",
 								"storageUri": "[split(variables('AppBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(variables('AppBacpacUri'),'?')[1])]",
+								"storageKey": "[if(contains(variables('AppBacpacUri'),'?'),concat('?',split(variables('AppBacpacUri'),'?')[1]),'')]",
 								"administratorLogin": "[variables('azureSqlAdminUsername')]",
 								"administratorLoginPassword": "[variables('adminPassword')]",
 								"operationMode": "Import"
@@ -419,7 +454,7 @@
 					]
 				},
 				{
-					"apiVersion": "2014-04-01-preview",
+					"apiVersion": "2014-04-01",
 					"type": "databases",
 					"name": "Tenant",
 					"location": "[resourceGroup().location]",
@@ -438,7 +473,7 @@
 					},
 					"resources": [
 						{
-							"apiVersion": "2014-04-01-preview",
+							"apiVersion": "2014-04-01",
 							"type": "extensions",
 							"name": "Import",
 							"condition": "[and(equals(variables('sqlServerType'),'AzureSQL'),not(equals(variables('TenantBacpacUri'),'')))]",
@@ -451,7 +486,7 @@
 							"properties": {
 								"storageKeyType": "SharedAccessKey",
 								"storageUri": "[split(variables('TenantBacpacUri'),'?')[0]]",
-								"storageKey": "[concat('?',split(variables('TenantBacpacUri'),'?')[1])]",
+								"storageKey": "[if(contains(variables('TenantBacpacUri'),'?'),concat('?',split(variables('TenantBacpacUri'),'?')[1]),'')]",
 								"administratorLogin": "[variables('azureSqlAdminUsername')]",
 								"administratorLoginPassword": "[variables('adminPassword')]",
 								"operationMode": "Import"
@@ -462,12 +497,16 @@
 			]
 		},
         {
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2019-04-01",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
+            "sku": {
+                "name": "[variables('storageAccountType')]"
+            },
+            "kind": "StorageV2",
             "location": "[resourceGroup().location]",
             "properties": {
-                "accountType": "[variables('storageAccountType')]"
+                "supportsHttpsTrafficOnly": true
             }
         },
         {
@@ -485,7 +524,8 @@
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "[variables('networkSecurityGroupName')]",
+            "name": "networkSecurityGroup",
+			"condition": "[equals(variables('AddTraefik'),'No')]",
             "location": "[resourceGroup().location]",
             "properties": {
                 "securityRules": [
@@ -532,20 +572,6 @@
                         }
                     },
                     {
-                        "name": "Client",
-                        "properties": {
-                            "description": "Access for Windows Client",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "7046",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 230,
-                            "direction": "Inbound"
-                        }
-                    },
-                    {
                         "name": "Soap",
                         "properties": {
                             "description": "Access to Soap Web Services",
@@ -555,7 +581,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 240,
+                            "priority": 230,
                             "direction": "Inbound"
                         }
                     },
@@ -569,7 +595,7 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 250,
+                            "priority": 240,
                             "direction": "Inbound"
                         }
                     },
@@ -583,7 +609,74 @@
                             "sourceAddressPrefix": "*",
                             "destinationAddressPrefix": "*",
                             "access": "Allow",
-                            "priority": 260,
+                            "priority": 250,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2015-05-01-preview",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "networkSecurityGroup_traefik",
+			"condition": "[equals(variables('AddTraefik'),'Yes')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+					{
+                        "name": "HTTP",
+                        "properties": {
+                            "description": "Http access",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "FILES",
+                        "properties": {
+                            "description": "File access",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8080",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 210,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "HTTPS",
+                        "properties": {
+                            "description": "Http access over Secure Socket Layer",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 220,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "Log",
+                        "properties": {
+                            "description": "Access to status log if Traefik is used",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8180",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 230,
                             "direction": "Inbound"
                         }
                     }
@@ -681,15 +774,19 @@
             }
         },
         {
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2018-11-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[variables('nic1Name')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
-                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
             ],
             "properties": {
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                },
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
@@ -801,7 +898,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',variables('registryPassword'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',variables('CertificatePfxPassword'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -RequestToken \"',variables('RequestToken'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -storageConnectionString \"',Concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value),'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',variables('registryPassword'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',variables('CertificatePfxPassword'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -RequestToken \"',variables('RequestToken'),'\" -CreateStorageQueue \"',variables('CreateStorageQueue'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\" -AddTraefik \"',variables('AddTraefik'),'\"')]"
                 },
                 "protectedSettings": {}
             }
