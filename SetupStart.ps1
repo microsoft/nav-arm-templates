@@ -48,6 +48,8 @@ if ("$createStorageQueue" -eq "yes") {
     
     $task.Triggers.Repetition.Interval = "PT5M"
     $task | Set-ScheduledTask -User $vmAdminUsername -Password $plainPassword | Out-Null
+
+    Start-ScheduledTask -TaskName $taskName
 }
 
 
