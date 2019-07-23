@@ -39,13 +39,6 @@ if (!(Test-Path -Path $transcriptFolder -PathType Container)) {
     New-Item -Path $transcriptFolder -ItemType Directory | Out-Null
 }
 
-# Backup folder
-$backupFolder = "c:\ProgramData\NavContainerHelper\backup"
-if (!(Test-Path -Path $backupFolder -PathType Container)) {
-    New-Item -Path $backupFolder -ItemType Directory | Out-Null
-}
-
-
 while ($true) {
     # Get message
     $timeUntilMessageReappearsInQueue = [TimeSpan]::FromMinutes(10)
@@ -59,51 +52,55 @@ while ($true) {
     $transcripting = $false
 
     $maxAttempts = 1
-    $backup = $false
     $cmd = ""
+
+    $ht = @{ "Queue" = $queuename
+        "Cmd" = ""
+        "Id" = ""
+        "Logstr" = ""
+        "Dequeue" = $message.DequeueCount
+        "Status" = "Begin"
+        "transcript" = ""
+    }
+
+    Start-Transcript -Path $transcriptfilename
+    $transcripting = $true
+    Write-Host '---------------------------'
+    Write-Host $message.AsString
+    Write-Host '---------------------------'
+
     try {
         $json = $message.AsString | ConvertFrom-Json
-
+    
         $cmd = $json.cmd
+        $id = ""
         $LogStr = "$cmd"
-
+    
         $Parameters = @{}
         $json | Get-Member -MemberType NoteProperty | ForEach-Object {
             $key = $_.Name
             $value = $json."$key"
-            if ($key -eq "backup") {
-                $backup = $value
-            } elseif ($key -eq "maxAttempts") {
+            if ($key -eq "id") {
+                $id = $value
+            }
+            elseif ($key -eq "maxAttempts") {
                 $maxAttempts = $value
-            } elseif ($key -ne "cmd") {
+            }
+            elseif ($key -ne "cmd") {
                 $LogStr += " -$key '$value'"
                 $Parameters += @{ $key = $value }
             }
         }
+        
+        $ht.Cmd = $cmd
+        $ht.id = $id
+        $ht.Logstr = $LogStr
 
         if ($message.DequeueCount -gt $maxAttempts) {
             throw "No more attempts"
         }
-
-        $ht = @{ "Queue" = $queuename
-            "Cmd" = $json.cmd
-            "Logstr" = $LogStr
-            "Dequeue" = $message.DequeueCount
-            "Status" = "Begin"
-            "transcript" = ""
-        }
+        
         Add-StorageTableRow -table $table -partitionKey $queuename -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property $ht | Out-Null
-
-        Start-Transcript -Path $transcriptfilename
-        $transcripting = $true
-        Write-Host '---------------------------'
-        Write-Host $message.AsString
-        Write-Host '---------------------------'
-
-        if ($backup) {
-            Write-Host "Backing up database (if not exists)"
-            . (Join-Path $commandFolder "backup.ps1") -backupFolder $backupFolder -backupName $message.Id
-        }
 
         $script = Get-Item -Path (Join-Path $commandFolder "$cmd.ps1") -ErrorAction Ignore
         if (($script) -and ($script.FullName.ToLowerInvariant().StartsWith($commandFolder))) {
@@ -114,11 +111,6 @@ while ($true) {
             Write-Host "Illegal request"
         }
 
-        if ($backup) {
-            Write-Host "Removing Backup"
-            $backupDir = Join-Path $backupFolder $message.Id
-            Remove-Item $backupDir -Recurse -Force
-        }
         $storageQueue.CloudQueue.DeleteMessage($message)
 
     } catch {
@@ -126,11 +118,6 @@ while ($true) {
         Write-Host "Exception performing RunQueue (Cmd=$cmd)"
         Write-Host $_.Exception.Message
         Write-Host $_.ScriptStackTrace
-
-        if ($backup) {
-            Write-Host "Restoring backup (if exists)"
-            . (Join-Path $commandFolder "restore.ps1") -backupFolder $backupFolder -backupName $message.Id -removeBackup "yes"
-        }
 
         if ($message.DequeueCount -ge $maxAttempts) {
             $storageQueue.CloudQueue.DeleteMessage($message)

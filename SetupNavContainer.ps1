@@ -125,6 +125,17 @@ if ($enableSymbolLoading -eq "Yes") {
 if ($includeCSIDE -eq "Yes") {
     $params += @{ 
         "includeCSIDE" = $true
+    }
+}
+
+if ($includeAL -eq "Yes") {
+    $params += @{ 
+        "includeAL" = $true
+    }
+}
+
+if ($includeCSIDE -eq "Yes" -or $includeAL -eq "Yes") {
+    $params += @{ 
         "doNotExportObjectsToText" = $true
     }
 }
