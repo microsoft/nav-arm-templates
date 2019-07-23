@@ -41,7 +41,7 @@ if (!(Test-Path -Path $transcriptFolder -PathType Container)) {
 
 while ($true) {
     # Get message
-    $timeUntilMessageReappearsInQueue = [TimeSpan]::FromMinutes(1)
+    $timeUntilMessageReappearsInQueue = [TimeSpan]::FromMinutes(10)
     $message = $storageQueue.CloudQueue.GetMessage($timeUntilMessageReappearsInQueue)
     if (!($message)) {
         break
