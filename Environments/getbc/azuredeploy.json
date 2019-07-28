@@ -99,13 +99,6 @@
                 "Description": "Specify administrator user name for Business Central"
             }
         },
-		"azureSqlAdminUsername": {
-			"type": "string",
-			"defaultValue": "sqladmin",
-			"metadata": {
-				"Description": "Specify SQL Administrator user name (only used if you select Azure SQL as your SQL Server)"
-			}
-		},
         "adminPassword": {
             "type": "securestring",
 			"defaultValue": "",
@@ -322,7 +315,7 @@
         "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
         "navAdminUsername": "[trim(parameters('BCAdminUsername'))]",
-		"azureSqlAdminUsername": "[trim(parameters('azureSqlAdminUsername'))]",
+		"azureSqlAdminUsername": "",
         "adminPassword": "[parameters('adminPassword')]",
         "navDockerImage": "[trim(parameters('BCDockerImage'))]",
         "registryUsername": "[parameters('registryUsername')]",
