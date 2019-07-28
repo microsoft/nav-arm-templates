@@ -269,7 +269,7 @@ if ($workshopFilesUrl -ne "") {
 
 
 if ($nchBranch) {
-    if ($nchBranch -notlike "https://*")
+    if ($nchBranch -notlike "https://*") {
         $nchBranch = "https://github.com/Microsoft/navcontainerhelper/archive/$($nchBranch).zip"
     }
     Log "Using Nav Container Helper from $nchBranch"
