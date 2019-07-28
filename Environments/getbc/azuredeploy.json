@@ -18,15 +18,6 @@
                 "Description": "Timezone of VM."
             }
         },
-        "AcceptEula": {
-		    "type": "string",
-            "defaultValue": "No",
-            "allowedValues": [ "Yes", "No" ],
-            "minLength": 3,
-            "metadata": {
-                "Description": "In order to deploy the VM, you need to accept the EULA, which can be found here: https://go.microsoft.com/fwlink/?linkid=861843"
-            }
-		},
         "RemoteDesktopAccess": {
 		    "type": "string",
 			"defaultValue": "",
@@ -297,20 +288,11 @@
             "metadata": {
                 "Description": "Time of day on which the VM will be auto-shutdown (if enabled)."
             }
-        },
-        "AddTraefik": {
-		    "type": "string",
-            "defaultValue": "No",
-            "allowedValues": [ "Yes", "No" ],
-            "metadata": {
-                "Description": "Add traefik.io as reverse proxy. When using traefik, you will find the landing page on http://publicdnsname:8180."
-            }
         }
     },
     "variables": {
         "vmName": "[trim(parameters('vmName'))]",
         "TimezoneId": "[parameters('TimezoneId')]",
-        "AcceptEula": "[parameters('AcceptEula')]",
         "vmSize": "[parameters('vmSize')]",
         "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
@@ -345,7 +327,6 @@
         "ContactEMailForLetsEncrypt": "[parameters('ContactEMailForLetsEncrypt')]",
         "AutoShutdown": "[parameters('AutoShutdown')]",
         "AutoShutdownTime": "[parameters('AutoShutdownTime')]",
-        "AddTraefik": "[parameters('AddTraefik')]",
         "style": "demo",
         "OperatingSystem": "[parameters('OperatingSystem')]",
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
@@ -356,7 +337,7 @@
         "vmStorageAccountContainerName": "vhds",
         "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
-        "networkSecurityGroupName": "[concat('networksecuritygroup',if(equals(parameters('AddTraefik'),'Yes'),'_traefik',''))]",
+        "networkSecurityGroupName": "networksecuritygroup",
         "dnsName": "[tolower(variables('vmName'))]",
         "addressPrefix": "10.0.0.0/16",
         "subnetName": "Subnet",
@@ -405,7 +386,6 @@
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkSecurityGroups",
             "name": "networkSecurityGroup",
-			"condition": "[equals(variables('AddTraefik'),'No')]",
             "location": "[resourceGroup().location]",
             "properties": {
                 "securityRules": [
@@ -498,73 +478,6 @@
         },
         {
             "apiVersion": "2015-05-01-preview",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "name": "networkSecurityGroup_traefik",
-			"condition": "[equals(variables('AddTraefik'),'Yes')]",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "securityRules": [
-					{
-                        "name": "HTTP",
-                        "properties": {
-                            "description": "Http access",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "80",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 200,
-                            "direction": "Inbound"
-                        }
-                    },
-                    {
-                        "name": "FILES",
-                        "properties": {
-                            "description": "File access",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "8080",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 210,
-                            "direction": "Inbound"
-                        }
-                    },
-                    {
-                        "name": "HTTPS",
-                        "properties": {
-                            "description": "Http access over Secure Socket Layer",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "443",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 220,
-                            "direction": "Inbound"
-                        }
-                    },
-                    {
-                        "name": "Log",
-                        "properties": {
-                            "description": "Access to status log if Traefik is used",
-                            "protocol": "Tcp",
-                            "sourcePortRange": "*",
-                            "destinationPortRange": "8180",
-                            "sourceAddressPrefix": "*",
-                            "destinationAddressPrefix": "*",
-                            "access": "Allow",
-                            "priority": 230,
-                            "direction": "Inbound"
-                        }
-                    }
-                ]
-            }
-        },
-        {
-            "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/virtualNetworks",
             "name": "[variables('virtualNetworkName')]",
             "location": "[resourceGroup().location]",
@@ -625,7 +538,6 @@
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[variables('server1Name')]",
             "location": "[resourceGroup().location]",
-			"condition": "[equals(variables('acceptEula'),'Yes')]",
             "dependsOn": [
                 "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nic1Name'))]"
@@ -699,7 +611,6 @@
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('server1Name'),'/vmextension1')]",
             "location": "[resourceGroup().location]",
-			"condition": "[equals(variables('acceptEula'),'Yes')]",
             "tags": {
                 "displayName": "PowerShellScript2"
             },
@@ -715,7 +626,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -storageConnectionString \"',Concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value),'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',variables('registryPassword'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',variables('CertificatePfxPassword'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -RequestToken \"',variables('RequestToken'),'\" -CreateStorageQueue \"',variables('CreateStorageQueue'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\" -AddTraefik \"',variables('AddTraefik'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -storageConnectionString \"',Concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value),'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',variables('registryPassword'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',variables('CertificatePfxPassword'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -RequestToken \"',variables('RequestToken'),'\" -CreateStorageQueue \"',variables('CreateStorageQueue'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\"')]"
                 },
                 "protectedSettings": {}
             }
