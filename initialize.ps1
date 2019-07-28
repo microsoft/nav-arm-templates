@@ -43,7 +43,8 @@ param
        [string] $Office365CreatePortal     = "No",
        [string] $requestToken              = "",
        [string] $createStorageQueue        = "",
-       [string] $AddTraefik                = "No"
+       [string] $AddTraefik                = "No",
+       [string] $nchBranch                 = ""
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -266,12 +267,18 @@ if ($workshopFilesUrl -ne "") {
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
 
-if ($scriptPath.ToLower().EndsWith("/dev/")) {
-    Download-File -sourceUrl "https://github.com/Microsoft/navcontainerhelper/archive/dev.zip" -destinationFile "c:\demo\navcontainerhelper.zip"
+
+if ($nchBranch) {
+    if ($nchBranch -notlike "https://*")
+        $nchBranch = "https://github.com/Microsoft/navcontainerhelper/archive/$($nchBranch).zip"
+    }
+    Log "Using Nav Container Helper from $nchBranch"
+    Download-File -sourceUrl $nchBranch -destinationFile "c:\demo\navcontainerhelper.zip"
     [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
     [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\navcontainerhelper.zip", "c:\demo")
-    Import-Module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
-    Log "Using Nav Container Helper from https://github.com/Microsoft/navcontainerhelper/tree/dev"
+    $module = Get-Item -Path "C:\demo\*\NavContainerHelper.psm1"
+    Log "Loading NavContainerHelper from $($module.FullName)"
+    Import-Module $module.FullName -DisableNameChecking
 } else {
     Log "Installing Latest Nav Container Helper from PowerShell Gallery"
     Install-Module -Name navcontainerhelper -Force
