@@ -273,21 +273,6 @@
             "metadata": {
                 "Description": "Specify an email address of the person accepting subscriber agreement for LetsEncrypt (https://letsencrypt.org/repository/) in order to use Lets Encrypt to generate a secure SSL certificate, which is valid for 3 months."
             }
-        },
-        "AutoShutdown": {
-		    "type": "string",
-            "defaultValue": "Disabled",
-            "allowedValues": [ "Enabled", "Disabled" ],
-            "metadata": {
-                "Description": "Specifies whether you want to enable autoshutdown of the VM."
-            }
-        },
-        "AutoShutdownTime": {
-		    "type": "string",
-            "defaultValue": "20:00",
-            "metadata": {
-                "Description": "Time of day on which the VM will be auto-shutdown (if enabled)."
-            }
         }
     },
     "variables": {
@@ -325,8 +310,6 @@
         "FinalSetupScriptUrl": "[parameters('FinalSetupScriptUrl')]",
         "RunWindowsUpdate": "[parameters('RunWindowsUpdate')]",
         "ContactEMailForLetsEncrypt": "[parameters('ContactEMailForLetsEncrypt')]",
-        "AutoShutdown": "[parameters('AutoShutdown')]",
-        "AutoShutdownTime": "[parameters('AutoShutdownTime')]",
         "style": "demo",
         "OperatingSystem": "[parameters('OperatingSystem')]",
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
@@ -580,31 +563,7 @@
                         }
                     ]
                 }
-            },
-            "resources": [
-                {
-                    "apiVersion": "2017-04-26-preview",
-                    "type": "microsoft.devtestlab/schedules",
-                    "name": "[concat('shutdown-computevm-',variables('server1Name'))]",
-                    "location": "[resourceGroup().location]",
-                    "dependsOn": [
-                        "[concat('Microsoft.Compute/virtualMachines/',variables('server1Name'))]"
-                    ],
-                    "properties": {
-                        "status": "[variables('AutoShutdown')]",
-                        "taskType": "ComputeVmShutdownTask",
-                        "dailyRecurrence": {
-                            "time": "[variables('AutoShutdownTime')]"
-                        },
-                        "timeZoneId": "[variables('TimezoneId')]",
-                        "notificationSettings": {
-                            "status": "Disabled",
-                            "timeInMinutes": 15
-                        },
-                        "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',variables('server1Name'))]"
-                    }
-                }                
-            ]
+            }
         },
         {
             "apiVersion": "2015-06-15",
