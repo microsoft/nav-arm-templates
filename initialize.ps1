@@ -37,6 +37,7 @@ param
        [string] $Multitenant               = "No",
        [string] $ContactEMailForLetsEncrypt= "",
        [string] $RemoteDesktopAccess       = "*",
+       [string] $WinRmAccess               = "-",
        [string] $BingMapsKey               = "",
        [string] $Office365UserName         = "",
        [string] $Office365Password         = "",
@@ -156,6 +157,7 @@ if (Test-Path -Path "c:\DEMO\Status.txt" -PathType Leaf) {
 }
 
 Set-Content "c:\DEMO\RemoteDesktopAccess.txt" -Value $RemoteDesktopAccess
+Set-Content "c:\DEMO\WinRmAccess.txt" -Value $WinRmAccess
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
@@ -373,6 +375,26 @@ Restart-NavContainer -containerName navserver -renewBindings
         Log -color Red $_.Exception.Message
         Log -color Red "Reverting to Self Signed Certificate"
     }
+}
+
+if ("$WinRmAccess" -ne "") {
+    if (Test-Path "c:\myfolder\SetupCertificate.ps1") {
+        # Using trusted certificate - install on host
+        . "c:\myfolder\SetupCertificate.ps1"
+    }
+    else {
+        $certificateThumbprint = (New-SelfSignedCertificate -DnsName $publicDnsName -CertStoreLocation Cert:\LocalMachine\My).Thumbprint   
+    }
+
+    Log "Enabling PS Remoting"
+    Enable-PSRemoting -Force   
+
+    Log "Creating Firewall rile for WinRM"
+    New-NetFirewallRule -Name "WinRM HTTPS" -DisplayName "WinRM HTTPS" -Enabled True -Profile "Any" -Action "Allow" -Direction "Inbound" -LocalPort 5986 -Protocol "TCP"    
+
+    Log "Creating WinRM listener"
+    $cmd = "winrm create winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname=""$publicDnsName""; CertificateThumbprint=""$certificateThumbprint""}" 
+    cmd.exe /C $cmd   
 }
 
 if ($WindowsInstallationType -eq "Server") {
