@@ -337,6 +337,7 @@
         "AcceptEula": "[parameters('AcceptEula')]",
         "vmSize": "[parameters('vmSize')]",
         "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
+        "WinRmAccess": "[parameters('WinRmAccess')]",
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
         "navAdminUsername": "[trim(parameters('BCAdminUsername'))]",
 		"azureSqlAdminUsername": "[trim(parameters('azureSqlAdminUsername'))]",
