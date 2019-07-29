@@ -119,6 +119,8 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "WindowsInstallationType"| Add-Content $settingsScript
     Get-VariableDeclaration -name "WindowsProductName"     | Add-Content $settingsScript
     Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settingsScript
+    Get-VariableDeclaration -name "RemoteDesktopAccess"    | Add-Content $settingsScript
+    Get-VariableDeclaration -name "WinRmAccess"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "BingMapsKey"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "RequestToken"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "CreateStorageQueue"     | Add-Content $settingsScript
@@ -375,26 +377,6 @@ Restart-NavContainer -containerName navserver -renewBindings
         Log -color Red $_.Exception.Message
         Log -color Red "Reverting to Self Signed Certificate"
     }
-}
-
-if ("$WinRmAccess" -ne "") {
-    if (Test-Path "c:\myfolder\SetupCertificate.ps1") {
-        # Using trusted certificate - install on host
-        . "c:\myfolder\SetupCertificate.ps1"
-    }
-    else {
-        $certificateThumbprint = (New-SelfSignedCertificate -DnsName $publicDnsName -CertStoreLocation Cert:\LocalMachine\My).Thumbprint   
-    }
-
-    Log "Enabling PS Remoting"
-    Enable-PSRemoting -Force   
-
-    Log "Creating Firewall rile for WinRM"
-    New-NetFirewallRule -Name "WinRM HTTPS" -DisplayName "WinRM HTTPS" -Enabled True -Profile "Any" -Action "Allow" -Direction "Inbound" -LocalPort 5986 -Protocol "TCP"    
-
-    Log "Creating WinRM listener"
-    $cmd = "winrm create winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname=""$publicDnsName""; CertificateThumbprint=""$certificateThumbprint""}" 
-    cmd.exe /C $cmd   
 }
 
 if ($WindowsInstallationType -eq "Server") {
