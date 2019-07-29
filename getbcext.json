@@ -838,7 +838,7 @@
 								"sourceAddressPrefix": "[variables('winRmSourceAddressPrefix')[copyIndex()]]",
 								"destinationAddressPrefix": "*",
 								"access": "Allow",
-								"priority": "[add(copyIndex(),100)]",
+								"priority": "[add(copyIndex(),300)]",
 								"direction": "Inbound"
 							}
 						}
