@@ -15,15 +15,19 @@ $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
 
 . "$settingsScript"
 
-$auth = "NavUserPassword"
-if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
-    $auth = "AAD"
+if ($Office365UserName -eq "" -or $Office365Password -eq "") {
+    $auth = "NavUserPassword"
+    Remove-Item -Path "c:\myfolder\SetupConfiguration.ps1" -Force
 }
 else {
-    '. "c:\run\SetupConfiguration.ps1"
-    ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
+    $auth = "AAD"
+    if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
+        Log "Reusing existing Aad Apps for Office 365 integration"
+    }
+    else {
+        '. "c:\run\SetupConfiguration.ps1"
+        ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
-    if ($Office365UserName -ne "" -and $Office365Password -ne "") {
         Log "Creating Aad Apps for Office 365 integration"
         $publicWebBaseUrl = "https://$publicDnsName/NAV/"
         $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
