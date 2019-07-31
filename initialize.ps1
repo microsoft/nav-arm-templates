@@ -37,6 +37,7 @@ param
        [string] $Multitenant               = "No",
        [string] $ContactEMailForLetsEncrypt= "",
        [string] $RemoteDesktopAccess       = "*",
+       [string] $WinRmAccess               = "-",
        [string] $BingMapsKey               = "",
        [string] $Office365UserName         = "",
        [string] $Office365Password         = "",
@@ -118,6 +119,8 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "WindowsInstallationType"| Add-Content $settingsScript
     Get-VariableDeclaration -name "WindowsProductName"     | Add-Content $settingsScript
     Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settingsScript
+    Get-VariableDeclaration -name "RemoteDesktopAccess"    | Add-Content $settingsScript
+    Get-VariableDeclaration -name "WinRmAccess"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "BingMapsKey"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "RequestToken"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "CreateStorageQueue"     | Add-Content $settingsScript
@@ -156,6 +159,7 @@ if (Test-Path -Path "c:\DEMO\Status.txt" -PathType Leaf) {
 }
 
 Set-Content "c:\DEMO\RemoteDesktopAccess.txt" -Value $RemoteDesktopAccess
+Set-Content "c:\DEMO\WinRmAccess.txt" -Value $WinRmAccess
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 

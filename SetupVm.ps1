@@ -114,6 +114,26 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
+if ("$WinRmAccess" -ne "") {
+    if (Test-Path "c:\myfolder\SetupCertificate.ps1") {
+        # Using trusted certificate - install on host
+        . "c:\myfolder\SetupCertificate.ps1"
+    }
+    else {
+        $certificateThumbprint = (New-SelfSignedCertificate -DnsName $publicDnsName -CertStoreLocation Cert:\LocalMachine\My).Thumbprint   
+    }
+
+    Log "Enabling PS Remoting"
+    Enable-PSRemoting -Force   
+
+    Log "Creating Firewall rile for WinRM"
+    New-NetFirewallRule -Name "WinRM HTTPS" -DisplayName "WinRM HTTPS" -Enabled True -Profile "Any" -Action "Allow" -Direction "Inbound" -LocalPort 5986 -Protocol "TCP"    
+
+    Log "Creating WinRM listener"
+    $cmd = "winrm create winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname=""$publicDnsName""; CertificateThumbprint=""$certificateThumbprint""}" 
+    cmd.exe /C $cmd   
+}
+
 if ($WindowsInstallationType -eq "Server") {
     Log "Starting docker"
     start-service docker
@@ -151,7 +171,6 @@ New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorA
     "hosts": ["tcp://0.0.0.0:2375", "npipe://"]
 }' | Set-Content "C:\ProgramData\docker\config\daemon.json"
 netsh advfirewall firewall add rule name="Docker" dir=in action=allow protocol=TCP localport=2375 | Out-Null
-
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
 
