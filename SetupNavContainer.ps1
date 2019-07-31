@@ -17,7 +17,9 @@ $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
 
 if ($Office365UserName -eq "" -or $Office365Password -eq "") {
     $auth = "NavUserPassword"
-    Remove-Item -Path "c:\myfolder\SetupConfiguration.ps1" -Force
+    if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
+        Remove-Item -Path "c:\myfolder\SetupConfiguration.ps1" -Force
+    }
 }
 else {
     $auth = "AAD"
