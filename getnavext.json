@@ -449,7 +449,7 @@
 					"properties": {
 						"collation": "[variables('SqlCollation')]",
 						"edition": "Standard",
-						"maxSizeBytes": "5368709120",
+						"maxSizeBytes": "10737418240",
 						"requestedServiceObjectiveName": "S4"
 					},
 					"resources": [
