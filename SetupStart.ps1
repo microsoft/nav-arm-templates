@@ -52,6 +52,19 @@ if ("$createStorageQueue" -eq "yes") {
     Start-ScheduledTask -TaskName $taskName
 }
 
+Log "Register StartContainer Task to start container delayed"
+$taskName = "StartContainer"
+$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -command docker start navserver"
+$startupTrigger = New-ScheduledTaskTrigger -AtStartup
+$startupTrigger.Delay = "PT5M"
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
+$task = Register-ScheduledTask -TaskName $taskName `
+                       -Action $startupAction `
+                       -Trigger $startupTrigger `
+                       -Settings $settings `
+                       -RunLevel Highest `
+                       -User $vmadminUsername `
+                       -Password $plainPassword
 
 Log "Launch SetupVm"
 $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
