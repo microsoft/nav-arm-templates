@@ -11,13 +11,11 @@ if ($dockerService -and $dockerService.Status -eq "Running") {
             $configv2jsonFile = Join-Path $containerPath "config.v2.json"
             if (Test-Path $configv2jsonFile) {
                 $configv2json = Get-Content $configv2jsonFile | ConvertFrom-Json
-                if ($configv2json.state.Running) {
-                    $startContainers += @($configv2json.Name)
-                }
                 $configv2json.State.Running = $false
                 $configv2json.State.RemovalInProgress = $false
                 $configv2json.State.Restarting = $false
                 $configv2json | ConvertTo-Json -Depth 99 | Set-Content $configv2jsonFile
+                $startContainers += @($configv2json.Name)
             }
         }
         Restart-Service docker
