@@ -236,6 +236,7 @@ Download-File -sourceUrl "${scriptPath}SetupNavContainer.ps1" -destinationFile $
 Download-File -sourceUrl "${scriptPath}SetupAAD.ps1"          -destinationFile $setupAadScript
 Download-File -sourceUrl "${scriptPath}SetupVm.ps1"           -destinationFile $setupVmScript
 Download-File -sourceUrl "${scriptPath}SetupStart.ps1"        -destinationFile $setupStartScript
+Download-File -sourceUrl "${scriptPath}RestartContainers.ps1" -destinationFile "c:\demo\restartContainers.ps1"
 if ($requestToken) {
     Download-File -sourceUrl "${scriptPath}Request.ps1"           -destinationFile "C:\DEMO\Request.ps1"
     Download-File -sourceUrl "${scriptPath}RequestTaskDef.xml"    -destinationFile "C:\DEMO\RequestTaskDef.xml"
