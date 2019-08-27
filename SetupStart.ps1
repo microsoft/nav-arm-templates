@@ -52,9 +52,9 @@ if ("$createStorageQueue" -eq "yes") {
     Start-ScheduledTask -TaskName $taskName
 }
 
-Log "Register StartContainer Task to start container delayed"
-$taskName = "StartContainer"
-$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -command docker start navserver"
+Log "Register RestartContainers Task to start container delayed"
+$taskName = "RestartContainers"
+$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -file c:\demo\restartcontainers.ps1"
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
 $startupTrigger.Delay = "PT5M"
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
