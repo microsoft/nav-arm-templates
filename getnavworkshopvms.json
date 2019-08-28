@@ -35,6 +35,14 @@
                 "Description": "Specify * (star) to allow all remote desktop access, specify - (minus) to deny all remote desktop access or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
             }
 		},
+        "WinRMAccess": {
+		    "type": "string",
+			"defaultValue": "-",
+            "minLength": 1,
+            "metadata": {
+                "Description": "Specify * (star) to allow all WinRM access, specify - (minus) to deny all WinRM access or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
+            }
+		},
         "OperatingSystem": {
             "type": "string",
             "defaultValue": "Windows Server 2019 with Containers",
@@ -129,9 +137,25 @@
                 "Description": "EnableSymbolLoading to support hybrid development"
             }
         },
+        "IncludeCSIDE": {
+		    "type": "string",
+            "defaultValue": "Yes",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Include CSIDE for C/AL development"
+            }
+        },
+        "IncludeAL": {
+		    "type": "string",
+            "defaultValue": "Yes",
+            "allowedValues": [ "Yes", "No" ],
+            "metadata": {
+                "Description": "Prepare Container for System App and BaseApp AL development"
+            }
+        },
         "navDockerImage": {
             "type": "string",
-            "defaultValue": "microsoft/bcsandbox:us",
+            "defaultValue": "mcr.microsoft.com/businesscentral/sandbox:us",
             "minLength": 1,
             "metadata": {
                 "Description": "Select the BcSandbox Docker Image to deploy. See https://hub.docker.com/r/microsoft/bcsandbox/ for a list of public images."
@@ -238,6 +262,9 @@
         }
     },
     "variables": {
+        "nchbranch": "",
+        "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
+        "WinRmAccess": "[parameters('WinRmAccess')]",
         "OperatingSystem": "[parameters('OperatingSystem')]",
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
         "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 10'),'Windows-10','WindowsServer')]",
@@ -250,21 +277,28 @@
         "subnetPrefix": "10.0.0.0/16",
         "virtualNetworkName": "virtualnetwork",
 		"delimiters": [ ",", ";" ],
-		"RdpAddresses": "[if(equals(parameters('RemoteDesktopAccess'),'-'),'',parameters('RemoteDesktopAccess'))]",
-		"rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
-		"noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
+        "rdpAddresses": "[if(equals(variables('RemoteDesktopAccess'),'-'),'',variables('RemoteDesktopAccess'))]",
+		"rdpSourceAddressPrefix": "[split(variables('rdpAddresses'),variables('delimiters'))]",
+		"noOfRdpAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
+        "winRmAddresses": "[if(equals(variables('WinRmAccess'),'-'),'',variables('WinRmAccess'))]",
+		"winRmSourceAddressPrefix": "[split(variables('winRmAddresses'),variables('delimiters'))]",
+		"noOfWinRmAddresses": "[length(variables('winRmSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
         "ScriptCommandToExecute": "powershell.exe -executionpolicy unrestricted -file "
     },
     "resources": [
         {
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2019-04-01",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
+            "sku": {
+                "name": "[variables('storageAccountType')]"
+            },
+            "kind": "StorageV2",
             "location": "[resourceGroup().location]",
             "properties": {
-                "accountType": "[variables('storageAccountType')]"
+                "supportsHttpsTrafficOnly": true
             }
         },
         {
@@ -395,7 +429,7 @@
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
 			"name": "rdp-0",
-			"condition": "[not(equals(parameters('RemoteDesktopAccess'),'-'))]",
+			"condition": "[not(equals(variables('RemoteDesktopAccess'),'-'))]",
 			"dependsOn": [
 				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
 			],
@@ -416,13 +450,13 @@
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
 			"name": "[concat('rdp-', copyIndex(1))]",
-			"condition": "[not(equals(parameters('RemoteDesktopAccess'),'-'))]",
+			"condition": "[not(equals(variables('RemoteDesktopAccess'),'-'))]",
 			"dependsOn": [
 				"[concat('rdp-', copyIndex())]"
 			],
 			"copy": {
 				"name": "iterator",
-				"count": "[variables('noOfAddresses')]"
+				"count": "[variables('noOfRdpAddresses')]"
 			},
 			"properties": {
 				"mode": "Incremental",
@@ -446,6 +480,69 @@
 								"destinationAddressPrefix": "*",
 								"access": "Allow",
 								"priority": "[add(copyIndex(),100)]",
+								"direction": "Inbound"
+							}
+						}
+					],
+					"outputs": {}
+				}
+			}
+		},
+		{
+			"apiVersion": "2015-01-01",
+			"type": "Microsoft.Resources/deployments",
+			"name": "winrm-0",
+			"condition": "[not(equals(variables('WinRmAccess'),'-'))]",
+			"dependsOn": [
+				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
+			],
+			"properties": {
+				"mode":"Incremental",
+				"parameters":{},
+				"template": {
+					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"parameters": {},
+					"variables": {},
+					"resources": [],
+					"outputs": {}
+				}
+			}
+		},       
+		{
+			"apiVersion": "2015-01-01",
+			"type": "Microsoft.Resources/deployments",
+			"name": "[concat('winrm-', copyIndex(1))]",
+			"condition": "[not(equals(variables('WinRmAccess'),'-'))]",
+			"dependsOn": [
+				"[concat('winrm-', copyIndex())]"
+			],
+			"copy": {
+				"name": "iterator",
+				"count": "[variables('noOfWinRmAddresses')]"
+			},
+			"properties": {
+				"mode": "Incremental",
+				"template": {
+					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"parameters": {},
+					"variables": {},
+					"resources": [
+						{
+							"apiVersion": "2016-09-01",
+							"name": "[concat(variables('networkSecurityGroupName'),'/WinRm',copyIndex())]",
+							"type": "Microsoft.Network/networkSecurityGroups/securityRules",
+							"location":"[resourceGroup().location]",
+							"properties":{
+								"description": "WinRm Access",
+								"protocol": "Tcp",
+								"sourcePortRange": "*",
+								"destinationPortRange": "5986",
+								"sourceAddressPrefix": "[variables('winRmSourceAddressPrefix')[copyIndex()]]",
+								"destinationAddressPrefix": "*",
+								"access": "Allow",
+								"priority": "[add(copyIndex(),300)]",
 								"direction": "Inbound"
 							}
 						}
@@ -482,15 +579,19 @@
             }
         },
         {
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2018-11-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_nic')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIPAddresses/', parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')]",
-                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
             ],
             "properties": {
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                },
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
@@ -589,7 +690,7 @@
                     ]
                 },
                 "protectedSettings": {
-					"commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RequestToken \"',parameters('RequestToken'),'\" -AssignPremiumPlan \"',parameters('AssignPremiumPlan'),'\" -CreateTestUsers \"',parameters('CreateTestUsers'),'\" -EnableSymbolLoading \"',parameters('EnableSymbolLoading'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\"')]"
+					"commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('rdpAddresses'),'\" -WinRmAccess \"',variables('winRmAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RequestToken \"',parameters('RequestToken'),'\" -AssignPremiumPlan \"',parameters('AssignPremiumPlan'),'\" -CreateTestUsers \"',parameters('CreateTestUsers'),'\" -EnableSymbolLoading \"',parameters('EnableSymbolLoading'),'\" -IncludeCSIDE \"',parameters('IncludeCSIDE'),'\" -IncludeAL \"',parameters('IncludeAL'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -nchbranch \"',variables('nchbranch'),'\"')]"
 				}
             },
 			"copy": {

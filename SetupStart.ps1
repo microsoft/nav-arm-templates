@@ -6,14 +6,9 @@ Log "SetupStart, User: $env:USERNAME"
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
-if (!(Get-Package -Name AzureRM.ApiManagement -ErrorAction Ignore)) {
-    Log "Installing AzureRM.ApiManagement PowerShell package"
-    Install-Package AzureRM.ApiManagement -Force -WarningAction Ignore | Out-Null
-}
-
-if (!(Get-Package -Name AzureRM.Resources -ErrorAction Ignore)) {
-    Log "Installing AzureRM.Resources PowerShell package"
-    Install-Package AzureRM.Resources -Force -WarningAction Ignore | Out-Null
+if (!(Get-Package -Name AzureRM -ErrorAction Ignore)) {
+    Log "Installing AzureRM PowerShell package"
+    Install-Package AzureRM -Force -WarningAction Ignore  -RequiredVersion 6.13.1 | Out-Null
 }
 
 if (!(Get-Package -Name AzureAD -ErrorAction Ignore)) {
@@ -33,14 +28,9 @@ if ($requestToken) {
 }
 
 if ("$createStorageQueue" -eq "yes") {
-    if (!(Get-Package -Name Azure.Storage -ErrorAction Ignore)) {
-        Log "Installing Azure.Storage PowerShell package"
-        Install-Package Azure.Storage -Force -WarningAction Ignore | Out-Null
-    }
-
     if (!(Get-Package -Name AzureRmStorageTable -ErrorAction Ignore)) {
         Log "Installing AzureRmStorageTable PowerShell package"
-        Install-Package AzureRmStorageTable -Force -WarningAction Ignore | Out-Null
+        Install-Package AzureRmStorageTable -Force -WarningAction Ignore  -RequiredVersion 1.0.0.23 | Out-Null
     }
 
     $taskName = "RunQueue"
@@ -58,8 +48,23 @@ if ("$createStorageQueue" -eq "yes") {
     
     $task.Triggers.Repetition.Interval = "PT5M"
     $task | Set-ScheduledTask -User $vmAdminUsername -Password $plainPassword | Out-Null
+
+    Start-ScheduledTask -TaskName $taskName
 }
 
+Log "Register RestartContainers Task to start container delayed"
+$taskName = "RestartContainers"
+$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -file c:\demo\restartcontainers.ps1"
+$startupTrigger = New-ScheduledTaskTrigger -AtStartup
+$startupTrigger.Delay = "PT5M"
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
+$task = Register-ScheduledTask -TaskName $taskName `
+                       -Action $startupAction `
+                       -Trigger $startupTrigger `
+                       -Settings $settings `
+                       -RunLevel Highest `
+                       -User $vmadminUsername `
+                       -Password $plainPassword
 
 Log "Launch SetupVm"
 $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"

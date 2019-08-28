@@ -12,33 +12,57 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 }
 
 $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
+
 . "$settingsScript"
 
-'. "c:\run\SetupConfiguration.ps1"
-' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
-$auth = "NavUserPassword"
-if ($Office365UserName -ne "" -and $Office365Password -ne "") {
-    Log "Creating Aad Apps for Office 365 integration"
-    $publicWebBaseUrl = "https://$publicDnsName/NAV/"
-    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
-    $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-    try {
-        $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
-        $auth = "AAD"
-'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
-Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance nav -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$AdProperties.ExcelAdAppId+'" -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance nav -KeyName "ValidAudiences" -KeyValue "'+$AdProperties.SsoAdAppId+'" -WarningAction Ignore -ErrorAction Ignore
-' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
+if ($Office365UserName -eq "" -or $Office365Password -eq "") {
+    $auth = "NavUserPassword"
+    if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
+        Remove-Item -Path "c:\myfolder\SetupConfiguration.ps1" -Force
+    }
+}
+else {
+    $auth = "AAD"
+    if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
+        Log "Reusing existing Aad Apps for Office 365 integration"
+    }
+    else {
+        '. "c:\run\SetupConfiguration.ps1"
+        ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
-        $settings = Get-Content -path "c:\demo\settings.ps1" | Where-Object { !($_.Startswith('$SsoAdAppId = ') -or $_.Startswith('$SsoAdAppKeyValue = ')) }
-        $settings += "`$SsoAdAppId = '$($AdProperties.SsoAdAppId)'"
-        $settings += "`$SsoAdAppKeyValue = '$($AdProperties.SsoAdAppKeyValue)'"
-        Set-Content -Path $settingsScript -Value $settings
+        Log "Creating Aad Apps for Office 365 integration"
+        $publicWebBaseUrl = "https://$publicDnsName/NAV/"
+        $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
+        $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
+        try {
+            $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
 
-    } catch {
-        Log -color Red $_.Exception.Message
-        Log -color Red "Reverting to NavUserPassword authentication"
+            $SsoAdAppId = $AdProperties.SsoAdAppId
+            $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
+            $ExcelAdAppId = $AdProperties.ExcelAdAppId
+            $PowerBiAdAppId = $AdProperties.PowerBiAdAppId
+            $PowerBiAdAppKeyValue = $AdProperties.PowerBiAdAppKeyValue
+
+    'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
+    Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
+    Set-NAVServerConfiguration -ServerInstance nav -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$ExcelAdAppId+'" -WarningAction Ignore
+    Set-NAVServerConfiguration -ServerInstance nav -KeyName "ValidAudiences" -KeyValue "'+$SsoAdAppId+'" -WarningAction Ignore -ErrorAction Ignore
+    ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
+            
+            $settings = Get-Content -path "c:\demo\settings.ps1"
+
+            $settings += "`$SsoAdAppId = '$SsoAdAppId'"
+            $settings += "`$SsoAdAppKeyValue = '$SsoAdAppKeyValue'"
+            $settings += "`$ExcelAdAppId = '$ExcelAdAppId'"
+            $settings += "`$PowerBiAdAppId = '$PowerBiAdAppId'"
+            $settings += "`$PowerBiAdAppKeyValue = '$PowerBiAdAppKeyValue'"
+
+            Set-Content -Path $settingsScript -Value $settings
+    
+        } catch {
+            Log -color Red $_.Exception.Message
+            Log -color Red "Reverting to NavUserPassword authentication"
+        }
     }
 }
 
@@ -122,6 +146,24 @@ if ($enableSymbolLoading -eq "Yes") {
     $params += @{ "enableSymbolLoading" = $true }
 }
 
+if ($includeCSIDE -eq "Yes") {
+    $params += @{ 
+        "includeCSIDE" = $true
+    }
+}
+
+if ($includeAL -eq "Yes") {
+    $params += @{ 
+        "includeAL" = $true
+    }
+}
+
+if ($includeCSIDE -eq "Yes" -or $includeAL -eq "Yes") {
+    $params += @{ 
+        "doNotExportObjectsToText" = $true
+    }
+}
+
 if ($multitenant -eq "Yes") {
     $params += @{ "multitenant" = $true }
 }
@@ -140,8 +182,6 @@ try {
                      -useSSL `
                      -updateHosts `
                      -auth $Auth `
-                     -includeCSide `
-                     -doNotExportObjectsToText `
                      -authenticationEMail $Office365UserName `
                      -credential $credential `
                      -useBestContainerOS `
@@ -161,7 +201,7 @@ if ($auth -eq "AAD") {
         Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
         $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
         Import-ObjectsToNavContainer -containerName $containerName -objectsFile $fobfile -sqlCredential $sqlCredential
-        Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName SetupAzureAdApp -Argument ($AdProperties.PowerBiAdAppId+','+$AdProperties.PowerBiAdAppKeyValue)
+        Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName SetupAzureAdApp -Argument ($PowerBiAdAppId+','+$PowerBiAdAppKeyValue)
     } 
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
@@ -173,7 +213,7 @@ if ($auth -eq "AAD") {
 
         $parameters = @{ 
             "name" = "SetupAzureAdApp"
-            "value" = "$($AdProperties.PowerBiAdAppId),$($AdProperties.PowerBiAdAppKeyValue)"
+            "value" = "$PowerBiAdAppId,$PowerBiAdAppKeyValue"
         }
         Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
 
