@@ -9,7 +9,7 @@ param
        [string] $navAdminUsername          = "admin",
        [string] $azureSqlAdminUsername     = "sqladmin",
        [string] $adminPassword             = "P@ssword1",
-       [string] $navDockerImage            = "microsoft/dynamics-nav:devpreview-finus",
+       [string] $navDockerImage            = "mcr.microsoft.com/businesscentral/sandbox:us",
        [string] $registryUsername          = "",
        [string] $registryPassword          = "",
        [string] $sqlServerType             = "SQLExpress",
@@ -17,7 +17,9 @@ param
        [string] $appBacpacUri              = "",
        [string] $tenantBacpacUri           = "",
        [string] $includeAppUris            = "",
-       [string] $enableSymbolLoading       = "Yes",
+       [string] $enableSymbolLoading       = "No",
+       [string] $includeCSIDE              = "No",
+       [string] $includeAL                 = "No",
        [string] $clickonce                 = "No",
        [string] $enableTaskScheduler       = "Default",
        [string] $licenseFileUri            = "",
@@ -35,13 +37,15 @@ param
        [string] $Multitenant               = "No",
        [string] $ContactEMailForLetsEncrypt= "",
        [string] $RemoteDesktopAccess       = "*",
+       [string] $WinRmAccess               = "-",
        [string] $BingMapsKey               = "",
        [string] $Office365UserName         = "",
        [string] $Office365Password         = "",
        [string] $Office365CreatePortal     = "No",
        [string] $requestToken              = "",
        [string] $createStorageQueue        = "",
-       [string] $AddTraefik                = "No"
+       [string] $AddTraefik                = "No",
+       [string] $nchBranch                 = ""
 )
 
 function Get-VariableDeclaration([string]$name) {
@@ -99,6 +103,8 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "tenantBacpacUri"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "includeAppUris"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "enableSymbolLoading"    | Add-Content $settingsScript
+    Get-VariableDeclaration -name "includeCSIDE"           | Add-Content $settingsScript
+    Get-VariableDeclaration -name "includeAL"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "clickonce"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "enableTaskScheduler"    | Add-Content $settingsScript
     Get-VariableDeclaration -name "licenseFileUri"         | Add-Content $settingsScript
@@ -113,6 +119,8 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "WindowsInstallationType"| Add-Content $settingsScript
     Get-VariableDeclaration -name "WindowsProductName"     | Add-Content $settingsScript
     Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settingsScript
+    Get-VariableDeclaration -name "RemoteDesktopAccess"    | Add-Content $settingsScript
+    Get-VariableDeclaration -name "WinRmAccess"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "BingMapsKey"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "RequestToken"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "CreateStorageQueue"     | Add-Content $settingsScript
@@ -151,6 +159,7 @@ if (Test-Path -Path "c:\DEMO\Status.txt" -PathType Leaf) {
 }
 
 Set-Content "c:\DEMO\RemoteDesktopAccess.txt" -Value $RemoteDesktopAccess
+Set-Content "c:\DEMO\WinRmAccess.txt" -Value $WinRmAccess
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
@@ -227,6 +236,7 @@ Download-File -sourceUrl "${scriptPath}SetupNavContainer.ps1" -destinationFile $
 Download-File -sourceUrl "${scriptPath}SetupAAD.ps1"          -destinationFile $setupAadScript
 Download-File -sourceUrl "${scriptPath}SetupVm.ps1"           -destinationFile $setupVmScript
 Download-File -sourceUrl "${scriptPath}SetupStart.ps1"        -destinationFile $setupStartScript
+Download-File -sourceUrl "${scriptPath}RestartContainers.ps1" -destinationFile "c:\demo\restartContainers.ps1"
 if ($requestToken) {
     Download-File -sourceUrl "${scriptPath}Request.ps1"           -destinationFile "C:\DEMO\Request.ps1"
     Download-File -sourceUrl "${scriptPath}RequestTaskDef.xml"    -destinationFile "C:\DEMO\RequestTaskDef.xml"
@@ -262,12 +272,18 @@ if ($workshopFilesUrl -ne "") {
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
 
-if ($scriptPath.ToLower().EndsWith("/dev/")) {
-    Download-File -sourceUrl "https://github.com/Microsoft/navcontainerhelper/archive/dev.zip" -destinationFile "c:\demo\navcontainerhelper.zip"
+
+if ($nchBranch) {
+    if ($nchBranch -notlike "https://*") {
+        $nchBranch = "https://github.com/Microsoft/navcontainerhelper/archive/$($nchBranch).zip"
+    }
+    Log "Using Nav Container Helper from $nchBranch"
+    Download-File -sourceUrl $nchBranch -destinationFile "c:\demo\navcontainerhelper.zip"
     [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
     [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\navcontainerhelper.zip", "c:\demo")
-    Import-Module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
-    Log "Using Nav Container Helper from https://github.com/Microsoft/navcontainerhelper/tree/dev"
+    $module = Get-Item -Path "C:\demo\*\NavContainerHelper.psm1"
+    Log "Loading NavContainerHelper from $($module.FullName)"
+    Import-Module $module.FullName -DisableNameChecking
 } else {
     Log "Installing Latest Nav Container Helper from PowerShell Gallery"
     Install-Module -Name navcontainerhelper -Force

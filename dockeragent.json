@@ -155,6 +155,27 @@
             "metadata": {
                 "Description": "Specify the registry (#3) Password"
             }
+        },
+        "Registry4": {
+            "type": "string",
+			"defaultValue": "",
+            "metadata": {
+                "Description": "Specify a registry (#4) to login to (blank for docker hub)"
+            }
+        },
+        "Registry4UserName": {
+            "type": "string",
+			"defaultValue": "",
+            "metadata": {
+                "Description": "Specify the registry (#4) User Name (blank for no login)"
+            }
+        },
+        "Registry4Password": {
+            "type": "securestring",
+			"defaultValue": "",
+            "metadata": {
+                "Description": "Specify the registry (#4) Password"
+            }
         }
     },
     "variables": {
@@ -185,12 +206,16 @@
     },
     "resources": [
         {
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2019-04-01",
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('storageAccountName')]",
+            "sku": {
+                "name": "[variables('storageAccountType')]"
+            },
+            "kind": "StorageV2",
             "location": "[resourceGroup().location]",
             "properties": {
-                "accountType": "[variables('storageAccountType')]"
+                "supportsHttpsTrafficOnly": true
             }
         },
         {
@@ -310,15 +335,19 @@
             }
         },
         {
-            "apiVersion": "2015-05-01-preview",
+            "apiVersion": "2018-11-01",
             "type": "Microsoft.Network/networkInterfaces",
             "name": "[concat(variables('vmName'),'-',copyIndex(),'_nic')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIPAddresses/', variables('vmName'),'-',copyIndex(),'_pip')]",
-                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+                "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
             ],
             "properties": {
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                },
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
@@ -413,7 +442,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initdockeragent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initdockeragent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -StorageAccountName \"',parameters('storageaccountname'),'\" -StorageAccountKey \"',parameters('storageaccountkey'),'\" -Queue \"',parameters('Queue'),'\" -Processes \"',parameters('Processes'),'\" -vmName \"',variables('vmName'),'-',CopyIndex(),'\" -registry1 \"',parameters('registry1'),'\" -registry1username \"',parameters('registry1username'),'\" -registry1password \"',parameters('registry1Password'),'\" -registry2 \"',parameters('registry2'),'\" -registry2username \"',parameters('registry2username'),'\" -registry2password \"',parameters('registry2Password'),'\" -registry3 \"',parameters('registry3'),'\" -registry3username \"',parameters('registry3username'),'\" -registry3password \"',parameters('registry3Password'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initdockeragent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -StorageAccountName \"',parameters('storageaccountname'),'\" -StorageAccountKey \"',parameters('storageaccountkey'),'\" -Queue \"',parameters('Queue'),'\" -Processes \"',parameters('Processes'),'\" -vmName \"',variables('vmName'),'-',CopyIndex(),'\" -registry1 \"',parameters('registry1'),'\" -registry1username \"',parameters('registry1username'),'\" -registry1password \"',parameters('registry1Password'),'\" -registry2 \"',parameters('registry2'),'\" -registry2username \"',parameters('registry2username'),'\" -registry2password \"',parameters('registry2Password'),'\" -registry3 \"',parameters('registry3'),'\" -registry3username \"',parameters('registry3username'),'\" -registry3password \"',parameters('registry3Password'),'\" -registry4 \"',parameters('registry4'),'\" -registry4username \"',parameters('registry4username'),'\" -registry4password \"',parameters('registry4Password'),'\"')]"
                 },
                 "protectedSettings": {}
             },
