@@ -29,6 +29,6 @@ choco install office365business
 }
 
 . "C:\DEMO\Settings.ps1"
-& git config --global core.safecrlf false
-& git config --global user.email "$($vmAdminUsername)@$($hostName)"
-& git config --global user.name "$vmAdminUsername"
+& "C:\Program Files\GIT\bin\git.exe" config --global core.safecrlf false
+& "C:\Program Files\GIT\bin\git.exe" config --global user.email "$($vmAdminUsername)@$($hostName)"
+& "C:\Program Files\GIT\bin\git.exe" config --global user.name "$vmAdminUsername"
