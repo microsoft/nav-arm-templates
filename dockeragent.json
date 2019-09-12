@@ -68,6 +68,13 @@
                 "Description": "Select the number of build processes you want to run on each Docker Agent VM"
             }
         },
+        "LicenseFileUri": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "Description": "License to upload"
+            }
+        },
         "StorageAccountName": {
             "type": "string",
             "minLength": 1,
@@ -442,7 +449,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initdockeragent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initdockeragent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -StorageAccountName \"',parameters('storageaccountname'),'\" -StorageAccountKey \"',parameters('storageaccountkey'),'\" -Queue \"',parameters('Queue'),'\" -Processes \"',parameters('Processes'),'\" -vmName \"',variables('vmName'),'-',CopyIndex(),'\" -registry1 \"',parameters('registry1'),'\" -registry1username \"',parameters('registry1username'),'\" -registry1password \"',parameters('registry1Password'),'\" -registry2 \"',parameters('registry2'),'\" -registry2username \"',parameters('registry2username'),'\" -registry2password \"',parameters('registry2Password'),'\" -registry3 \"',parameters('registry3'),'\" -registry3username \"',parameters('registry3username'),'\" -registry3password \"',parameters('registry3Password'),'\" -registry4 \"',parameters('registry4'),'\" -registry4username \"',parameters('registry4username'),'\" -registry4password \"',parameters('registry4Password'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initdockeragent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -StorageAccountName \"',parameters('storageaccountname'),'\" -StorageAccountKey \"',parameters('storageaccountkey'),'\" -Queue \"',parameters('Queue'),'\" -Processes \"',parameters('Processes'),'\" -vmName \"',variables('vmName'),'-',CopyIndex(),'\" -registry1 \"',parameters('registry1'),'\" -registry1username \"',parameters('registry1username'),'\" -registry1password \"',parameters('registry1Password'),'\" -registry2 \"',parameters('registry2'),'\" -registry2username \"',parameters('registry2username'),'\" -registry2password \"',parameters('registry2Password'),'\" -registry3 \"',parameters('registry3'),'\" -registry3username \"',parameters('registry3username'),'\" -registry3password \"',parameters('registry3Password'),'\" -registry4 \"',parameters('registry4'),'\" -registry4username \"',parameters('registry4username'),'\" -registry4password \"',parameters('registry4Password'),'\"')]"
                 },
                 "protectedSettings": {}
             },
