@@ -15,57 +15,6 @@ $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
 
 . "$settingsScript"
 
-if ($Office365UserName -eq "" -or $Office365Password -eq "") {
-    $auth = "NavUserPassword"
-    if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
-        Remove-Item -Path "c:\myfolder\SetupConfiguration.ps1" -Force
-    }
-}
-else {
-    $auth = "AAD"
-    if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
-        Log "Reusing existing Aad Apps for Office 365 integration"
-    }
-    else {
-        '. "c:\run\SetupConfiguration.ps1"
-        ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
-
-        Log "Creating Aad Apps for Office 365 integration"
-        $publicWebBaseUrl = "https://$publicDnsName/NAV/"
-        $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
-        $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-        try {
-            $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
-
-            $SsoAdAppId = $AdProperties.SsoAdAppId
-            $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
-            $ExcelAdAppId = $AdProperties.ExcelAdAppId
-            $PowerBiAdAppId = $AdProperties.PowerBiAdAppId
-            $PowerBiAdAppKeyValue = $AdProperties.PowerBiAdAppKeyValue
-
-    'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
-    Set-NAVServerConfiguration -ServerInstance nav -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
-    Set-NAVServerConfiguration -ServerInstance nav -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$ExcelAdAppId+'" -WarningAction Ignore
-    Set-NAVServerConfiguration -ServerInstance nav -KeyName "ValidAudiences" -KeyValue "'+$SsoAdAppId+'" -WarningAction Ignore -ErrorAction Ignore
-    ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
-            
-            $settings = Get-Content -path "c:\demo\settings.ps1"
-
-            $settings += "`$SsoAdAppId = '$SsoAdAppId'"
-            $settings += "`$SsoAdAppKeyValue = '$SsoAdAppKeyValue'"
-            $settings += "`$ExcelAdAppId = '$ExcelAdAppId'"
-            $settings += "`$PowerBiAdAppId = '$PowerBiAdAppId'"
-            $settings += "`$PowerBiAdAppKeyValue = '$PowerBiAdAppKeyValue'"
-
-            Set-Content -Path $settingsScript -Value $settings
-    
-        } catch {
-            Log -color Red $_.Exception.Message
-            Log -color Red "Reverting to NavUserPassword authentication"
-        }
-    }
-}
-
 $imageName = Get-BestNavContainerImageName -imageName ($navDockerImage.Split(',')[0])
 
 docker ps --filter name=$containerName -a -q | % {
@@ -89,6 +38,62 @@ $navVersion = $inspect.Config.Labels.version
 $nav = $inspect.Config.Labels.nav
 $cu = $inspect.Config.Labels.cu
 $locale = Get-LocaleFromCountry $country
+
+if ($Office365UserName -eq "" -or $Office365Password -eq "") {
+    $auth = "NavUserPassword"
+    if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
+        Remove-Item -Path "c:\myfolder\SetupConfiguration.ps1" -Force
+    }
+}
+else {
+    $auth = "AAD"
+    if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
+        Log "Reusing existing Aad Apps for Office 365 integration"
+    }
+    else {
+        '. "c:\run\SetupConfiguration.ps1"
+        ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
+
+        Log "Creating Aad Apps for Office 365 integration"
+        if (([System.Version]$navVersion).Major -ge 15) {
+            $publicWebBaseUrl = "https://$publicDnsName/BC/"
+        }
+        else {
+            $publicWebBaseUrl = "https://$publicDnsName/NAV/"
+        }
+        $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
+        $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
+        try {
+            $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
+
+            $SsoAdAppId = $AdProperties.SsoAdAppId
+            $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
+            $ExcelAdAppId = $AdProperties.ExcelAdAppId
+            $PowerBiAdAppId = $AdProperties.PowerBiAdAppId
+            $PowerBiAdAppKeyValue = $AdProperties.PowerBiAdAppKeyValue
+
+    'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
+    Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
+    Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$ExcelAdAppId+'" -WarningAction Ignore
+    Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ValidAudiences" -KeyValue "'+$SsoAdAppId+'" -WarningAction Ignore -ErrorAction Ignore
+    ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
+            
+            $settings = Get-Content -path "c:\demo\settings.ps1"
+
+            $settings += "`$SsoAdAppId = '$SsoAdAppId'"
+            $settings += "`$SsoAdAppKeyValue = '$SsoAdAppKeyValue'"
+            $settings += "`$ExcelAdAppId = '$ExcelAdAppId'"
+            $settings += "`$PowerBiAdAppId = '$PowerBiAdAppId'"
+            $settings += "`$PowerBiAdAppKeyValue = '$PowerBiAdAppKeyValue'"
+
+            Set-Content -Path $settingsScript -Value $settings
+    
+        } catch {
+            Log -color Red $_.Exception.Message
+            Log -color Red "Reverting to NavUserPassword authentication"
+        }
+    }
+}
 
 if ($nav -eq "2016" -or $nav -eq "2017" -or $nav -eq "2018") {
     $title = "Dynamics NAV $nav Demonstration Environment"
@@ -274,7 +279,7 @@ if ("$bingmapskey" -ne "") {
         if ("$webServicesKey" -eq "") {
             $session = Get-NavContainerSession -containerName $containerName
             Invoke-Command -Session $session -ScriptBlock { Param($navAdminUsername)
-                Set-NAVServerUser -ServerInstance NAV -Tenant "default" -UserName $navAdminUsername -CreateWebServicesKey 
+                Set-NAVServerUser -ServerInstance $serverInstance -Tenant "default" -UserName $navAdminUsername -CreateWebServicesKey 
             } -ArgumentList $navAdminUsername
             $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
         }
