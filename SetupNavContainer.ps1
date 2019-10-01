@@ -211,10 +211,10 @@ if ($auth -eq "AAD") {
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
         if (([System.Version]$navVersion).Major -ge 15) {
-            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
+            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_15.0.0.0.app" -destinationFile $appfile
         }
         else {
-            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_15.0.0.0.app" -destinationFile $appfile
+            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
         }
 
         Publish-NavContainerApp -containerName $containerName -appFile $appFile -skipVerification -install -sync
