@@ -211,7 +211,7 @@ if ($auth -eq "AAD") {
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
         if (([System.Version]$navVersion).Major -ge 15) {
-            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_15.0.0.0.app" -destinationFile $appfile
+            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_15.0.app" -destinationFile $appfile
         }
         else {
             Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
@@ -269,16 +269,21 @@ if ("$includeappUris".Trim() -ne "") {
 
 if ("$bingmapskey" -ne "") {
 
-    $appFile = switch (([System.Version]$navVersion).Major) {
-     9 { "" }
-    10 { "" }
-    11 { "http://aka.ms/bingmaps11.app" }
-    default { "http://aka.ms/bingmaps.app" }
+    $codeunitId = 0
+    switch (([System.Version]$navVersion).Major) {
+          9 { $appFile = "" }
+         10 { $appFile = "" }
+         11 { $appFile = "http://aka.ms/bingmaps11.app"; $codeunitId = 50103 }
+         12 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 50103 }
+         13 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 50103 }
+         14 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 0 }
+    default { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
     }
 
     if ($appFile -eq "") {
         Log "BingMaps app is not supported for this version of NAV"
-    } else {
+    }
+    else {
         Log "Create Web Services Key for admin user"
         $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
         if ("$webServicesKey" -eq "") {
@@ -298,14 +303,16 @@ if ("$bingmapskey" -ne "") {
                                 -sync `
                                 -install
     
-        Log "Geocode customers"
-        Get-CompanyInNavContainer -containerName $containerName | % {
-            Invoke-NavContainerCodeunit -containerName $containerName `
-                                        -tenant "default" `
-                                        -CompanyName $_.CompanyName `
-                                        -Codeunitid 50103 `
-                                        -MethodName "SetBingMapsSettings" `
-                                        -Argument ('{ "BingMapsKey":"' + $bingMapsKey + '","WebServicesUsername": "' + $navAdminUsername + '","WebServicesKey": "' + $webServicesKey + '"}')
+        if ($codeunitId) {
+            Log "Geocode customers"
+            Get-CompanyInNavContainer -containerName $containerName | % {
+                Invoke-NavContainerCodeunit -containerName $containerName `
+                                            -tenant "default" `
+                                            -CompanyName $_.CompanyName `
+                                            -Codeunitid $codeunitId `
+                                            -MethodName "SetBingMapsSettings" `
+                                            -Argument ('{ "BingMapsKey":"' + $bingMapsKey + '","WebServicesUsername": "' + $navAdminUsername + '","WebServicesKey": "' + $webServicesKey + '"}')
+            }
         }
     }
 }
