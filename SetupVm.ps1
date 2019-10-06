@@ -247,10 +247,8 @@ $openXmlFile = "C:\DOWNLOAD\OpenXMLSDKV25.msi"
 Download-File -sourceUrl $openXmlUrl -destinationFile $openXmlFile
 Start-Process $openXmlFile -argumentList "/qn /q /passive" -wait
 
-if ($imageName) {
-    . "c:\demo\SetupNavContainer.ps1"
-    . "c:\demo\SetupDesktop.ps1"
-}
+. "c:\demo\SetupNavContainer.ps1"
+. "c:\demo\SetupDesktop.ps1"
 
 $finalSetupScript = (Join-Path $PSScriptRoot "FinalSetupScript.ps1")
 if (Test-Path $finalSetupScript) {
