@@ -9,7 +9,7 @@ param
        [string] $navAdminUsername          = "admin",
        [string] $azureSqlAdminUsername     = "sqladmin",
        [string] $adminPassword             = "P@ssword1",
-       [string] $navDockerImage            = "mcr.microsoft.com/businesscentral/sandbox:us",
+       [string] $navDockerImage            = "",
        [string] $registryUsername          = "",
        [string] $registryPassword          = "",
        [string] $sqlServerType             = "SQLExpress",
