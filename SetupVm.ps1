@@ -213,7 +213,8 @@ if ($style -eq "devpreview") {
     New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "CommonStartup" -Arguments "http://aka.ms/moderndevtools"
 }
 
-$navDockerImage.Split(',') | ForEach-Object {
+$imageName = ""
+$navDockerImage.Split(',') | Where-Object { $_ } | ForEach-Object {
     $registry = $_.Split('/')[0]
     if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
         Log "Logging in to $registry"
@@ -246,8 +247,10 @@ $openXmlFile = "C:\DOWNLOAD\OpenXMLSDKV25.msi"
 Download-File -sourceUrl $openXmlUrl -destinationFile $openXmlFile
 Start-Process $openXmlFile -argumentList "/qn /q /passive" -wait
 
-. "c:\demo\SetupNavContainer.ps1"
-. "c:\demo\SetupDesktop.ps1"
+if ($imageName) {
+    . "c:\demo\SetupNavContainer.ps1"
+    . "c:\demo\SetupDesktop.ps1"
+}
 
 $finalSetupScript = (Join-Path $PSScriptRoot "FinalSetupScript.ps1")
 if (Test-Path $finalSetupScript) {
