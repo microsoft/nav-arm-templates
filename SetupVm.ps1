@@ -269,6 +269,10 @@ if ($RunWindowsUpdate -eq "Yes") {
     Log "Windows updates installed"
 }
 
+if (!($imageName)) {
+    Remove-Item -path "c:\demo\status.txt" -Force -ErrorAction SilentlyContinue
+}
+
 shutdown -r -t 30
 
 } catch {
