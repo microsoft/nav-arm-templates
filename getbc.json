@@ -35,6 +35,14 @@
                 "Description": "Specify * (star) to allow all remote desktop access, specify - (minus) to deny all remote desktop access or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
             }
 		},
+        "WinRMAccess": {
+		    "type": "string",
+			"defaultValue": "-",
+            "minLength": 1,
+            "metadata": {
+                "Description": "Specify * (star) to allow all WinRM access, specify - (minus) to deny all WinRM access or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
+            }
+		},
         "OperatingSystem": {
             "type": "string",
             "defaultValue": "Windows Server 2019 with Containers",
@@ -98,7 +106,6 @@
         "BCDockerImage": {
             "type": "string",
             "defaultValue": "mcr.microsoft.com/businesscentral/onprem",
-            "minLength": 1,
             "metadata": {
                 "Description": "Select the Business Central Docker Image to deploy. See https://hub.docker.com/r/microsoft/bconprem/ for a list of public images."
             }
@@ -209,6 +216,7 @@
         "AcceptEula": "[parameters('AcceptEula')]",
         "vmSize": "[parameters('vmSize')]",
         "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
+        "WinRmAccess": "[parameters('WinRmAccess')]",
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
         "navAdminUsername": "[trim(parameters('BCAdminUsername'))]",
         "azureSqlAdminUsername": "sqladmin",
@@ -263,6 +271,9 @@
         "RdpAddresses": "[if(equals(variables('RemoteDesktopAccess'),'-'),'',variables('RemoteDesktopAccess'))]",
         "rdpSourceAddressPrefix": "[split(variables('RdpAddresses'),variables('delimiters'))]",
         "noOfAddresses": "[length(variables('rdpSourceAddressPrefix'))]",
+        "winRmAddresses": "[if(equals(variables('WinRmAccess'),'-'),'',variables('WinRmAccess'))]",
+		"winRmSourceAddressPrefix": "[split(variables('winRmAddresses'),variables('delimiters'))]",
+		"noOfWinRmAddresses": "[length(variables('winRmSourceAddressPrefix'))]",
         "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
         "ScriptCommandToExecute": "powershell.exe -executionpolicy unrestricted -file ",
@@ -634,6 +645,69 @@
 				}
 			}
 		},
+		{
+			"apiVersion": "2015-01-01",
+			"type": "Microsoft.Resources/deployments",
+			"name": "winrm-0",
+			"condition": "[not(equals(variables('WinRmAccess'),'-'))]",
+			"dependsOn": [
+				"[concat('Microsoft.Network/networkSecurityGroups/',variables('networkSecurityGroupName'))]"
+			],
+			"properties": {
+				"mode":"Incremental",
+				"parameters":{},
+				"template": {
+					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"parameters": {},
+					"variables": {},
+					"resources": [],
+					"outputs": {}
+				}
+			}
+		},       
+		{
+			"apiVersion": "2015-01-01",
+			"type": "Microsoft.Resources/deployments",
+			"name": "[concat('winrm-', copyIndex(1))]",
+			"condition": "[not(equals(variables('WinRmAccess'),'-'))]",
+			"dependsOn": [
+				"[concat('winrm-', copyIndex())]"
+			],
+			"copy": {
+				"name": "iterator",
+				"count": "[variables('noOfWinRmAddresses')]"
+			},
+			"properties": {
+				"mode": "Incremental",
+				"template": {
+					"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+					"contentVersion": "1.0.0.0",
+					"parameters": {},
+					"variables": {},
+					"resources": [
+						{
+							"apiVersion": "2016-09-01",
+							"name": "[concat(variables('networkSecurityGroupName'),'/WinRm',copyIndex())]",
+							"type": "Microsoft.Network/networkSecurityGroups/securityRules",
+							"location":"[resourceGroup().location]",
+							"properties":{
+								"description": "WinRm Access",
+								"protocol": "Tcp",
+								"sourcePortRange": "*",
+								"destinationPortRange": "5986",
+								"sourceAddressPrefix": "[variables('winRmSourceAddressPrefix')[copyIndex()]]",
+								"destinationAddressPrefix": "*",
+								"access": "Allow",
+								"priority": "[add(copyIndex(),300)]",
+								"direction": "Inbound"
+							}
+						}
+					],
+					"outputs": {}
+				}
+			}
+		},
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/virtualNetworks",
@@ -786,7 +860,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',variables('registryPassword'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',variables('CertificatePfxPassword'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -IncludeCSIDE \"',variables('IncludeCSIDE'),'\" -IncludeAL \"',variables('IncludeAL'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\" -nchbranch \"',variables('nchbranch'),'\" -AddTraefik \"',variables('AddTraefik'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -WinRmAccess \"',variables('winRmAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',variables('registryPassword'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',variables('CertificatePfxPassword'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -IncludeCSIDE \"',variables('IncludeCSIDE'),'\" -IncludeAL \"',variables('IncludeAL'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',variables('Office365Password'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\" -nchbranch \"',variables('nchbranch'),'\" -AddTraefik \"',variables('AddTraefik'),'\"')]"
                 },
                 "protectedSettings": {}
             }

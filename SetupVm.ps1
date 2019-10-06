@@ -213,7 +213,8 @@ if ($style -eq "devpreview") {
     New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "CommonStartup" -Arguments "http://aka.ms/moderndevtools"
 }
 
-$navDockerImage.Split(',') | ForEach-Object {
+$imageName = ""
+$navDockerImage.Split(',') | Where-Object { $_ } | ForEach-Object {
     $registry = $_.Split('/')[0]
     if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
         Log "Logging in to $registry"
@@ -264,6 +265,10 @@ if ($RunWindowsUpdate -eq "Yes") {
     install-module PSWindowsUpdate -force
     Get-WUInstall -install -acceptall -autoreboot | ForEach-Object { Log ($_.Status + " " + $_.KB + " " +$_.Title) }
     Log "Windows updates installed"
+}
+
+if (!($imageName)) {
+    Remove-Item -path "c:\demo\status.txt" -Force -ErrorAction SilentlyContinue
 }
 
 shutdown -r -t 30
