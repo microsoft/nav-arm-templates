@@ -132,7 +132,6 @@
         "BCDockerImage": {
             "type": "string",
             "defaultValue": "mcr.microsoft.com/businesscentral/onprem",
-            "minLength": 1,
             "metadata": {
                 "Description": "Select the Docker Image to deploy. See https://hub.docker.com/r/microsoft/bconprem/ for a list of public images."
             }

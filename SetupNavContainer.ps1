@@ -15,6 +15,7 @@ $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
 
 . "$settingsScript"
 
+if ($navDockerImage) {
 $imageName = Get-BestNavContainerImageName -imageName ($navDockerImage.Split(',')[0])
 
 docker ps --filter name=$containerName -a -q | % {
@@ -348,3 +349,5 @@ Log -color Green "Container output"
 docker logs $containerName | % { log $_ }
 
 Log -color Green "Container setup complete!"
+
+}

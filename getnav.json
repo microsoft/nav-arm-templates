@@ -98,7 +98,6 @@
         "navDockerImage": {
             "type": "string",
             "defaultValue": "mcr.microsoft.com/dynamicsnav:w1",
-            "minLength": 1,
             "metadata": {
                 "Description": "Select the NAV Docker Image to deploy. See https://hub.docker.com/r/microsoft/dynamics-nav/ for a list of public images."
             }
