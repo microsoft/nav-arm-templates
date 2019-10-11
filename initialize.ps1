@@ -175,9 +175,10 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Log "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
-Remove-Module PowerShellGet
-Install-module PowerShellGet -force
-Import-Module PowerShellGet
+if (-not (Get-Module powershellget | Where-Object { $_.Version -eq "2.2.1" })) {
+    Install-Module powershellget -RequiredVersion 2.2.1
+    Import-Module "C:\Program Files\WindowsPowerShell\Modules\PowerShellGet\2.2.1\PowerShellGet.psd1"
+}
 
 Log "Installing Internet Information Server (this might take a few minutes)"
 if ($WindowsInstallationType -eq "Server") {
