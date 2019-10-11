@@ -175,6 +175,7 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Log "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
+Install-module PowerShellGet -force
 
 Log "Installing Internet Information Server (this might take a few minutes)"
 if ($WindowsInstallationType -eq "Server") {
@@ -363,14 +364,7 @@ if ($dnsidentity.StartsWith("*")) {
         ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
 $certificatePfxFile = "'+$certificatePfxFilename+'"
 $publicDnsName = "'+$publicDnsName+'"
-$dnsAlias = "dns$(get-date -format yyyyMMddHHmm)"
-Import-Module ACMESharp
-New-ACMEIdentifier -Dns $publicDnsName -Alias $dnsAlias
-Complete-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01 -Handler iis -Force -HandlerParameters @{ WebSiteRef = "Default Web Site" }
-Submit-ACMEChallenge -IdentifierRef $dnsAlias -ChallengeType http-01 -Force
-sleep -s 60
-Update-ACMEIdentifier -IdentifierRef $dnsAlias
-Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword -dnsAlias $dnsAlias
+Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword
 Restart-NavContainer -containerName navserver -renewBindings
 ') | Set-Content "c:\demo\RenewCertificate.ps1"
 
