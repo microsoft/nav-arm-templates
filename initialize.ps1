@@ -175,8 +175,8 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Log "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
-if (-not (Get-Module powershellget | Where-Object { $_.Version -eq "2.2.1" })) {
-    Install-Module powershellget -RequiredVersion 2.2.1
+if (!(Get-Module powershellget | Where-Object { $_.Version -ge [version]"2.2.1" })) {
+    Install-Module powershellget -RequiredVersion 2.2.1 -force
     Import-Module "C:\Program Files\WindowsPowerShell\Modules\PowerShellGet\2.2.1\PowerShellGet.psd1"
 }
 
