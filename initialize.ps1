@@ -175,7 +175,9 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Log "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
+Remove-Module PowerShellGet
 Install-module PowerShellGet -force
+Import-Module PowerShellGet
 
 Log "Installing Internet Information Server (this might take a few minutes)"
 if ($WindowsInstallationType -eq "Server") {
