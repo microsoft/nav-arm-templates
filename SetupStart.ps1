@@ -6,6 +6,50 @@ Log "SetupStart, User: $env:USERNAME"
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
+if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
+
+    Log "Installing ACME-PS"
+    Install-Module -Name ACME-PS -RequiredVersion "1.1.0-beta" -AllowPrerelease -Force
+
+    Log "Using Lets Encrypt certificate"
+    # Use Lets encrypt
+    # If rate limits are hit, log an error and revert to Self Signed
+    try {
+        $plainPfxPassword = [GUID]::NewGuid().ToString()
+        $certificatePfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
+        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
+
+        # Override SetupCertificate.ps1 in container
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+$certificateThumbprint = $cert.Thumbprint
+Write-Host "Certificate File Thumbprint $certificateThumbprint"
+if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+    Write-Host "Import Certificate to LocalMachine\my"
+    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password $certificatePfxPassword | Out-Null
+}
+$dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+if ($dnsidentity.StartsWith("*")) {
+    $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
+}
+') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
+        # Create RenewCertificate script
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$publicDnsName = "'+$publicDnsName+'"
+Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword
+Restart-NavContainer -containerName navserver -renewBindings
+') | Set-Content "c:\demo\RenewCertificate.ps1"
+
+    } catch {
+        Log -color Red $_.Exception.Message
+        Log -color Red "Reverting to Self Signed Certificate"
+    }
+}
+
+
 if (!(Get-Package -Name AzureRM -ErrorAction Ignore)) {
     Log "Installing AzureRM PowerShell package"
     Install-Package AzureRM -Force -WarningAction Ignore  -RequiredVersion 6.13.1 | Out-Null

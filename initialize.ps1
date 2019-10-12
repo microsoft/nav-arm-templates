@@ -178,13 +178,6 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
 if (!(Get-Module powershellget | Where-Object { $_.Version -ge [version]"2.2.1" })) {
     Log "Installing PowerShellGet 2.2.1"
     Install-Module powershellget -RequiredVersion 2.2.1 -force
-    Import-Module "C:\Program Files\WindowsPowerShell\Modules\PowerShellGet\2.2.1\PowerShellGet.psd1" -Prefix x -PassThru
-    Log "Installing ACME-PS"
-    Install-xModule -Name ACME-PS -RequiredVersion "1.1.0-beta" -AllowPrerelease -Force
-}
-else {
-    Log "Installing ACME-PS"
-    Install-Module -Name ACME-PS -RequiredVersion "1.1.0-beta" -AllowPrerelease -Force
 }
 
 Log "Installing Internet Information Server (this might take a few minutes)"
@@ -304,6 +297,11 @@ if ($nchBranch) {
 
 if ($AddTraefik -eq "Yes") {
 
+    if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
+        Log -color Red "Certificate specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
     if (-not $ContactEMailForLetsEncrypt) {
         Log -color Red "Contact EMail for LetsEncrypt not specified, cannot add Traefik"
         $AddTraefik = "No"
@@ -344,44 +342,9 @@ Write-Host "DNS identity $dnsidentity"
 ('Write-Host "DNS identity $dnsidentity"
 ') | Set-Content "c:\myfolder\AdditionalSetup.ps1"
 
-} elseif ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
+$ContactEMailForLetsEncrypt = ""
+Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settingsScript
 
-    Log "Using Lets Encrypt certificate"
-    # Use Lets encrypt
-    # If rate limits are hit, log an error and revert to Self Signed
-    try {
-        $plainPfxPassword = [GUID]::NewGuid().ToString()
-        $certificatePfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
-        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
-
-        # Override SetupCertificate.ps1 in container
-        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
-$certificatePfxFile = "'+$certificatePfxFilename+'"
-$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
-$certificateThumbprint = $cert.Thumbprint
-Write-Host "Certificate File Thumbprint $certificateThumbprint"
-if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
-    Write-Host "Import Certificate to LocalMachine\my"
-    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password $certificatePfxPassword | Out-Null
-}
-$dnsidentity = $cert.GetNameInfo("SimpleName",$false)
-if ($dnsidentity.StartsWith("*")) {
-    $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
-}
-') | Set-Content "c:\myfolder\SetupCertificate.ps1"
-
-        # Create RenewCertificate script
-        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
-$certificatePfxFile = "'+$certificatePfxFilename+'"
-$publicDnsName = "'+$publicDnsName+'"
-Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword
-Restart-NavContainer -containerName navserver -renewBindings
-') | Set-Content "c:\demo\RenewCertificate.ps1"
-
-    } catch {
-        Log -color Red $_.Exception.Message
-        Log -color Red "Reverting to Self Signed Certificate"
-    }
 }
 
 if ($WindowsInstallationType -eq "Server") {
