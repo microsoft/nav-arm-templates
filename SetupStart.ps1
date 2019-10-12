@@ -6,6 +6,12 @@ Log "SetupStart, User: $env:USERNAME"
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
+if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
+    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+} else {
+    Import-Module -name navcontainerhelper -DisableNameChecking
+}
+
 if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
 
     Log "Installing ACME-PS"
