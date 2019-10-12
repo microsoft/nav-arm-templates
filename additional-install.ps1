@@ -22,6 +22,9 @@ choco install firefox
 Log "Install Office 365 Business"
 choco install office365business
 
+Log "Install PowerBI Desktop"
+choco install powerbi
+
 #Add VSCode Extensions
 "eamodio.gitlens", "ms-vscode.PowerShell", "heaths.vscode-guid", "github.vscode-pull-request-github", "formulahendry.docker-explorer" | % {
     Log "Install VSCode Extension: $_"
