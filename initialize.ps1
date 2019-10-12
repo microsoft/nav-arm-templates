@@ -177,7 +177,11 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
 }
 if (!(Get-Module powershellget | Where-Object { $_.Version -ge [version]"2.2.1" })) {
     Install-Module powershellget -RequiredVersion 2.2.1 -force
-    Import-Module "C:\Program Files\WindowsPowerShell\Modules\PowerShellGet\2.2.1\PowerShellGet.psd1"
+    Import-Module "C:\Program Files\WindowsPowerShell\Modules\PowerShellGet\2.2.1\PowerShellGet.psd1" -Prefix x -PassThru
+    Install-xModule -Name ACME-PS -AllowPrerelease
+}
+else {
+    Install-Module -Name ACME-PS -AllowPrerelease
 }
 
 Log "Installing Internet Information Server (this might take a few minutes)"
