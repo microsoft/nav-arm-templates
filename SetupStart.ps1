@@ -14,7 +14,7 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 
 if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
 
-    Log "Installing ACME-PS"
+    Log "Installing ACME-PS PowerShell Module"
     Install-Module -Name ACME-PS -RequiredVersion "1.1.0-beta" -AllowPrerelease -Force
 
     Log "Using Lets Encrypt certificate"
@@ -46,6 +46,7 @@ if ($dnsidentity.StartsWith("*")) {
 $certificatePfxFile = "'+$certificatePfxFilename+'"
 $publicDnsName = "'+$publicDnsName+'"
 Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword
+Start-Sleep -seconds 30
 Restart-NavContainer -containerName navserver -renewBindings
 ') | Set-Content "c:\demo\RenewCertificate.ps1"
 
