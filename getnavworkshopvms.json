@@ -639,7 +639,7 @@
                 "osProfile": {
                     "computerName": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]",
                     "adminUsername": "[parameters('vmAdminUsername')]",
-                    "adminPassword": "[replace(replace(string(take(skip(variables('passwords'),mod(copyIndex(),variables('noOfPasswords'))),1)),'[',''),']','')]",
+                    "adminPassword": "P@ssword1",
                     "windowsConfiguration": {
                         "provisionVmAgent": "true"
                     }
