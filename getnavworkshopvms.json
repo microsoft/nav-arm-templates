@@ -271,6 +271,8 @@
     },
     "variables": {
         "nchbranch": "",
+        "passwords": "[split(parameters('adminPassword'),',')]",
+        "noOfPasswords": "[length(variables('passwords'))]",
         "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
         "WinRmAccess": "[parameters('WinRmAccess')]",
         "OperatingSystem": "[parameters('OperatingSystem')]",
@@ -637,7 +639,7 @@
                 "osProfile": {
                     "computerName": "[concat(tolower(parameters('vmName')),string(add(copyIndex(),parameters('offset'))))]",
                     "adminUsername": "[parameters('vmAdminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]",
+                    "adminPassword": "[variables('passwords')[mod(copyIndex(),variables('noOfPasswords'))]]",
                     "windowsConfiguration": {
                         "provisionVmAgent": "true"
                     }
@@ -698,7 +700,7 @@
                     ]
                 },
                 "protectedSettings": {
-					"commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('rdpAddresses'),'\" -WinRmAccess \"',variables('winRmAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',parameters('adminPassword'),'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RequestToken \"',parameters('RequestToken'),'\" -AssignPremiumPlan \"',parameters('AssignPremiumPlan'),'\" -CreateTestUsers \"',parameters('CreateTestUsers'),'\" -EnableSymbolLoading \"',parameters('EnableSymbolLoading'),'\" -IncludeCSIDE \"',parameters('IncludeCSIDE'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -IncludeAL \"',parameters('IncludeAL'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -nchbranch \"',variables('nchbranch'),'\"')]"
+					"commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(concat(parameters('vmName'), string(add(copyIndex(),parameters('offset'))), '_pip')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('rdpAddresses'),'\" -WinRmAccess \"',variables('winRmAddresses'),'\" -VMAdminUsername \"',trim(parameters('vmAdminUsername')),'\" -NAVAdminUsername \"',trim(parameters('navAdminUsername')),'\" -AdminPassword \"',variables('passwords')[mod(copyIndex(),variables('noOfPasswords'))],'\" -navDockerImage \"',trim(parameters('navDockerImage')),'\" -registryUsername \"',parameters('registryUsername'),'\" -registryPassword \"',parameters('registryPassword'),'\" -LicenseFileUri \"',parameters('licenseFileUri'),'\" -style \"workshop\" -fobfileurl \"',parameters('FobFileUrl'),'\" -workshopFilesUrl \"',parameters('workshopFilesUrl'),'\" -CertificatePfxUrl \"',parameters('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',parameters('CertificatePfxPassword'),'\" -PublicDnsName \"',replace(parameters('PublicDnsName'),'#',string(add(copyIndex(),parameters('offset')))),'\" -finalSetupScriptUrl \"',parameters('finalSetupScriptUrl'),'\" -RequestToken \"',parameters('RequestToken'),'\" -AssignPremiumPlan \"',parameters('AssignPremiumPlan'),'\" -CreateTestUsers \"',parameters('CreateTestUsers'),'\" -EnableSymbolLoading \"',parameters('EnableSymbolLoading'),'\" -IncludeCSIDE \"',parameters('IncludeCSIDE'),'\" -ClickOnce \"',parameters('ClickOnce'),'\" -IncludeAL \"',parameters('IncludeAL'),'\" -RunWindowsUpdate \"',parameters('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',parameters('ContactEMailForLetsEncrypt'),'\" -nchbranch \"',variables('nchbranch'),'\"')]"
 				}
             },
 			"copy": {
