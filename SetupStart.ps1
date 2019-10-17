@@ -59,6 +59,9 @@ Restart-NavContainer -containerName navserver -renewBindings
 Log "Installing Az module"
 Install-Module Az -Force
 
+Log "Installing AzureAD module"
+Install-Module AzureAD -Force
+
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 

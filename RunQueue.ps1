@@ -21,11 +21,11 @@ if (!($storageQueue)) {
 $storageQueue = Get-AzStorageQueue -Name $queuename -Context $storageContext
 
 # Create table for replies (if it doesn't exist)
-$table = Get-AzStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore
-if (!($table)) {
+$storageTable = Get-AzStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore
+if (!($storageTable)) {
     New-AzStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore | Out-Null
 }
-$table = Get-AzStorageTable –Name "QueueStatus" –Context $storageContext
+$storageTable = Get-AzStorageTable –Name "QueueStatus" –Context $storageContext
 
 # Transcript container on azure storage
 New-AzStorageContainer -Context $storageContext -Name "transcript" -Permission Blob -ErrorAction SilentlyContinue | Out-Null
@@ -100,7 +100,7 @@ while ($true) {
             throw "No more attempts"
         }
         
-        Add-AzTableRow -table $table -partitionKey $queuename -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property $ht | Out-Null
+        Add-AzTableRow -table $storageTable.CloudTable -partitionKey $queuename -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property $ht | Out-Null
 
         $script = Get-Item -Path (Join-Path $commandFolder "$cmd.ps1") -ErrorAction Ignore
         if (($script) -and ($script.FullName.ToLowerInvariant().StartsWith($commandFolder))) {
@@ -132,6 +132,6 @@ while ($true) {
         Set-AzStorageBlobContent -File $transcriptfilename -Context $storageContext -Container "transcript" -Blob $transcriptname -Force | Out-Null
         $ht.transcript = "$($StorageContext.BlobEndPoint)transcript/$transcriptname"
     }
-    Add-AzTableRow -table $table -partitionKey $queuename -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property $ht | Out-Null
+    Add-AzTableRow -table $storageTable.CloudTable -partitionKey $queuename -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property $ht | Out-Null
 
 }
