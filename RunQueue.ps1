@@ -10,25 +10,25 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
     Import-Module -name navcontainerhelper -DisableNameChecking
 }
 
-$storageContext = New-AzureStorageContext -ConnectionString $storageConnectionString
+$storageContext = New-AzStorageContext -ConnectionString $storageConnectionString
 $queuename = $publicDnsName.Split('.')[0]
 
 # Create Queue (if it doesn't exist)
-$storageQueue = Get-AzureStorageQueue -Context $storageContext -Name $queuename -ErrorAction Ignore
+$storageQueue = Get-AzStorageQueue -Context $storageContext -Name $queuename -ErrorAction Ignore
 if (!($storageQueue)) {
-    New-AzureStorageQueue -Name $queuename -Context $storageContext -ErrorAction Ignore | Out-Null
+    New-AzStorageQueue -Name $queuename -Context $storageContext -ErrorAction Ignore | Out-Null
 }
-$storageQueue = Get-AzureStorageQueue -Name $queuename -Context $storageContext
+$storageQueue = Get-AzStorageQueue -Name $queuename -Context $storageContext
 
 # Create table for replies (if it doesn't exist)
-$table = Get-AzureStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore
+$table = Get-AzStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore
 if (!($table)) {
-    New-AzureStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore | Out-Null
+    New-AzStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore | Out-Null
 }
-$table = Get-AzureStorageTable –Name "QueueStatus" –Context $storageContext
+$table = Get-AzStorageTable –Name "QueueStatus" –Context $storageContext
 
 # Transcript container on azure storage
-New-AzureStorageContainer -Context $storageContext -Name "transcript" -Permission Blob -ErrorAction SilentlyContinue | Out-Null
+New-AzStorageContainer -Context $storageContext -Name "transcript" -Permission Blob -ErrorAction SilentlyContinue | Out-Null
 
 # Folder where command scripts are placed
 $commandFolder = (Join-Path $PsScriptRoot "request").ToLowerInvariant()
@@ -100,7 +100,7 @@ while ($true) {
             throw "No more attempts"
         }
         
-        Add-StorageTableRow -table $table -partitionKey $queuename -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property $ht | Out-Null
+        Add-AzTableRow -table $table -partitionKey $queuename -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property $ht | Out-Null
 
         $script = Get-Item -Path (Join-Path $commandFolder "$cmd.ps1") -ErrorAction Ignore
         if (($script) -and ($script.FullName.ToLowerInvariant().StartsWith($commandFolder))) {
@@ -129,9 +129,9 @@ while ($true) {
         $transcripting = $false
         Stop-Transcript
 
-        Set-AzureStorageBlobContent -File $transcriptfilename -Context $storageContext -Container "transcript" -Blob $transcriptname -Force | Out-Null
+        Set-AzStorageBlobContent -File $transcriptfilename -Context $storageContext -Container "transcript" -Blob $transcriptname -Force | Out-Null
         $ht.transcript = "$($StorageContext.BlobEndPoint)transcript/$transcriptname"
     }
-    Add-StorageTableRow -table $table -partitionKey $queuename -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property $ht | Out-Null
+    Add-AzTableRow -table $table -partitionKey $queuename -rowKey ([string]::Format("{0:D19}", [DateTime]::MaxValue.Ticks - [DateTime]::UtcNow.Ticks)) -property $ht | Out-Null
 
 }

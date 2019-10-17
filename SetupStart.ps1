@@ -56,16 +56,8 @@ Restart-NavContainer -containerName navserver -renewBindings
     }
 }
 
-
-if (!(Get-Package -Name AzureRM -ErrorAction Ignore)) {
-    Log "Installing AzureRM PowerShell package"
-    Install-Package AzureRM -Force -WarningAction Ignore  -RequiredVersion 6.13.1 | Out-Null
-}
-
-if (!(Get-Package -Name AzureAD -ErrorAction Ignore)) {
-    Log "Installing AzureAD PowerShell package"
-    Install-Package AzureAD -Force -WarningAction Ignore | Out-Null
-}
+Log "Installing Az module"
+Install-Module Az -Force
 
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
@@ -79,10 +71,9 @@ if ($requestToken) {
 }
 
 if ("$createStorageQueue" -eq "yes") {
-    if (!(Get-Package -Name AzureRmStorageTable -ErrorAction Ignore)) {
-        Log "Installing AzureRmStorageTable PowerShell package"
-        Install-Package AzureRmStorageTable -Force -WarningAction Ignore  -RequiredVersion 1.0.0.23 | Out-Null
-    }
+    
+    Log "Installing AzTable Module"
+    Install-Module AzTable -Force
 
     $taskName = "RunQueue"
     $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\RunQueue.ps1"
