@@ -79,7 +79,7 @@ else {
     Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ValidAudiences" -KeyValue "'+$SsoAdAppId+'" -WarningAction Ignore -ErrorAction Ignore
     ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
             
-            $settings = Get-Content -path "c:\demo\settings.ps1"
+            $settings = Get-Content -path $settingsScript
 
             $settings += "`$SsoAdAppId = '$SsoAdAppId'"
             $settings += "`$SsoAdAppKeyValue = '$SsoAdAppKeyValue'"
