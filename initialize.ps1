@@ -28,6 +28,7 @@ param
        [string] $publicDnsName             = "",
 	   [string] $fobFileUrl                = "",
 	   [string] $workshopFilesUrl          = "",
+	   [string] $beforeContainerSetupScriptUrl = "",
 	   [string] $finalSetupScriptUrl       = "",
        [string] $style                     = "devpreview",
        [string] $AssignPremiumPlan         = "No",
@@ -257,6 +258,11 @@ if ("$requestToken" -ne "" -or "$createStorageQueue" -eq "yes") {
 }
 Download-File -sourceUrl "${scriptPath}Install-VS2017Community.ps1" -destinationFile "C:\DEMO\Install-VS2017Community.ps1"
 
+if ($beforeContainerSetupScriptUrl) {
+    $beforeContainerSetupScript = "c:\demo\BeforeContainerSetupScript.ps1"
+    Download-File -sourceUrl $beforeContainerSetupScriptUrl -destinationFile $beforeContainerSetupScript
+}
+
 if ($finalSetupScriptUrl) {
     $finalSetupScript = "c:\demo\FinalSetupScript.ps1"
     Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
@@ -275,7 +281,6 @@ if ($workshopFilesUrl -ne "") {
 	[Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
-
 
 if ($nchBranch) {
     if ($nchBranch -notlike "https://*") {
