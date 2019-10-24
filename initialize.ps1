@@ -328,26 +328,20 @@ if ($AddTraefik -eq "Yes") {
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
     Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"
 
-('if ([int](get-item "C:\Program Files\Microsoft Dynamics NAV\*").Name -le 100) {
-    Write-Host "WARNING: This version doesn''t support LetsEncrypt certificates, reverting to self-signed"
-    . "C:\run\SetupCertificate.ps1"
+('$certificatePfxPassword = "'+$certificatePfxPassword+'"
+$certificatePfxFile = "c:\programdata\navcontainerhelper\certificate.pfx"
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+$certificateThumbprint = $cert.Thumbprint
+Write-Host "Certificate File Thumbprint $certificateThumbprint"
+if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+    Write-Host "Importing Certificate to LocalMachine\my"
+    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
 }
-else {
-    $certificatePfxPassword = "'+$certificatePfxPassword+'"
-    $certificatePfxFile = "c:\programdata\navcontainerhelper\certificate.pfx"
-    $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
-    $certificateThumbprint = $cert.Thumbprint
-    Write-Host "Certificate File Thumbprint $certificateThumbprint"
-    if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
-        Write-Host "Importing Certificate to LocalMachine\my"
-        Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password (ConvertTo-SecureString -String $certificatePfxPassword -AsPlainText -Force) | Out-Null
-    }
-    $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
-    if ($dnsidentity.StartsWith("*")) {
-        $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
-    }
-    Write-Host "DNS identity $dnsidentity"
+$dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+if ($dnsidentity.StartsWith("*")) {
+    $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
 }
+Write-Host "DNS identity $dnsidentity"
 ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
 
 ('Write-Host "DNS identity $dnsidentity"
