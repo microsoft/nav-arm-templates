@@ -31,21 +31,25 @@ if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
     . "C:\run\SetupCertificate.ps1"
 }
 else {
-    $CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
-    $certificatePfxFile = "'+$certificatePfxFilename+'"
-    $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
-    $certificateThumbprint = $cert.Thumbprint
-    Write-Host "Certificate File Thumbprint $certificateThumbprint"
-    if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
-        Write-Host "Import Certificate to LocalMachine\my"
-        Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password $certificatePfxPassword | Out-Null
-    }
-    $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
-    if ($dnsidentity.StartsWith("*")) {
-        $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
-    }
+    . (Join-Path $PSScriptRoot "InstallCertificate.ps1")
 }
 ') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
+
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+$certificateThumbprint = $cert.Thumbprint
+Write-Host "Certificate File Thumbprint $certificateThumbprint"
+if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+    Write-Host "Import Certificate to LocalMachine\my"
+    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password $certificatePfxPassword | Out-Null
+}
+$dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+if ($dnsidentity.StartsWith("*")) {
+    $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
+}
+') | Set-Content "c:\myfolder\InstallCertificate.ps1"
 
         # Create RenewCertificate script
         ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force

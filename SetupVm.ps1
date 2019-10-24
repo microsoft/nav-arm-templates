@@ -115,7 +115,11 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 . (Join-Path $PSScriptRoot "settings.ps1")
 
 if ("$WinRmAccess" -ne "") {
-    if (Test-Path "c:\myfolder\SetupCertificate.ps1") {
+    if (Test-Path "c:\myfolder\InstallCertificate.ps1") {
+        # Using trusted certificate - install on host
+        . "c:\myfolder\InstallCertificate.ps1"
+    }
+    elseif (Test-Path "c:\myfolder\SetupCertificate.ps1") {
         # Using trusted certificate - install on host
         . "c:\myfolder\SetupCertificate.ps1"
     }
