@@ -176,9 +176,9 @@
         "SQLServerType": {
 		    "type": "string",
             "defaultValue": "SQLExpress",
-            "allowedValues": [ "SQLExpress", "AzureSQL" ],
+            "allowedValues": [ "SQLExpress", "SQLDeveloper", "AzureSQL" ],
             "metadata": {
-                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of the Docker Image), AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost and you will need to specify App and Tenant Bacpac Uris as Azure Storage Shared Access Signature Urls."
+                "Description": "Select SQL Server to use. SQLExpress will be running in the Container on the Virtual Machine (part of the Docker Image), SQLDeveloper will be installed on the host, AzureSQL will be deployed in the Resource group. Note that Azure SQL will add additional cost and you will need to specify App and Tenant Bacpac Uris as Azure Storage Shared Access Signature Urls."
             }
         },
         "AppBacpacUri": {
