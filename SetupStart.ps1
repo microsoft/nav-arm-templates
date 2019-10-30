@@ -72,6 +72,9 @@ Install-Module Az -Force
 Log "Installing AzureAD module"
 Install-Module AzureAD -Force
 
+Log "Installing SqlServer module"
+Install-Module SqlServer -Force
+
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 
