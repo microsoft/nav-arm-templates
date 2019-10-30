@@ -160,6 +160,7 @@ if ($sqlServerType -eq "SQLDeveloper") {
     set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.MSSQLSERVER\mssqlserver\' -name LoginMode -value 2
     start-service MSSQLSERVER
     
+    Import-Module SQLPS
     $sqlcmd = "ALTER LOGIN sa with password='" + ([System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($dbcredential.Password)).Replace('"','""').Replace('''','''''')) + "',CHECK_POLICY = OFF;ALTER LOGIN sa ENABLE;"
     Invoke-SqlCmd -ServerInstance "localhost" -QueryTimeout 0 -ErrorAction Stop -Query $sqlcmd
 
