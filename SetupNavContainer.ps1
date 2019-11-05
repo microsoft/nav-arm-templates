@@ -130,6 +130,8 @@ if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
         $additionalParameters += @("--env appbacpac=$appBacpacUri",
                                    "--env tenantbacpac=$tenantBacpacUri")
         $params += @{ "timeout" = 7200 }
+    if ("$sqlServerType" -eq "SQLDeveloper") {
+        throw "bacpacs not yet supported with SQLDeveloper"
     } else {
         Log "using $azureSqlServer as database server"
         $params += @{ "databaseServer"     = "$azureSqlServer"
@@ -138,6 +140,53 @@ if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
                       "databaseCredential" = $azureSqlCredential }
         $multitenant = "Yes"
     }
+}
+elseif ("$sqlServerType" -eq "SQLDeveloper") {
+
+    $DatabaseFolder = "c:\databases"
+    $DatabaseName = $containerName
+    
+    if (!(Test-Path $DatabaseFolder)) {
+        New-Item $DatabaseFolder -ItemType Directory | Out-Null
+    }
+    
+    if (Test-Path (Join-Path $DatabaseFolder "$($DatabaseName).*")) {
+        
+        Remove-BCContainer $containerName
+        
+        Write-Host "Dropping database $DatabaseName from host SQL Server"
+        Invoke-SqlCmd -Query "ALTER DATABASE [$DatabaseName] SET OFFLINE WITH ROLLBACK IMMEDIATE" 
+        Invoke-Sqlcmd -Query "DROP DATABASE [$DatabaseName]"
+        
+        Write-Host "Removing Database files $($databaseFolder)\$($DatabaseName).*"
+        Remove-Item -Path (Join-Path $DatabaseFolder "$($DatabaseName).*") -Force
+
+    }
+    
+    $imageName = Get-BestBCContainerImageName -imageName $imageName
+    docker pull $imageName
+    
+    $dbPath = Join-Path $env:TEMP ([Guid]::NewGuid().ToString())
+    Extract-FilesFromBCContainerImage -imageName $imageName -extract database -path $dbPath -force
+    
+    $files = @()
+    Get-ChildItem -Path (Join-Path $dbPath "databases") | % {
+        $DestinationFile = "{0}\{1}{2}" -f $databaseFolder, $DatabaseName, $_.Extension
+        Copy-Item -Path $_.FullName -Destination $DestinationFile -Force
+        $files += @("(FILENAME = N'$DestinationFile')")
+    }
+    
+    Remove-Item -Path $dbpath -Recurse -Force
+    
+    Write-Host "Attaching files as new Database $DatabaseName on host SQL Server"
+    Write-Host "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
+    Invoke-SqlCmd -Query "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
+
+    Log "using $azureSqlServer as database server"
+    $params += @{ "databaseServer"     = "host.containerhelper.internal"
+                  "databaseInstance"   = ""
+                  "databaseName"       = "$containerName"
+                  "databaseCredential" = $azureSqlCredential }
 }
 if ("$clickonce" -eq "Yes") {
     $params += @{"clickonce" = $true}
