@@ -129,6 +129,7 @@ if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
     if ("$sqlServerType" -eq "SQLExpress") {
         $additionalParameters += @("--env appbacpac=$appBacpacUri",
                                    "--env tenantbacpac=$tenantBacpacUri")
+        $params += @{ "timeout" = 7200 }
     } else {
         Log "using $azureSqlServer as database server"
         $params += @{ "databaseServer"     = "$azureSqlServer"
