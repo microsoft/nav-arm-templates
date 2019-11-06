@@ -130,9 +130,11 @@ if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
         $additionalParameters += @("--env appbacpac=$appBacpacUri",
                                    "--env tenantbacpac=$tenantBacpacUri")
         $params += @{ "timeout" = 7200 }
-    if ("$sqlServerType" -eq "SQLDeveloper") {
+    }
+    elseif ("$sqlServerType" -eq "SQLDeveloper") {
         throw "bacpacs not yet supported with SQLDeveloper"
-    } else {
+    }
+    else {
         Log "using $azureSqlServer as database server"
         $params += @{ "databaseServer"     = "$azureSqlServer"
                       "databaseInstance"   = ""
@@ -186,7 +188,7 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
     $params += @{ "databaseServer"     = "host.containerhelper.internal"
                   "databaseInstance"   = ""
                   "databaseName"       = "$containerName"
-                  "databaseCredential" = $azureSqlCredential }
+                  "databaseCredential" = (New-Object PSCredential -ArgumentList 'sa', $securePassword) }
 }
 if ("$clickonce" -eq "Yes") {
     $params += @{"clickonce" = $true}
@@ -249,6 +251,10 @@ try {
     Log -color Red "Container output"
     docker logs $containerName | % { log $_ }
     throw
+}
+
+if ("$sqlServerType" -eq "SQLDeveloper") {
+    New-NavContainerNavUser -containerName $containerName -Credential $credential -ChangePasswordAtNextLogOn:$false -PermissionSetId SUPER
 }
 
 if ($auth -eq "AAD") {
