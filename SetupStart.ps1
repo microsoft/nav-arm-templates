@@ -26,6 +26,16 @@ if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
         New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
 
         # Override SetupCertificate.ps1 in container
+        ('if ([int](get-item "C:\Program Files\Microsoft Dynamics NAV\*").Name -le 100) {
+    Write-Host "WARNING: This version doesn''t support LetsEncrypt certificates, reverting to self-signed"
+    . "C:\run\SetupCertificate.ps1"
+}
+else {
+    . (Join-Path $PSScriptRoot "InstallCertificate.ps1")
+}
+') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
+
         ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
 $certificatePfxFile = "'+$certificatePfxFilename+'"
 $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
@@ -39,7 +49,7 @@ $dnsidentity = $cert.GetNameInfo("SimpleName",$false)
 if ($dnsidentity.StartsWith("*")) {
     $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
 }
-') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+') | Set-Content "c:\myfolder\InstallCertificate.ps1"
 
         # Create RenewCertificate script
         ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
@@ -56,16 +66,14 @@ Restart-NavContainer -containerName navserver -renewBindings
     }
 }
 
+Log "Installing Az module"
+Install-Module Az -Force
 
-if (!(Get-Package -Name AzureRM -ErrorAction Ignore)) {
-    Log "Installing AzureRM PowerShell package"
-    Install-Package AzureRM -Force -WarningAction Ignore  -RequiredVersion 6.13.1 | Out-Null
-}
+Log "Installing AzureAD module"
+Install-Module AzureAD -Force
 
-if (!(Get-Package -Name AzureAD -ErrorAction Ignore)) {
-    Log "Installing AzureAD PowerShell package"
-    Install-Package AzureAD -Force -WarningAction Ignore | Out-Null
-}
+Log "Installing SqlServer module"
+Install-Module SqlServer -Force
 
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
@@ -79,10 +87,9 @@ if ($requestToken) {
 }
 
 if ("$createStorageQueue" -eq "yes") {
-    if (!(Get-Package -Name AzureRmStorageTable -ErrorAction Ignore)) {
-        Log "Installing AzureRmStorageTable PowerShell package"
-        Install-Package AzureRmStorageTable -Force -WarningAction Ignore  -RequiredVersion 1.0.0.23 | Out-Null
-    }
+    
+    Log "Installing AzTable Module"
+    Install-Module AzTable -Force
 
     $taskName = "RunQueue"
     $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\RunQueue.ps1"
