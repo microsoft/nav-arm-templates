@@ -164,7 +164,7 @@
         "navDockerImage": {
             "type": "string",
             "defaultValue": "mcr.microsoft.com/businesscentral/sandbox:us",
-            "minLength": 1,
+            "minLength": 0,
             "metadata": {
                 "Description": "Select the BcSandbox Docker Image to deploy. See https://hub.docker.com/r/microsoft/bcsandbox/ for a list of public images."
             }
