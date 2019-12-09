@@ -268,7 +268,9 @@ if ($auth -eq "AAD") {
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
         if (([System.Version]$navVersion).Major -ge 15) {
-            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_15.0.app" -destinationFile $appfile
+            #Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_15.0.app" -destinationFile $appfile
+            #CDSA: Download app from our own storage with dependency to cegeka-dsa BaseApp
+            Download-File -sourceUrl "https://erpsources.blob.core.windows.net/azure-ad-app-setup/Microsoft_AzureAdAppSetup_15.0.0.0.app" -destinationFile $appfile
         }
         else {
             Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
