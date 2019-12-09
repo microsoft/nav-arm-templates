@@ -51,7 +51,11 @@ if ($firsttime) {
     Copy-Item -Path "$folder\AL-master\snippets\*" -Destination "$alFolder\snippets" -Recurse -ErrorAction Ignore
 }
 
-if (Test-Path "C:\ProgramData\navcontainerhelper\Extensions\$containerName\*.vsix") {
+$codeProcess = get-process Code -ErrorAction SilentlyContinue
+if ($codeProcess) {
+    Log "WARNING: VS Code is running, skipping .vsix installation"
+}
+elseif (Test-Path "C:\ProgramData\navcontainerhelper\Extensions\$containerName\*.vsix") {
     $vsixFileName = (Get-Item "C:\ProgramData\navcontainerhelper\Extensions\$containerName\*.vsix").FullName
     if ($vsixFileName -ne "") {
     

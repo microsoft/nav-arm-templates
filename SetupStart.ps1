@@ -6,15 +6,74 @@ Log "SetupStart, User: $env:USERNAME"
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
-if (!(Get-Package -Name AzureRM -ErrorAction Ignore)) {
-    Log "Installing AzureRM PowerShell package"
-    Install-Package AzureRM -Force -WarningAction Ignore  -RequiredVersion 6.13.1 | Out-Null
+if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
+    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+} else {
+    Import-Module -name navcontainerhelper -DisableNameChecking
 }
 
-if (!(Get-Package -Name AzureAD -ErrorAction Ignore)) {
-    Log "Installing AzureAD PowerShell package"
-    Install-Package AzureAD -Force -WarningAction Ignore | Out-Null
+if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
+
+    Log "Installing ACME-PS PowerShell Module"
+    Install-Module -Name ACME-PS -RequiredVersion "1.1.0-beta" -AllowPrerelease -Force
+
+    Log "Using Lets Encrypt certificate"
+    # Use Lets encrypt
+    # If rate limits are hit, log an error and revert to Self Signed
+    try {
+        $plainPfxPassword = [GUID]::NewGuid().ToString()
+        $certificatePfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
+        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
+
+        # Override SetupCertificate.ps1 in container
+        ('if ([int](get-item "C:\Program Files\Microsoft Dynamics NAV\*").Name -le 100) {
+    Write-Host "WARNING: This version doesn''t support LetsEncrypt certificates, reverting to self-signed"
+    . "C:\run\SetupCertificate.ps1"
 }
+else {
+    . (Join-Path $PSScriptRoot "InstallCertificate.ps1")
+}
+') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
+
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+$certificateThumbprint = $cert.Thumbprint
+Write-Host "Certificate File Thumbprint $certificateThumbprint"
+if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+    Write-Host "Import Certificate to LocalMachine\my"
+    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password $certificatePfxPassword | Out-Null
+}
+$dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+if ($dnsidentity.StartsWith("*")) {
+    $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
+}
+') | Set-Content "c:\myfolder\InstallCertificate.ps1"
+
+        # Create RenewCertificate script
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$publicDnsName = "'+$publicDnsName+'"
+Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword
+Start-Sleep -seconds 30
+Restart-NavContainer -containerName navserver -renewBindings
+') | Set-Content "c:\demo\RenewCertificate.ps1"
+
+    } catch {
+        Log -color Red $_.Exception.Message
+        Log -color Red "Reverting to Self Signed Certificate"
+    }
+}
+
+Log "Installing Az module"
+Install-Module Az -Force
+
+Log "Installing AzureAD module"
+Install-Module AzureAD -Force
+
+Log "Installing SqlServer module"
+Install-Module SqlServer -Force
 
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
@@ -28,10 +87,9 @@ if ($requestToken) {
 }
 
 if ("$createStorageQueue" -eq "yes") {
-    if (!(Get-Package -Name AzureRmStorageTable -ErrorAction Ignore)) {
-        Log "Installing AzureRmStorageTable PowerShell package"
-        Install-Package AzureRmStorageTable -Force -WarningAction Ignore  -RequiredVersion 1.0.0.23 | Out-Null
-    }
+    
+    Log "Installing AzTable Module"
+    Install-Module AzTable -Force
 
     $taskName = "RunQueue"
     $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\RunQueue.ps1"

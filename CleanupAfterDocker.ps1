@@ -22,12 +22,12 @@ if ($dockerService.Status -ne "Running") {
 }
 
 $dockerInfo = (docker info)
-$dockerOsMode = ($dockerInfo | Where-Object { $_.StartsWith('OSType: ') }).SubString(8)
+$dockerOsMode = ($dockerInfo | Where-Object { $_.Trim().StartsWith('OSType: ') }).Trim().SubString(8)
 if ($dockerOsMode -ne "Windows") {
     throw "Docker is not running Windows Containers"
 }
 
-$dockerRootDir = ($dockerInfo | Where-Object { $_.StartsWith('Docker Root Dir: ') }).SubString(17)
+$dockerRootDir = ($dockerInfo | Where-Object { $_.Trim().StartsWith('Docker Root Dir: ') }).Trim().SubString(17)
 if (!(Test-Path $dockerRootDir -PathType Container)) {
     throw "Folder $dockerRootDir does not exist"
 }

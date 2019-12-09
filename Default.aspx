@@ -576,6 +576,40 @@ You can view the installation status by following this link.
 <%
     }
   }
+  if (System.IO.Directory.Exists(@"C:\ProgramData\NavContainerHelper\traefikforbc")) {
+%>
+    <tr><td colspan="4"><h3>Traefik containers</h3></td></tr>
+    <tr><td colspan="4">This VM is setup with Traefik and below are the containers setup for access through Traefik.</td></tr>
+    <tr>
+      <table>
+          <tr><td><b>Name</b></td><td><b>WebClient</b></td><td><b>Soap</b></td><td><b>Rest</b></td><td><b>Developer Endpoint</b></td><td><b>VSIX</b></td></tr>
+<%
+        var directories = System.IO.Directory.GetDirectories(@"C:\ProgramData\NavContainerHelper\Extensions", "*");
+        foreach(var directory in directories) {
+          if (System.IO.Directory.Exists(directory+@"\my")) {
+            var name = System.IO.Path.GetFileName(directory);
+            var hostname = "https://"+getHostname();
+            var webclient = "/"+name;
+            var soap = webclient+"soap";
+            var rest = webclient+"rest";
+            var developer = webclient+"dev";
+            var vsixFile = System.IO.Directory.GetFiles(@"c:\programdata\navcontainerhelper\extensions\"+name, "*.vsix");
+            var vsix = "";
+            if (vsixFile.Length == 1) {
+              vsix = webclient+"dl/"+System.IO.Path.GetFileName(vsixFile[0]);
+            }
+%>
+            <tr><td><%=name %></td><td nowrap><a href="<%=hostname+webclient %>" target="_blank"><%=webclient %></a></td><td nowrap><a href="<%=hostname+soap %>" target="_blank"><%=soap %></a></td><td nowrap><a href="<%=hostname+rest %>" target="_blank"><%=rest %></a></td><td nowrap><a href="<%=hostname+developer %>" target="_blank"><%=developer %></a></td><td nowrap><a href="<%=hostname+vsix %>" target="_blank"><%=vsix %></a></td></tr>
+<%
+          }
+        }
+%>
+      </table>
+    </tr>
+
+
+<%
+  }
 %>
     <tr><td colspan="4">&nbsp;</td></tr>
 

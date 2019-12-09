@@ -115,7 +115,11 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 . (Join-Path $PSScriptRoot "settings.ps1")
 
 if ("$WinRmAccess" -ne "") {
-    if (Test-Path "c:\myfolder\SetupCertificate.ps1") {
+    if (Test-Path "c:\myfolder\InstallCertificate.ps1") {
+        # Using trusted certificate - install on host
+        . "c:\myfolder\InstallCertificate.ps1"
+    }
+    elseif (Test-Path "c:\myfolder\SetupCertificate.ps1") {
         # Using trusted certificate - install on host
         . "c:\myfolder\SetupCertificate.ps1"
     }
@@ -126,13 +130,42 @@ if ("$WinRmAccess" -ne "") {
     Log "Enabling PS Remoting"
     Enable-PSRemoting -Force   
 
-    Log "Creating Firewall rile for WinRM"
+    Log "Creating Firewall rule for WinRM"
     New-NetFirewallRule -Name "WinRM HTTPS" -DisplayName "WinRM HTTPS" -Enabled True -Profile "Any" -Action "Allow" -Direction "Inbound" -LocalPort 5986 -Protocol "TCP"    
 
     Log "Creating WinRM listener"
     $cmd = "winrm create winrm/config/Listener?Address=*+Transport=HTTPS @{Hostname=""$publicDnsName""; CertificateThumbprint=""$certificateThumbprint""}" 
     cmd.exe /C $cmd   
 }
+
+if ($sqlServerType -eq "SQLDeveloper") {
+    Log "Installing SQL Server Developer edition"
+
+    $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
+    $dbCredential = New-Object System.Management.Automation.PSCredential('sa', $securePassword)
+
+    cd c:\demo
+    $exeUrl = "https://go.microsoft.com/fwlink/?linkid=840945"
+    $boxUrl = "https://go.microsoft.com/fwlink/?linkid=840944"
+    $sqlExe = "c:\demo\SQL.exe"
+    $sqlBox = "c:\demo\SQL.box"
+    Download-File -sourceUrl $exeUrl -destinationFile $sqlExe
+    Download-File -sourceUrl $boxUrl -destinationFile $sqlBox
+    Start-Process -Wait -FilePath $sqlExe -ArgumentList /qs, /x:setup 
+    .\setup\setup.exe /q /ACTION=Install /INSTANCENAME=MSSQLSERVER /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS
+    Remove-Item -Recurse -Force $sqlExe, $sqlBox, setup
+    stop-service MSSQLSERVER
+    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpdynamicports -value ''
+    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpport -value 1433
+    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.MSSQLSERVER\mssqlserver\' -name LoginMode -value 2
+    start-service MSSQLSERVER
+    
+    $sqlcmd = "ALTER LOGIN sa with password='" + ([System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($dbcredential.Password)).Replace('"','""').Replace('''','''''')) + "',CHECK_POLICY = OFF;ALTER LOGIN sa ENABLE;"
+    Invoke-SqlCmd -ServerInstance "localhost" -QueryTimeout 0 -ErrorAction Stop -Query $sqlcmd
+
+    New-NetFirewallRule -DisplayName "SQLDeveloper" -Direction Inbound -LocalPort 1433 -Protocol tcp -Action Allow
+}
+
 
 if ($WindowsInstallationType -eq "Server") {
     Log "Starting docker"
@@ -213,7 +246,8 @@ if ($style -eq "devpreview") {
     New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "CommonStartup" -Arguments "http://aka.ms/moderndevtools"
 }
 
-$navDockerImage.Split(',') | ForEach-Object {
+$imageName = ""
+$navDockerImage.Split(',') | Where-Object { $_ } | ForEach-Object {
     $registry = $_.Split('/')[0]
     if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
         Log "Logging in to $registry"
@@ -246,6 +280,12 @@ $openXmlFile = "C:\DOWNLOAD\OpenXMLSDKV25.msi"
 Download-File -sourceUrl $openXmlUrl -destinationFile $openXmlFile
 Start-Process $openXmlFile -argumentList "/qn /q /passive" -wait
 
+$beforeContainerSetupScript = (Join-Path $PSScriptRoot "BeforeContainerSetupScript.ps1")
+if (Test-Path $beforeContainerSetupScript) {
+    Log "Running beforeContainerSetupScript"
+    . $beforeContainerSetupScript
+}
+
 . "c:\demo\SetupNavContainer.ps1"
 . "c:\demo\SetupDesktop.ps1"
 
@@ -264,6 +304,10 @@ if ($RunWindowsUpdate -eq "Yes") {
     install-module PSWindowsUpdate -force
     Get-WUInstall -install -acceptall -autoreboot | ForEach-Object { Log ($_.Status + " " + $_.KB + " " +$_.Title) }
     Log "Windows updates installed"
+}
+
+if (!($imageName)) {
+    Remove-Item -path "c:\demo\status.txt" -Force -ErrorAction SilentlyContinue
 }
 
 shutdown -r -t 30
