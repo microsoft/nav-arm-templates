@@ -354,7 +354,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initbuildagent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -DevOpsOrganization \"',parameters('devopsorganization'),'\" -PersonalAccessToken \"',parameters('personalaccesstoken'),'\" -VstsAgentUrl \"',parameters('VstsAgentUrl'),'\" -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('pool'),'\" -vmName \"',variables('vmName'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -DevOpsOrganization \"',parameters('devopsorganization'),'\" -PersonalAccessToken \"',parameters('personalaccesstoken'),'\" -VstsAgentUrl \"',parameters('VstsAgentUrl'),'\" -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('pool'),'\" -vmName \"',variables('vmName'),'\"')]"
                 },
                 "protectedSettings": {}
             }
