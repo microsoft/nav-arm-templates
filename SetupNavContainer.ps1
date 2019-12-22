@@ -125,7 +125,7 @@ else {
 $additionalParameters = @("--env RemovePasswordKeyFile=N",
                           "--storage-opt size=100GB")
 
-if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
+if ("$appBacpacUri" -ne "") {
     if ("$sqlServerType" -eq "SQLExpress") {
         $additionalParameters += @("--env appbacpac=$appBacpacUri",
                                    "--env tenantbacpac=$tenantBacpacUri")
@@ -140,7 +140,9 @@ if ("$appBacpacUri" -ne "" -and "$tenantBacpacUri" -ne "") {
                       "databaseInstance"   = ""
                       "databaseName"       = "App"
                       "databaseCredential" = $azureSqlCredential }
-        $multitenant = "Yes"
+        if ($tenantBacpacUri -ne "") {
+            $multitenant = "Yes"
+        }
     }
 }
 elseif ("$sqlServerType" -eq "SQLDeveloper") {
