@@ -155,7 +155,7 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
     }
     
     if (Test-Path (Join-Path $DatabaseFolder "$($DatabaseName).*")) {
-        
+
         Remove-BCContainer $containerName
         
         Write-Host "Dropping database $DatabaseName from host SQL Server"
@@ -164,34 +164,47 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
         
         Write-Host "Removing Database files $($databaseFolder)\$($DatabaseName).*"
         Remove-Item -Path (Join-Path $DatabaseFolder "$($DatabaseName).*") -Force
-
     }
-    
-    $imageName = Get-BestBCContainerImageName -imageName $imageName
-    docker pull $imageName
-    
-    $dbPath = Join-Path $env:TEMP ([Guid]::NewGuid().ToString())
-    Extract-FilesFromBCContainerImage -imageName $imageName -extract database -path $dbPath -force
-    
-    $files = @()
-    Get-ChildItem -Path (Join-Path $dbPath "databases") | % {
-        $DestinationFile = "{0}\{1}{2}" -f $databaseFolder, $DatabaseName, $_.Extension
-        Copy-Item -Path $_.FullName -Destination $DestinationFile -Force
-        $files += @("(FILENAME = N'$DestinationFile')")
-    }
-    
-    Remove-Item -Path $dbpath -Recurse -Force
-    
-    Write-Host "Attaching files as new Database $DatabaseName on host SQL Server"
-    Write-Host "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
-    Invoke-SqlCmd -Query "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
 
-    Log "using $azureSqlServer as database server"
-    $params += @{ "databaseServer"     = "host.containerhelper.internal"
-                  "databaseInstance"   = ""
-                  "databaseName"       = "$containerName"
-                  "databaseCredential" = (New-Object PSCredential -ArgumentList 'sa', $securePassword) }
+    if ($databaseBakFile) {
+        $dbPath = Join-Path $env:TEMP "$([Guid]::NewGuid().ToString()).bak"
+        Download-File -sourceUrl $databaseBakFile -destinationFile $dbpath
+        Restore-SqlDatabase -ServerInstance "localhost" -Database $DatabaseName -BackupFile $dbpath -SqlCredential $dbcredentials
+        Remove-Item $dbPath
+    }
+    else {
+        $imageName = Get-BestBCContainerImageName -imageName $imageName
+        docker pull $imageName
+    
+        $dbPath = Join-Path $env:TEMP ([Guid]::NewGuid().ToString())
+        Extract-FilesFromBCContainerImage -imageName $imageName -extract database -path $dbPath -force
+    
+        $files = @()
+        Get-ChildItem -Path (Join-Path $dbPath "databases") | % {
+            $DestinationFile = "{0}\{1}{2}" -f $databaseFolder, $DatabaseName, $_.Extension
+            Copy-Item -Path $_.FullName -Destination $DestinationFile -Force
+            $files += @("(FILENAME = N'$DestinationFile')")
+        }
+    
+        Remove-Item -Path $dbpath -Recurse -Force
+    
+        Write-Host "Attaching files as new Database $DatabaseName on host SQL Server"
+        Write-Host "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
+        Invoke-SqlCmd -Query "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
+    }
+
+    Log "using host as database server"
+    $params += @{
+        "databaseServer"     = "host.containerhelper.internal"
+        "databaseInstance"   = ""
+        "databaseName"       = $databaseName
+        "databaseCredential" = $dbcredentials
+    }
 }
+elseif ($databaseBakFile) {
+    $params += @{ "bakFile" = $databaseBakFile }
+}
+
 if ("$clickonce" -eq "Yes") {
     $params += @{"clickonce" = $true}
 }
