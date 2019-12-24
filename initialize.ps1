@@ -16,6 +16,7 @@ param
        [string] $azureSqlServer            = "",
        [string] $appBacpacUri              = "",
        [string] $tenantBacpacUri           = "",
+       [string] $databaseBakUri            = "",
        [string] $includeAppUris            = "",
        [string] $enableSymbolLoading       = "No",
        [string] $includeCSIDE              = "No",
@@ -102,6 +103,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "azureSqlServer"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "appBacpacUri"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "tenantBacpacUri"        | Add-Content $settingsScript
+    Get-VariableDeclaration -name "databaseBakUri"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "includeAppUris"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "enableSymbolLoading"    | Add-Content $settingsScript
     Get-VariableDeclaration -name "includeCSIDE"           | Add-Content $settingsScript
