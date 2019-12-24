@@ -13,6 +13,9 @@ choco feature enable -n allowGlobalConfirmation
 Log "Install git"
 choco install git --force
 
+Log "Install Edge Insider"
+choco install microsoft-edge-insider
+
 Log "Install Chrome"
 choco install googlechrome
 

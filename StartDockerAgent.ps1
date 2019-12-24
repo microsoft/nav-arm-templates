@@ -13,12 +13,16 @@ $navDockerUrl = "https://github.com/Microsoft/nav-docker/archive/master.zip"
 $tempFolder = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
 $tempFile = "$tempFolder.zip"
 
-$StorageAccountName = "nav2016wswe0"
 $secureStorageAccountKey = ConvertTo-SecureString -String $StorageAccountKey -Key $passwordKey
 $plainStorageAccountKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureStorageAccountKey))
 
 $storageContext = New-AzureStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $plainStorageAccountKey
 $azureQueue = Get-AzureStorageQueue -Name $queue -Context $storageContext -ErrorAction Ignore
+if (!($azureQueue)) {
+    New-AzureStorageQueue –Name $queue –Context $storageContext -ErrorAction Ignore | Out-Null
+}
+$azureQueue = Get-AzureStorageQueue -Name $queue -Context $storageContext -ErrorAction Ignore
+
 
 $table = Get-AzureStorageTable –Name "QueueStatus" –Context $storageContext -ErrorAction Ignore
 if (!($table)) {
