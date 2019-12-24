@@ -149,6 +149,7 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
 
     $DatabaseFolder = "c:\databases"
     $DatabaseName = $containerName
+    $dbcredentials = New-Object PSCredential -ArgumentList 'sa', $securePassword
     
     if (!(Test-Path $DatabaseFolder)) {
         New-Item $DatabaseFolder -ItemType Directory | Out-Null
@@ -167,7 +168,7 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
     }
 
     if ($databaseBakUri) {
-        $dbPath = Join-Path $env:TEMP "$([Guid]::NewGuid().ToString()).bak"
+        $dbPath = Join-Path "C:\DEMO" "$([Guid]::NewGuid().ToString()).bak"
         Download-File -sourceUrl $databaseBakUri -destinationFile $dbpath
         Restore-SqlDatabase -ServerInstance "localhost" -Database $DatabaseName -BackupFile $dbpath -SqlCredential $dbcredentials
         Remove-Item $dbPath
