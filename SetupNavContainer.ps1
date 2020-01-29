@@ -200,23 +200,13 @@ if ("$enableTaskScheduler" -eq "Yes") {
     $additionalParameters += @("--env CustomNavSettings=EnableTaskScheduler=false")
 }
 
-if ($enableSymbolLoading -eq "Yes") {
-    $params += @{ "enableSymbolLoading" = $true }
-}
-
-if ($includeCSIDE -eq "Yes") {
-    $params += @{ 
-        "includeCSIDE" = $true
-    }
-}
-
 if ($includeAL -eq "Yes") {
     $params += @{ 
         "includeAL" = $true
     }
 }
 
-if ($includeCSIDE -eq "Yes" -or $includeAL -eq "Yes") {
+if ($includeAL -eq "Yes") {
     $params += @{ 
         "doNotExportObjectsToText" = $true
     }
