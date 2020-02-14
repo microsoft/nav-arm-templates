@@ -34,6 +34,7 @@
             "allowedValues": [
                 "Standard_D4s_v3",
                 "Standard_D8s_v3",
+                "Standard_E8s_v3",
                 "Standard_D16s_v3"
             ],
             "metadata": {
