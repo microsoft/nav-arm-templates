@@ -16,6 +16,7 @@ function Add-NativeMethods()
 
     Add-Type @"
         using System;
+        using System.Text;
         using System.Runtime.InteropServices;
         public class NativeMethods {
             $nativeMethodsCode
