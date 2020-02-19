@@ -193,7 +193,7 @@ if (-not (Get-ScheduledTask -TaskName $taskName -ErrorAction Ignore)) {
                            -Password $plainPassword
 }
 
-Start-Process -FilePath powershell.exe -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\SetupVM.ps1" -verb runas -Credential (New-Object pscredential -ArgumentList $vmAdminUsername, $securePassword) 
+Start-Process -FilePath powershell.exe -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\SetupVM.ps1" -Credential (New-Object pscredential -ArgumentList $vmAdminUsername, $securePassword) 
 
 #if ($WindowsInstallationType -eq "Server") {
 #
