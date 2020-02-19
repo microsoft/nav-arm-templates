@@ -177,19 +177,21 @@ if ("$createStorageQueue" -eq "yes") {
     }
 }
 
-Log "Register RestartContainers Task to start container delayed"
 $taskName = "RestartContainers"
-$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -file c:\demo\restartcontainers.ps1"
-$startupTrigger = New-ScheduledTaskTrigger -AtStartup
-$startupTrigger.Delay = "PT5M"
-$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
-$task = Register-ScheduledTask -TaskName $taskName `
-                       -Action $startupAction `
-                       -Trigger $startupTrigger `
-                       -Settings $settings `
-                       -RunLevel Highest `
-                       -User $vmadminUsername `
-                       -Password $plainPassword
+if (-not (Get-ScheduledTask -TaskName $taskName -ErrorAction Ignore)) {
+    Log "Register RestartContainers Task to start container delayed"
+    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -file c:\demo\restartcontainers.ps1"
+    $startupTrigger = New-ScheduledTaskTrigger -AtStartup
+    $startupTrigger.Delay = "PT5M"
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
+    $task = Register-ScheduledTask -TaskName $taskName `
+                           -Action $startupAction `
+                           -Trigger $startupTrigger `
+                           -Settings $settings `
+                           -RunLevel Highest `
+                           -User $vmadminUsername `
+                           -Password $plainPassword
+}
 
 Start-Process -FilePath powershell.exe -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\SetupVM.ps1" -verb runas -Credential (New-Object pscredential -ArgumentList $vmAdminUsername, $securePassword) 
 
