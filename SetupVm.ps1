@@ -171,7 +171,7 @@ if ($WindowsInstallationType -eq "Server") {
     Log "Starting docker"
     start-service docker
 } else {
-    if (!(Test-Path -Path "C:\Program Files\Docker\Docker\Docker for Windows.exe" -PathType Leaf)) {
+    if (!(Test-Path -Path "C:\Program Files\Docker\Docker\Docker Desktop.exe" -PathType Leaf)) {
         Log "Install Docker"
         $dockerexe = "C:\DOWNLOAD\DockerInstall.exe"
         (New-Object System.Net.WebClient).DownloadFile("https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe", $dockerexe)
