@@ -94,10 +94,18 @@ $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([Syst
 
 if ($WindowsInstallationType -ne "Server") {
     # In Windows 10 we need to create the user manually
-    if (-not (Get-LocalUser -Name $vmAdminUsername -ErrorAction SilentlyContinue)) {
+    $user = Get-LocalUser | Where-Object { $_.Name -eq $vmAdminUsername }
+    if (-not $user) {
         Log "Creating $vmAdminUsername as an administrator"
         New-LocalUser $vmadminUsername -Password $SecurePassword -FullName $vmadminUsername -Description "VM Administrator"
         Add-LocalGroupMember -Group "Administrators" -Member $vmadminUsername
+    }
+    elseif (-not $user.Enabled) {
+        Log "Enabling $vmAdminUsername"
+        Enable-LocalUser -Name $vmAdminUsername
+    }
+    else {
+        Log "User already exists"
     }
 }
 
