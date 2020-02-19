@@ -136,6 +136,11 @@ if ($WindowsInstallationType -ne "Server") {
         {
             Log $_.Exception.Message
         }
+
+        if (-not (Test-Path "c:\users\$vmAdminUsername")) {
+            Log "Profile not created!"
+        }
+
     }
 }
 
