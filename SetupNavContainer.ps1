@@ -232,6 +232,12 @@ if ($includeAL -eq "Yes") {
     }
 }
 
+if ($isolation -eq "Process" -or $isolation -eq "Hyperv") {
+    $params += @{ 
+        "isolation" = $isolation
+    }
+}
+
 if ($includeCSIDE -eq "Yes" -or $includeAL -eq "Yes") {
     $params += @{ 
         "doNotExportObjectsToText" = $true
