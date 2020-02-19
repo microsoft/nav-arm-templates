@@ -7,10 +7,6 @@ $WindowsProductName = $ComputerInfo.WindowsProductName
 
 try {
 
-if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
-    schtasks /DELETE /TN SetupVm /F | Out-Null
-}
-
 function Log([string]$line, [string]$color = "Gray") {
     ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt" 
 }
@@ -297,6 +293,10 @@ if (Test-Path $finalSetupScript) {
 
 if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
     schtasks /DELETE /TN SetupStart /F | Out-Null
+}
+
+if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
+    schtasks /DELETE /TN SetupVm /F | Out-Null
 }
 
 if ($RunWindowsUpdate -eq "Yes") {
