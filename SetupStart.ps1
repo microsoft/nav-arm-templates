@@ -2,6 +2,27 @@
     ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt"
 }
 
+function Register-NativeMethod([string]$dll, [string]$methodSignature)
+{
+    $script:nativeMethods += [PSCustomObject]@{ Dll = $dll; Signature = $methodSignature; }
+}
+
+function Add-NativeMethods()
+{
+    $nativeMethodsCode = $script:nativeMethods | % { "
+        [DllImport(`"$($_.Dll)`")]
+        public static extern $($_.Signature);
+    " }
+
+    Add-Type @"
+        using System;
+        using System.Runtime.InteropServices;
+        public class NativeMethods {
+            $nativeMethodsCode
+        }
+"@
+}
+
 Log "SetupStart, User: $env:USERNAME"
 
 . (Join-Path $PSScriptRoot "settings.ps1")
