@@ -78,6 +78,14 @@ Install-Module SqlServer -Force
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 
+$os = (Get-CimInstance Win32_OperatingSystem)
+if ($os.ProductType -ne 3) {
+    # In Windows 10 we need to create the user manually
+    Log "Creating $vmAdminUsername as an administrator"
+    New-LocalUser $vmadminUsername -Password $SecurePassword -FullName $vmadminUsername -Description "VM Administrator"
+    Add-LocalGroupMember -Group "Administrators" -Member $vmadminUsername
+}
+
 if ($requestToken) {
     if (!(Get-ScheduledTask -TaskName request -ErrorAction Ignore)) {
         Log "Registering request task"
