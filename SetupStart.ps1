@@ -18,7 +18,7 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 }
 
 if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
-if (-not (Get-Module ACME-PS)) {
+if (-not (Get-InstalledModule ACME-PS -ErrorAction SilentlyContinue)) {
 
     Log "Installing ACME-PS PowerShell Module"
     Install-Module -Name ACME-PS -RequiredVersion "1.1.0-beta" -AllowPrerelease -Force
@@ -74,17 +74,17 @@ Restart-NavContainer -containerName navserver -renewBindings
 }
 }
 
-if (-not (Get-Module Az)) {
+if (-not (Get-InstalledModule Az -ErrorAction SilentlyContinue)) {
     Log "Installing Az module"
     Install-Module Az -Force
 }
 
-if (-not (Get-Module AzureAD)) {
+if (-not (Get-InstalledModule AzureAD -ErrorAction SilentlyContinue)) {
     Log "Installing AzureAD module"
     Install-Module AzureAD -Force
 }
 
-if (-not (Get-Module SqlServer)) {
+if (-not (Get-InstalledModule SqlServer -ErrorAction SilentlyContinue)) {
     Log "Installing SqlServer module"
     Install-Module SqlServer -Force
 }
@@ -118,27 +118,28 @@ if ($requestToken) {
 }
 
 if ("$createStorageQueue" -eq "yes") {
+    if (-not (Get-InstalledModule AzTable -ErrorAction SilentlyContinue)) {
+        Log "Installing AzTable Module"
+        Install-Module AzTable -Force
     
-    Log "Installing AzTable Module"
-    Install-Module AzTable -Force
-
-    $taskName = "RunQueue"
-    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\RunQueue.ps1"
-    $startupTrigger = New-ScheduledTaskTrigger -AtStartup
-    $startupTrigger.Delay = "PT5M"
-    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
-    $task = Register-ScheduledTask -TaskName $taskName `
-                           -Action $startupAction `
-                           -Trigger $startupTrigger `
-                           -Settings $settings `
-                           -RunLevel Highest `
-                           -User $vmAdminUsername `
-                           -Password $plainPassword
+        $taskName = "RunQueue"
+        $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\RunQueue.ps1"
+        $startupTrigger = New-ScheduledTaskTrigger -AtStartup
+        $startupTrigger.Delay = "PT5M"
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
+        $task = Register-ScheduledTask -TaskName $taskName `
+                               -Action $startupAction `
+                               -Trigger $startupTrigger `
+                               -Settings $settings `
+                               -RunLevel Highest `
+                               -User $vmAdminUsername `
+                               -Password $plainPassword
+        
+        $task.Triggers.Repetition.Interval = "PT5M"
+        $task | Set-ScheduledTask -User $vmAdminUsername -Password $plainPassword | Out-Null
     
-    $task.Triggers.Repetition.Interval = "PT5M"
-    $task | Set-ScheduledTask -User $vmAdminUsername -Password $plainPassword | Out-Null
-
-    Start-ScheduledTask -TaskName $taskName
+        Start-ScheduledTask -TaskName $taskName
+    }
 }
 
 Log "Register RestartContainers Task to start container delayed"
