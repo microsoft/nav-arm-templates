@@ -191,7 +191,7 @@ $task = Register-ScheduledTask -TaskName $taskName `
                        -User $vmadminUsername `
                        -Password $plainPassword
 
-Start-Process -FilePath powershell.exe -ArgumentList "c:\demo\SetupVM.ps1" -Credential (New-Object pscredential -ArgumentList $vmAdminUsername, $securePassword)
+Start-Process -FilePath powershell.exe -ArgumentList "c:\demo\SetupVM.ps1" -verb runas -Credential (New-Object pscredential -ArgumentList $vmAdminUsername, $securePassword)
 
 #if ($WindowsInstallationType -eq "Server") {
 #
