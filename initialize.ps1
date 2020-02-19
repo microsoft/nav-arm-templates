@@ -5,6 +5,7 @@ param
        [string] $containerName             = "navserver",
        [string] $hostName                  = "",
        [string] $storageConnectionString   = "",
+       [string] $isolation                 = "Default",
        [string] $vmAdminUsername           = "vmadmin",
        [string] $navAdminUsername          = "admin",
        [string] $azureSqlAdminUsername     = "sqladmin",
@@ -91,6 +92,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "hostName"               | Add-Content $settingsScript
     Get-VariableDeclaration -name "StorageConnectionString"| Add-Content $settingsScript
     Get-VariableDeclaration -name "containerName"          | Add-Content $settingsScript
+    Get-VariableDeclaration -name "isolation"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "vmAdminUsername"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "navAdminUsername"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "azureSqlAdminUsername"  | Add-Content $settingsScript
