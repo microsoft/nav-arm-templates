@@ -180,7 +180,7 @@ if ($WindowsInstallationType -eq "Server") {
 
     } else {
         Log "Waiting for docker to start... (this should only take a few minutes)"
-        Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker for Windows.exe" -PassThru
+        Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe" -PassThru
         $serverOsStr = "  OS/Arch:      "
         do {
             Start-Sleep -Seconds 10
