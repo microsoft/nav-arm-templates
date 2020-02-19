@@ -6,6 +6,11 @@ Log "SetupStart, User: $env:USERNAME"
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
+$ComputerInfo = Get-ComputerInfo
+$WindowsInstallationType = $ComputerInfo.WindowsInstallationType
+$WindowsProductName = $ComputerInfo.WindowsProductName
+
+
 if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
     Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
 } else {
@@ -13,6 +18,7 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 }
 
 if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
+if (-not (Get-Module ACME-PS)) {
 
     Log "Installing ACME-PS PowerShell Module"
     Install-Module -Name ACME-PS -RequiredVersion "1.1.0-beta" -AllowPrerelease -Force
@@ -64,26 +70,35 @@ Restart-NavContainer -containerName navserver -renewBindings
         Log -color Red $_.Exception.Message
         Log -color Red "Reverting to Self Signed Certificate"
     }
+
+}
 }
 
-Log "Installing Az module"
-Install-Module Az -Force
+if (-not (Get-Module Az)) {
+    Log "Installing Az module"
+    Install-Module Az -Force
+}
 
-Log "Installing AzureAD module"
-Install-Module AzureAD -Force
+if (-not (Get-Module AzureAD)) {
+    Log "Installing AzureAD module"
+    Install-Module AzureAD -Force
+}
 
-Log "Installing SqlServer module"
-Install-Module SqlServer -Force
+if (-not (Get-Module SqlServer)) {
+    Log "Installing SqlServer module"
+    Install-Module SqlServer -Force
+}
 
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 
-$os = (Get-CimInstance Win32_OperatingSystem)
-if ($os.ProductType -ne 3) {
+if ($WindowsInstallationType -ne "Server") {
     # In Windows 10 we need to create the user manually
-    Log "Creating $vmAdminUsername as an administrator"
-    New-LocalUser $vmadminUsername -Password $SecurePassword -FullName $vmadminUsername -Description "VM Administrator"
-    Add-LocalGroupMember -Group "Administrators" -Member $vmadminUsername
+    if (-not (Get-LocalUser -Name $vmAdminUsername -ErrorAction SilentlyContinue)) {
+        Log "Creating $vmAdminUsername as an administrator"
+        New-LocalUser $vmadminUsername -Password $SecurePassword -FullName $vmadminUsername -Description "VM Administrator"
+        Add-LocalGroupMember -Group "Administrators" -Member $vmadminUsername
+    }
 }
 
 if ($requestToken) {
