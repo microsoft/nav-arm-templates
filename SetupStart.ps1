@@ -130,7 +130,7 @@ if ($WindowsInstallationType -ne "Server") {
         Log "Creating user profile for $vmAdminUsername"
         try
         {
-            [NativeMethods]::CreateProfile($userSID.Value, $Username, $sb, $pathLen) | Out-Null
+            [NativeMethods]::CreateProfile($userSID.Value, $vmAdminUsername, $sb, $pathLen) | Out-Null
         }
         catch
         {
@@ -185,6 +185,23 @@ $task = Register-ScheduledTask -TaskName $taskName `
                        -RunLevel Highest `
                        -User $vmadminUsername `
                        -Password $plainPassword
+
+$startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\SetupVm.ps1"
+$startupTrigger = New-ScheduledTaskTrigger -AtStartup
+$startupTrigger.Delay = "PT1M"
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
+Register-ScheduledTask -TaskName "SetupVm" `
+                       -Action $startupAction `
+                       -Trigger $startupTrigger `
+                       -Settings $settings `
+                       -RunLevel "Highest" `
+                       -User $vmAdminUsername `
+                       -Password $plainPassword | Out-Null
+
+Log "Restarting computer and start SetupVm"
+Shutdown -r -t 60
+
+
 
 Log "Launch SetupVm"
 $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
