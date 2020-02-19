@@ -94,10 +94,26 @@ $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([Syst
 
 if ($WindowsInstallationType -ne "Server") {
     if (-not (Test-Path "c:\users\$vmAdminUsername")) {   
-        Log "Create user profile"
-        Start-Process ipconfig.exe -Credential (New-Object pscredential -ArgumentList $vmAdminUsername, $securePassword) -Wait
-        if (-not (Test-Path "c:\users\$vmAdminUsername")) {   
-            Log "still not created"
+
+        $methodName = 'UserEnvCP'
+        $script:nativeMethods = @()
+        
+        Register-NativeMethod "userenv.dll" "int CreateProfile([MarshalAs(UnmanagedType.LPWStr)] string pszUserSid,[MarshalAs(UnmanagedType.LPWStr)] string pszUserName,[Out][MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszProfilePath, uint cchProfilePath)"
+        Add-NativeMethods -typeName $MethodName
+        
+        $localUser = New-Object System.Security.Principal.NTAccount($vmAdminUsername)
+        $userSID = $localUser.Translate([System.Security.Principal.SecurityIdentifier])
+        $sb = new-object System.Text.StringBuilder(260)
+        $pathLen = $sb.Capacity
+        
+        Log "Creating user profile for $vmAdminUsername"
+        try
+        {
+            [UserEnvCP]::CreateProfile($userSID.Value, $Username, $sb, $pathLen) | Out-Null
+        }
+        catch
+        {
+            Log $_.Exception.Message
         }
     }
 }
