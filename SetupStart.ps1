@@ -116,11 +116,10 @@ $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([Syst
 if ($WindowsInstallationType -ne "Server") {
     if (-not (Test-Path "c:\users\$vmAdminUsername")) {   
 
-        $methodName = 'UserEnvCP'
         $script:nativeMethods = @()
         
         Register-NativeMethod "userenv.dll" "int CreateProfile([MarshalAs(UnmanagedType.LPWStr)] string pszUserSid,[MarshalAs(UnmanagedType.LPWStr)] string pszUserName,[Out][MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszProfilePath, uint cchProfilePath)"
-        Add-NativeMethods -typeName $MethodName
+        Add-NativeMethods
         
         $localUser = New-Object System.Security.Principal.NTAccount($vmAdminUsername)
         $userSID = $localUser.Translate([System.Security.Principal.SecurityIdentifier])
@@ -130,7 +129,7 @@ if ($WindowsInstallationType -ne "Server") {
         Log "Creating user profile for $vmAdminUsername"
         try
         {
-            [UserEnvCP]::CreateProfile($userSID.Value, $Username, $sb, $pathLen) | Out-Null
+            [NativeMethods]::CreateProfile($userSID.Value, $Username, $sb, $pathLen) | Out-Null
         }
         catch
         {
