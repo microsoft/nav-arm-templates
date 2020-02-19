@@ -93,19 +93,12 @@ $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKe
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 
 if ($WindowsInstallationType -ne "Server") {
-    # In Windows 10 we need to create the user manually
-    $user = Get-LocalUser | Where-Object { $_.Name -eq $vmAdminUsername }
-    if (-not $user) {
-        Log "Creating $vmAdminUsername as an administrator"
-        New-LocalUser $vmadminUsername -Password $SecurePassword -FullName $vmadminUsername -Description "VM Administrator"
-        Add-LocalGroupMember -Group "Administrators" -Member $vmadminUsername
-    }
-    elseif (-not $user.Enabled) {
-        Log "Enabling $vmAdminUsername"
-        Enable-LocalUser -Name $vmAdminUsername
-    }
-    else {
-        Log "User already exists"
+    if (-not (Test-Path "c:\users\$vmAdminUsername")) {   
+        Log "Create user profile"
+        Start-Process ipconfig.exe -Credential (New-Object pscredential -ArgumentList $vmAdminUsername, $securePassword) -Wait
+        if (-not (Test-Path "c:\users\$vmAdminUsername")) {   
+            Log "still not created"
+        }
     }
 }
 
