@@ -193,44 +193,41 @@ if (-not (Get-ScheduledTask -TaskName $taskName -ErrorAction Ignore)) {
                            -Password $plainPassword
 }
 
-$credential = New-Object pscredential -ArgumentList $vmAdminUsername, $securePassword
-Start-Process -FilePath powershell.exe -Credential $credential -ArgumentList '-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted "Start-Process -FilePath powershell.exe -verb runas -argumentlist ''-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\SetupVM.ps1'''
+if ($WindowsInstallationType -eq "Server") {
 
-#if ($WindowsInstallationType -eq "Server") {
-#
-#
-#    if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
-#        schtasks /DELETE /TN SetupVm /F | Out-Null
-#    }
-#
-#    Log "Launch SetupVm"
-#    $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
-#    Register-ScheduledTask -TaskName SetupVm `
-#                           -Action $onceAction `
-#                           -RunLevel Highest `
-#                           -User $vmAdminUsername `
-#                           -Password $plainPassword | Out-Null
-#    
-#    Start-ScheduledTask -TaskName SetupVm
-#}
-#else {
-#    
-#    if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
-#        schtasks /DELETE /TN SetupStart /F | Out-Null
-#    }
-#    
-#    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\SetupVm.ps1"
-#    $startupTrigger = New-ScheduledTaskTrigger -AtStartup
-#    $startupTrigger.Delay = "PT1M"
-#    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
-#    Register-ScheduledTask -TaskName "SetupVm" `
-#                           -Action $startupAction `
-#                           -Trigger $startupTrigger `
-#                           -Settings $settings `
-#                           -RunLevel "Highest" `
-#                           -User $vmAdminUsername `
-#                           -Password $plainPassword | Out-Null
-#    
-#    Log "Restarting computer and start SetupVm"
-#    Shutdown -r -t 60
-#}
+
+    if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
+        schtasks /DELETE /TN SetupVm /F | Out-Null
+    }
+
+    Log "Launch SetupVm"
+    $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
+    Register-ScheduledTask -TaskName SetupVm `
+                           -Action $onceAction `
+                           -RunLevel Highest `
+                           -User $vmAdminUsername `
+                           -Password $plainPassword | Out-Null
+    
+    Start-ScheduledTask -TaskName SetupVm
+}
+else {
+    
+    if (Get-ScheduledTask -TaskName SetupStart -ErrorAction Ignore) {
+        schtasks /DELETE /TN SetupStart /F | Out-Null
+    }
+    
+    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\SetupVm.ps1"
+    $startupTrigger = New-ScheduledTaskTrigger -AtStartup
+    $startupTrigger.Delay = "PT1M"
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd -WakeToRun
+    Register-ScheduledTask -TaskName "SetupVm" `
+                           -Action $startupAction `
+                           -Trigger $startupTrigger `
+                           -Settings $settings `
+                           -RunLevel "Highest" `
+                           -User $vmAdminUsername `
+                           -Password $plainPassword | Out-Null
+    
+    Log "Restarting computer and start SetupVm"
+    Shutdown -r -t 60
+}
