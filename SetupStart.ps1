@@ -114,36 +114,6 @@ if (-not (Get-InstalledModule SqlServer -ErrorAction SilentlyContinue)) {
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
 
-if ($WindowsInstallationType -ne "Server") {
-    if (-not (Test-Path "c:\users\$vmAdminUsername")) {   
-
-        $script:nativeMethods = @()
-        
-        Register-NativeMethod "userenv.dll" "int CreateProfile([MarshalAs(UnmanagedType.LPWStr)] string pszUserSid,[MarshalAs(UnmanagedType.LPWStr)] string pszUserName,[Out][MarshalAs(UnmanagedType.LPWStr)] StringBuilder pszProfilePath, uint cchProfilePath)"
-        Add-NativeMethods
-        
-        $localUser = New-Object System.Security.Principal.NTAccount($vmAdminUsername)
-        $userSID = $localUser.Translate([System.Security.Principal.SecurityIdentifier])
-        $sb = new-object System.Text.StringBuilder(260)
-        $pathLen = $sb.Capacity
-        
-        Log "Creating user profile for $vmAdminUsername"
-        try
-        {
-            [NativeMethods]::CreateProfile($userSID.Value, $vmAdminUsername, $sb, $pathLen) | Out-Null
-        }
-        catch
-        {
-            Log $_.Exception.Message
-        }
-
-        if (-not (Test-Path "c:\users\$vmAdminUsername")) {
-            Log "Profile not created!"
-        }
-
-    }
-}
-
 if ($requestToken) {
     if (!(Get-ScheduledTask -TaskName request -ErrorAction Ignore)) {
         Log "Registering request task"
@@ -195,7 +165,6 @@ if (-not (Get-ScheduledTask -TaskName $taskName -ErrorAction Ignore)) {
 
 if ($WindowsInstallationType -eq "Server") {
 
-
     if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
         schtasks /DELETE /TN SetupVm /F | Out-Null
     }
@@ -228,6 +197,8 @@ else {
                            -User $vmAdminUsername `
                            -Password $plainPassword | Out-Null
     
-    Log "Restarting computer and start SetupVm"
+    Log -color Yellow "Restarting computer. After restart, please Login to computer using RDP in order to resume the installation process. This is not needed for Windows Server."
+    
     Shutdown -r -t 60
+
 }

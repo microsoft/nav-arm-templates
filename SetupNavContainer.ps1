@@ -237,6 +237,11 @@ if ($isolation -eq "Process" -or $isolation -eq "Hyperv") {
         "isolation" = $isolation
     }
 }
+else {
+    $params += @{
+        "useBestContainerOS" = $true
+    }
+}
 
 if ($includeCSIDE -eq "Yes" -or $includeAL -eq "Yes") {
     $params += @{ 
@@ -264,7 +269,6 @@ try {
                      -auth $Auth `
                      -authenticationEMail $Office365UserName `
                      -credential $credential `
-                     -useBestContainerOS `
                      -additionalParameters $additionalParameters `
                      -myScripts $myscripts `
                      -imageName $imageName
