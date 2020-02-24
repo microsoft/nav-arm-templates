@@ -353,14 +353,16 @@ if ("$includeappUris".Trim() -ne "") {
 if ("$bingmapskey" -ne "") {
 
     $codeunitId = 0
+    $apiUrl = ""
     switch (([System.Version]$navVersion).Major) {
           9 { $appFile = "" }
          10 { $appFile = "" }
          11 { $appFile = "http://aka.ms/bingmaps11.app"; $codeunitId = 50103 }
          12 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 50103 }
          13 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 50103 }
-         14 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 0 }
-    default { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
+         14 { $appFile = "http://aka.ms/bingmaps.app" }
+         15 { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
+    default { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_16.0.app"; $apiUrl = "xxx" }
     }
 
     if ($appFile -eq "") {
@@ -387,7 +389,7 @@ if ("$bingmapskey" -ne "") {
                                 -install
     
         if ($codeunitId) {
-            Log "Geocode customers"
+            Log "Geocode customers, by invoking codeunit $codeunitId"
             Get-CompanyInNavContainer -containerName $containerName | % {
                 Invoke-NavContainerCodeunit -containerName $containerName `
                                             -tenant "default" `
@@ -396,6 +398,9 @@ if ("$bingmapskey" -ne "") {
                                             -MethodName "SetBingMapsSettings" `
                                             -Argument ('{ "BingMapsKey":"' + $bingMapsKey + '","WebServicesUsername": "' + $navAdminUsername + '","WebServicesKey": "' + $webServicesKey + '"}')
             }
+        }
+        else {
+            Log "Geocode customers, by invoking api $apiUrl"
         }
     }
 }
