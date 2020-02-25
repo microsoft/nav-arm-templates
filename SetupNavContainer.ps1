@@ -410,7 +410,12 @@ if ("$bingmapskey" -ne "") {
                 }
             }
             else {
-                $databaseServerInstance = $params.databaseServer
+                if ($sqlserverType -eq "SQLDeveloper") {
+                    $databaseServerInstance = "localhost"
+                }
+                else {
+                    $databaseServerInstance = $params.databaseServer
+                }
                 if ($params.databaseInstance) {
                     $databaseServerInstance += "\$($params.databaseInstance)"
                 }
@@ -442,7 +447,7 @@ if ("$bingmapskey" -ne "") {
 # Copy .vsix and Certificate to container folder
 $containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
 Log "Copying .vsix and Certificate to $containerFolder"
-docker exec -t $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
+docker exec $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Program Files\Microsoft Dynamics NAV\*\Service\CustomSettings.config' -Destination '$containerFolder' -force
 if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
