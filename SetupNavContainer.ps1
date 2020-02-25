@@ -353,7 +353,7 @@ if ("$includeappUris".Trim() -ne "") {
 if ("$bingmapskey" -ne "") {
 
     $codeunitId = 0
-    $apiUrl = ""
+    $apiMethod = ""
     switch (([System.Version]$navVersion).Major) {
           9 { $appFile = "" }
          10 { $appFile = "" }
@@ -362,7 +362,7 @@ if ("$bingmapskey" -ne "") {
          13 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 50103 }
          14 { $appFile = "http://aka.ms/bingmaps.app" }
          15 { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
-    default { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_16.0.app"; $apiUrl = "xxx" }
+    default { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
     }
 
     if ($appFile -eq "") {
@@ -399,8 +399,42 @@ if ("$bingmapskey" -ne "") {
                                             -Argument ('{ "BingMapsKey":"' + $bingMapsKey + '","WebServicesUsername": "' + $navAdminUsername + '","WebServicesKey": "' + $webServicesKey + '"}')
             }
         }
-        else {
-            Log "Geocode customers, by invoking api $apiUrl"
+        elseif ($apiMethod) {
+            Log "Geocode customers, by invoking api method $apiMethod"
+
+            if ($sqlServerType -eq "SQLExpress") {
+                Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
+                    $config = Get-NAVServerConfiguration -serverinstance $serverinstance -asxml
+                    $databaseName = $config.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
+                    Invoke-Sqlcmd -Database $databaseName -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('a949d4bf-5f3c-49d8-b4be-5359d609683b', 1)"
+                }
+            }
+            else {
+                $databaseServerInstance = $params.databaseServer
+                if ($params.databaseInstance) {
+                    $databaseServerInstance += "\$($params.databaseInstance)"
+                }
+                Invoke-Sqlcmd -ServerInstance $databaseServerInstance -Database $params.databaseName -Credential $params.databaseCredential -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('a949d4bf-5f3c-49d8-b4be-5359d609683b', 1)"
+            }
+           
+            $tenant = "default"
+            $companyId = Get-NavContainerApiCompanyId -containerName $containerName -tenant $tenant -credential $credential
+
+            $parameters = @{ 
+                "name" = "BingMapsKey"
+                "value" = $bingMapsKey
+            }
+            Invoke-NavContainerApi `
+                -containerName $containerName `
+                -tenant $tenant `
+                -credential $credential `
+                -APIPublisher "Microsoft" `
+                -APIGroup "BingMaps" `
+                -APIVersion "v1.0" `
+                -CompanyId $companyId `
+                -Method "POST" `
+                -Query $apiMethod `
+                -body $parameters | Out-Null
         }
     }
 }
