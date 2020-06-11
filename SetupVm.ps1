@@ -242,19 +242,28 @@ if ($style -eq "devpreview") {
     New-DesktopShortcut -Name "Modern Dev Tools" -TargetPath "C:\Program Files\Internet Explorer\iexplore.exe" -Shortcuts "CommonStartup" -Arguments "http://aka.ms/moderndevtools"
 }
 
-$imageName = ""
-$navDockerImage.Split(',') | Where-Object { $_ } | ForEach-Object {
-    $registry = $_.Split('/')[0]
-    if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
-        AddToStatus "Logging in to $registry"
-        docker login "$registry" -u "$registryUsername" -p "$registryPassword"
-    }
-
-    $imageName = Get-BestNavContainerImageName -imageName $_
-
-    AddToStatus "Pulling $imageName (this might take ~30 minutes)"
+if ($artifactUrl -ne "") {
+    $imageName = Get-BestGenericImageName
+    AddToStatus "Pulling $imageName (this might take some time)"
     if (!(DockerDo -imageName $imageName -command pull))  {
         throw "Error pulling image"
+    }
+}
+else {
+    $imageName = ""
+    $navDockerImage.Split(',') | Where-Object { $_ } | ForEach-Object {
+        $registry = $_.Split('/')[0]
+        if (($registry -ne "microsoft") -and ($registryUsername -ne "") -and ($registryPassword -ne "")) {
+            AddToStatus "Logging in to $registry"
+            docker login "$registry" -u "$registryUsername" -p "$registryPassword"
+        }
+    
+        $imageName = Get-BestNavContainerImageName -imageName $_
+    
+        AddToStatus "Pulling $imageName (this might take ~30 minutes)"
+        if (!(DockerDo -imageName $imageName -command pull))  {
+            throw "Error pulling image"
+        }
     }
 }
 

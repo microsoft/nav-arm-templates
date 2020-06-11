@@ -160,7 +160,12 @@ if ($nav -eq "2016" -or $nav -eq "2017" -or $nav -eq "2018") {
     $title = "Dynamics 365 Business Central Sandbox Environment"
 }
 
-AddToStatus "Using image $imageName"
+if ($artifactUrl) {
+    AddToStatus "Using artifactUrl $($artifactUrl.Split('?')[0])"
+}
+else {
+    AddToStatus "Using image $imageName"
+}
 AddToStatus "Country $country"
 AddToStatus "Version $navVersion"
 AddToStatus "Locale $locale"
@@ -231,6 +236,13 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
     }
     else {
         if ($artifactsUrl) {
+            if ($appManifest.PSObject.Properties.name -eq 'database') {
+                $dbPath = Join-Path $appManifestPath $appManifest.database
+                Restore-SqlDatabase -ServerInstance "localhost" -Database $DatabaseName -BackupFile $dbpath -SqlCredential $dbcredentials
+            }
+            else {
+                AddToStatus "WARNING: Application Artifact doesn't contain a database. You need to make sure that the database is restored."
+            }
         }
         else {
             $imageName = Get-BestBCContainerImageName -imageName $imageName
@@ -321,7 +333,7 @@ $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
 try {
-    AddToStatus "Running container (this will take a few minutes)"
+    AddToStatus "Running container (this might take some time)"
     New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
                      -useSSL `
