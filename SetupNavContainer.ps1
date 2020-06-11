@@ -236,8 +236,8 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
     }
     else {
         if ($artifactUrl) {
-            if ($appManifest.PSObject.Properties.name -eq 'database') {
-                $dbPath = Join-Path $appManifestPath $appManifest.database
+            if (($appManifest.PSObject.Properties.name -eq 'database') -and ($appManifest.database -ne "")) {
+                $dbPath = Join-Path $appArtifactPath $appManifest.database
                 Restore-SqlDatabase -ServerInstance "localhost" -Database $DatabaseName -BackupFile $dbpath -SqlCredential $dbcredentials -AutoRelocateFile
             }
             else {
@@ -351,6 +351,17 @@ try {
 }
 
 if ("$sqlServerType" -eq "SQLDeveloper") {
+    if ($artifactUrl) {
+        if ($licenseFileUri) {
+            $licenseFilePath = "c:\demo\license.flf"
+            Download-File -sourceUrl $licensefileuri -destinationFile $licenseFilePath
+            Import-NavContainerLicense -containerName $containerName -licenseFile $licenseFilePath
+        }
+        elseif (($appManifest.PSObject.Properties.name -eq 'licenseFile') -and ($appManifest.licenseFile -ne "")) {
+            $licenseFilePath = Join-Path $appArtifactPath $appManifest.licenseFile
+            Import-NavContainerLicense -containerName $containerName -licenseFile $licenseFilePath
+        }
+    }
     New-NavContainerNavUser -containerName $containerName -Credential $credential -ChangePasswordAtNextLogOn:$false -PermissionSetId SUPER
 }
 
