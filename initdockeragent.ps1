@@ -42,7 +42,7 @@ function Get-VariableDeclaration([string]$name) {
 }
 
 function AddToStatus([string]$line) {
-    ([DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line") | Add-Content -Path "c:\agent\status.txt"
+    ([DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line") | Add-Content -Path "c:\agent\status.txt" -Force -ErrorAction SilentlyContinue
 }
 
 function Download-File([string]$sourceUrl, [string]$destinationFile)

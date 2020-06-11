@@ -12,7 +12,7 @@ if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
 }
 
 function AddToStatus([string]$line) {
-    ([DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line") | Add-Content -Path "c:\agent\status.txt"
+    ([DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line") | Add-Content -Path "c:\agent\status.txt" -Force -ErrorAction SilentlyContinue
 }
 
 function Login-Docker([string]$registry, [string]$registryUsername, [string]$registryPassword)
