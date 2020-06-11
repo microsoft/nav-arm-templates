@@ -63,7 +63,10 @@ if ($artifactUrl) {
     $country = $appManifest.Country.ToLowerInvariant()
     $locale = Get-LocaleFromCountry $country    
 
-    $Params = @{ "artifactUrl" = $artifactUrl }
+    $Params = @{ 
+        "artifactUrl" = $artifactUrl
+        "imageName" = "mybc:$navVersion-$country".ToLowerInvariant()
+    }
 }
 elseif ($navDockerImage) {
     $imageName = Get-BestNavContainerImageName -imageName ($navDockerImage.Split(',')[0])
