@@ -1,5 +1,5 @@
-﻿if (!(Test-Path function:Log)) {
-    function Log([string]$line, [string]$color = "Gray") {
+﻿if (!(Test-Path function:AddToStatus)) {
+    function AddToStatus([string]$line, [string]$color = "Gray") {
         ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt"
         Write-Host -ForegroundColor $color $line 
     }
@@ -28,10 +28,10 @@ if ($artifactUrl) {
 
         $appArtifactPath = Join-Path $downloadsPath $appUri.AbsolutePath
         if (-not (Test-Path $appArtifactPath)) {
-            Log "Downloading application artifact $($appUri.AbsolutePath)"
+            AddToStatus "Downloading application artifact $($appUri.AbsolutePath)"
             $appZip = Join-Path $downloadsPath "app.zip"
             Download-File -sourceUrl $artifactUrl -destinationFile $appZip
-            Log "Unpacking application artifact"
+            AddToStatus "Unpacking application artifact"
             Expand-Archive -Path $appZip -DestinationPath $appArtifactPath -Force
             Remove-Item -Path $appZip -Force
         }
@@ -68,7 +68,7 @@ if ($artifactUrl) {
 elseif ($navDockerImage) {
     $imageName = Get-BestNavContainerImageName -imageName ($navDockerImage.Split(',')[0])
     docker ps --filter name=$containerName -a -q | % {
-        Log "Removing container $containerName"
+        AddToStatus "Removing container $containerName"
         docker rm $_ -f | Out-Null
     }
     
@@ -78,7 +78,7 @@ elseif ($navDockerImage) {
         if ($inspect | % { $_.RepoTags | Where-Object { "$_" -eq "$imageName" -or "$_" -eq "${imageName}:latest"} } ) { $exist = $true }
     }
     if (!$exist) {
-        Log "Pulling $imageName (this might take ~30 minutes)"
+        AddToStatus "Pulling $imageName (this might take ~30 minutes)"
         docker pull $imageName
     }
     
@@ -105,13 +105,13 @@ if ($Office365UserName -eq "" -or $Office365Password -eq "") {
 else {
     $auth = "AAD"
     if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
-        Log "Reusing existing Aad Apps for Office 365 integration"
+        AddToStatus "Reusing existing Aad Apps for Office 365 integration"
     }
     else {
         '. "c:\run\SetupConfiguration.ps1"
         ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
-        Log "Creating Aad Apps for Office 365 integration"
+        AddToStatus "Creating Aad Apps for Office 365 integration"
         if (([System.Version]$navVersion).Major -ge 15) {
             $publicWebBaseUrl = "https://$publicDnsName/BC/"
         }
@@ -146,8 +146,8 @@ else {
             Set-Content -Path $settingsScript -Value $settings
     
         } catch {
-            Log -color Red $_.Exception.Message
-            Log -color Red "Reverting to NavUserPassword authentication"
+            AddToStatus -color Red $_.Exception.Message
+            AddToStatus -color Red "Reverting to NavUserPassword authentication"
         }
     }
 }
@@ -160,10 +160,10 @@ if ($nav -eq "2016" -or $nav -eq "2017" -or $nav -eq "2018") {
     $title = "Dynamics 365 Business Central Sandbox Environment"
 }
 
-Log "Using image $imageName"
-Log "Country $country"
-Log "Version $navVersion"
-Log "Locale $locale"
+AddToStatus "Using image $imageName"
+AddToStatus "Country $country"
+AddToStatus "Version $navVersion"
+AddToStatus "Locale $locale"
 
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
@@ -191,7 +191,7 @@ if ("$appBacpacUri" -ne "") {
         throw "bacpacs not yet supported with SQLDeveloper"
     }
     else {
-        Log "using $azureSqlServer as database server"
+        AddToStatus "using $azureSqlServer as database server"
         $params += @{ "databaseServer"     = "$azureSqlServer"
                       "databaseInstance"   = ""
                       "databaseName"       = "App"
@@ -215,11 +215,11 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
 
         Remove-BCContainer $containerName
         
-        Log "Dropping database $DatabaseName from host SQL Server"
+        AddToStatus "Dropping database $DatabaseName from host SQL Server"
         Invoke-SqlCmd -Query "ALTER DATABASE [$DatabaseName] SET OFFLINE WITH ROLLBACK IMMEDIATE" 
         Invoke-Sqlcmd -Query "DROP DATABASE [$DatabaseName]"
         
-        Log "Removing Database files $($databaseFolder)\$($DatabaseName).*"
+        AddToStatus "Removing Database files $($databaseFolder)\$($DatabaseName).*"
         Remove-Item -Path (Join-Path $DatabaseFolder "$($DatabaseName).*") -Force
     }
 
@@ -248,13 +248,13 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
         
             Remove-Item -Path $dbpath -Recurse -Force
         
-            Log "Attaching files as new Database $DatabaseName on host SQL Server"
-            Log "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
+            AddToStatus "Attaching files as new Database $DatabaseName on host SQL Server"
+            AddToStatus "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
             Invoke-SqlCmd -Query "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
         }
     }
 
-    Log "using host as database server"
+    AddToStatus "using host as database server"
     $params += @{
         "databaseServer"     = "host.containerhelper.internal"
         "databaseInstance"   = ""
@@ -321,7 +321,7 @@ $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
 try {
-    Log "Running container (this will take a few minutes)"
+    AddToStatus "Running container (this will take a few minutes)"
     New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
                      -useSSL `
@@ -333,8 +333,8 @@ try {
                      -myScripts $myscripts
     
 } catch {
-    Log -color Red "Container output"
-    docker logs $containerName | % { log $_ }
+    AddToStatus -color Red "Container output"
+    docker logs $containerName | % { AddToStatus $_ }
     throw
 }
 
@@ -378,7 +378,7 @@ if ($CreateTestUsers -eq "Yes") {
 }
 
 if ($CreateAadUsers -eq "Yes" -and $Office365UserName -ne "" -and $Office365Password -ne "") {
-    Log "Creating Aad Users"
+    AddToStatus "Creating Aad Users"
     $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
     $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
     Create-AadUsersInNavContainer -containerName $containerName -tenant "default" -AadAdminCredential $Office365Credential -permissionSetId SUPER -securePassword $securePassword
@@ -386,7 +386,7 @@ if ($CreateAadUsers -eq "Yes" -and $Office365UserName -ne "" -and $Office365Pass
 
 if ($sqlServerType -eq "AzureSQL") {
     if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
-        Log "Importing c:\demo\objects.fob to container"
+        AddToStatus "Importing c:\demo\objects.fob to container"
         Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $azureSqlCredential
     }
     # Check for Multitenant & Included "-ErrorAction Continue" to prevent an exit
@@ -397,7 +397,7 @@ if ($sqlServerType -eq "AzureSQL") {
     New-NavContainerNavUser -containerName $containerName -tenant "default" -Credential $credential -AuthenticationEmail $Office365UserName -ChangePasswordAtNextLogOn:$false -PermissionSetId "SUPER" -ErrorAction Continue
 } else {
     if (Test-Path "c:\demo\objects.fob" -PathType Leaf) {
-        Log "Importing c:\demo\objects.fob to container"
+        AddToStatus "Importing c:\demo\objects.fob to container"
         $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
         Import-ObjectsToNavContainer -containerName $containerName -objectsFile "c:\demo\objects.fob" -sqlCredential $sqlCredential
     }
@@ -425,10 +425,10 @@ if ("$bingmapskey" -ne "") {
     }
 
     if ($appFile -eq "") {
-        Log "BingMaps app is not supported for this version of NAV"
+        AddToStatus "BingMaps app is not supported for this version of NAV"
     }
     else {
-        Log "Create Web Services Key for admin user"
+        AddToStatus "Create Web Services Key for admin user"
         $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
         if ("$webServicesKey" -eq "") {
             $session = Get-NavContainerSession -containerName $containerName
@@ -438,7 +438,7 @@ if ("$bingmapskey" -ne "") {
             $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
         }
         
-        Log "Installing BingMaps app from $appFile"
+        AddToStatus "Installing BingMaps app from $appFile"
         Publish-NavContainerApp -containerName $containerName `
                                 -tenant "default" `
                                 -packageType Extension `
@@ -448,7 +448,7 @@ if ("$bingmapskey" -ne "") {
                                 -install
     
         if ($codeunitId) {
-            Log "Geocode customers, by invoking codeunit $codeunitId"
+            AddToStatus "Geocode customers, by invoking codeunit $codeunitId"
             Get-CompanyInNavContainer -containerName $containerName | % {
                 Invoke-NavContainerCodeunit -containerName $containerName `
                                             -tenant "default" `
@@ -459,7 +459,7 @@ if ("$bingmapskey" -ne "") {
             }
         }
         elseif ($apiMethod) {
-            Log "Geocode customers, by invoking api method $apiMethod"
+            AddToStatus "Geocode customers, by invoking api method $apiMethod"
 
             if ($sqlServerType -eq "SQLExpress") {
                 Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
@@ -505,7 +505,7 @@ if ("$bingmapskey" -ne "") {
 
 # Copy .vsix and Certificate to container folder
 $containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
-Log "Copying .vsix and Certificate to $containerFolder"
+AddToStatus "Copying .vsix and Certificate to $containerFolder"
 docker exec $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Program Files\Microsoft Dynamics NAV\*\Service\CustomSettings.config' -Destination '$containerFolder' -force
@@ -521,7 +521,7 @@ if (Test-Path 'c:\inetpub\wwwroot\http\NAV' -PathType Container) {
 $certFile = Get-Item "$containerFolder\*.cer"
 if ($certFile) {
     $certFileName = $certFile.FullName
-    Log "Importing $certFileName to trusted root"
+    AddToStatus "Importing $certFileName to trusted root"
     $pfx = new-object System.Security.Cryptography.X509Certificates.X509Certificate2 
     $pfx.import($certFileName)
     $store = new-object System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreName]::Root,"localmachine")
@@ -530,7 +530,7 @@ if ($certFile) {
     $store.close()
 }
 
-Log -color Green "Container output"
-docker logs $containerName | % { log $_ }
+AddToStatus -color Green "Container output"
+docker logs $containerName | % { AddToStatus $_ }
 
-Log -color Green "Container setup complete!"
+AddToStatus -color Green "Container setup complete!"

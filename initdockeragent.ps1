@@ -41,13 +41,13 @@ function Get-VariableDeclaration([string]$name) {
     }
 }
 
-function Log([string]$line) {
+function AddToStatus([string]$line) {
     ([DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line") | Add-Content -Path "c:\agent\status.txt"
 }
 
 function Download-File([string]$sourceUrl, [string]$destinationFile)
 {
-    Log "Downloading $destinationFile"
+    AddToStatus "Downloading $destinationFile"
     Remove-Item -Path $destinationFile -Force -ErrorAction Ignore
     (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
 }
@@ -90,21 +90,21 @@ if (Test-Path $settingsScript) {
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
-Log "TemplateLink: $templateLink"
+AddToStatus "TemplateLink: $templateLink"
 $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 
 $CurrentSize = (get-partition -DriveLetter C).Size
 $AvailableSize = (Get-PartitionSupportedSize -DriveLetter C).SizeMax
 if ($CurrentSize -ne $AvailableSize) {
-    Log "Resizing C drive from $currentSize to $AvailableSize"
+    AddToStatus "Resizing C drive from $currentSize to $AvailableSize"
     Resize-Partition -DriveLetter C -Size $AvailableSize
 }
 
-Log "Turning off IE Enhanced Security Configuration"
+AddToStatus "Turning off IE Enhanced Security Configuration"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
 
-Log "Download License"
+AddToStatus "Download License"
 Download-File -sourceUrl $licenseFileUri -destinationFile "c:\agent\license.flf"
 
 $startDockerAgentScript = "c:\agent\StartDockerAgent.ps1"
@@ -115,11 +115,11 @@ Download-File -sourceUrl "${scriptPath}SetupDockerAgentStart.ps1" -destinationFi
 Download-File -sourceUrl "${scriptPath}SetupDockerAgentVM.ps1" -destinationFile $setupDockerAgentVMScript
 
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
-    Log "Installing NuGet Package Provider"
+    AddToStatus "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
 
-Log "Install Docker"
+AddToStatus "Install Docker"
 Install-module DockerMsftProvider -Force
 Install-Package -Name docker -ProviderName DockerMsftProvider -Force
 
@@ -136,5 +136,5 @@ Register-ScheduledTask -TaskName "SetupStart" `
                        -RunLevel "Highest" `
                        -User "NT AUTHORITY\SYSTEM" | Out-Null
 
-Log "Restarting computer and start Installation tasks"
+AddToStatus "Restarting computer and start Installation tasks"
 Shutdown -r -t 60
