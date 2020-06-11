@@ -11,7 +11,7 @@ if (Get-ScheduledTask -TaskName SetupVm -ErrorAction Ignore) {
     schtasks /DELETE /TN SetupVm /F | Out-Null
 }
 
-function Log([string]$line) {
+function AddToStatus([string]$line) {
     ([DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line") | Add-Content -Path "c:\agent\status.txt"
 }
 
@@ -20,33 +20,33 @@ function Login-Docker([string]$registry, [string]$registryUsername, [string]$reg
     if ("$registryUsername" -ne "" -and "$registryPassword" -ne "") {
         $securePassword = ConvertTo-SecureString -String $registryPassword -Key $passwordKey
         $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecurePassword))
-        Log "Login to '$registry' with $registryUsername"
+        AddToStatus "Login to '$registry' with $registryUsername"
         docker login "$registry" -u "$registryUsername" -p "$plainPassword"
     }
 }
 
-Log "SetupDockerAgentVm, User: $env:USERNAME"
+AddToStatus "SetupDockerAgentVm, User: $env:USERNAME"
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
-Log "Starting docker"
+AddToStatus "Starting docker"
 start-service docker
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
 
-Log "Enabling File Download in IE"
+AddToStatus "Enabling File Download in IE"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\3" -Name "1803" -Value 0
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\3" -Name "1803" -Value 0
 
-Log "Enabling Font Download in IE"
+AddToStatus "Enabling Font Download in IE"
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\3" -Name "1604" -Value 0
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\3" -Name "1604" -Value 0
 
-Log "Show hidden files and file types"
+AddToStatus "Show hidden files and file types"
 Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'  -Name "Hidden"      -value 1
 Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'  -Name "HideFileExt" -value 0
 
-Log "Disabling Server Manager Open At Logon"
+AddToStatus "Disabling Server Manager Open At Logon"
 New-ItemProperty -Path "HKCU:\Software\Microsoft\ServerManager" -Name "DoNotOpenServerManagerAtLogon" -PropertyType "DWORD" -Value "0x1" –Force | Out-Null
 
 Login-Docker -registry "$registry1" -registryUsername "$registry1username" -registryPassword "$registry1password"
@@ -63,7 +63,7 @@ $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([Syst
 
 $vmno = [int]$vmName.Substring($vmName.LastIndexOf('-')+1)
 
-Log "Register Build Agents"
+AddToStatus "Register Build Agents"
 1..$Processes | % {
     $agentNo = $vmno*$processes+$_
     $taskName = "$queue-$agentNo"
@@ -84,12 +84,12 @@ Log "Register Build Agents"
     $task | Set-ScheduledTask -User $vmAdminUsername -Password $plainPassword | Out-Null
 }
 
-Log "Complete, and start tasks"
+AddToStatus "Complete, and start tasks"
 
 shutdown -r -t 30
 
 } catch {
-    Log $_.Exception.Message
-    $_.ScriptStackTrace.Replace("`r`n","`n").Split("`n") | % { Log $_ }
+    AddToStatus $_.Exception.Message
+    $_.ScriptStackTrace.Replace("`r`n","`n").Split("`n") | % { AddToStatus $_ }
     throw
 }

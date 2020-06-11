@@ -61,13 +61,13 @@ function Get-VariableDeclaration([string]$name) {
     }
 }
 
-function Log([string]$line, [string]$color = "Gray") {
+function AddToStatus([string]$line, [string]$color = "Gray") {
     ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt"
 }
 
 function Download-File([string]$sourceUrl, [string]$destinationFile)
 {
-    Log "Downloading $destinationFile"
+    AddToStatus "Downloading $destinationFile"
     Remove-Item -Path $destinationFile -Force -ErrorAction Ignore
     (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
 }
@@ -161,7 +161,7 @@ if (Test-Path $settingsScript) {
 $includeWindowsClient = $true
 
 if (Test-Path -Path "c:\DEMO\Status.txt" -PathType Leaf) {
-    Log "VM already initialized."
+    AddToStatus "VM already initialized."
     exit
 }
 
@@ -170,24 +170,24 @@ Set-Content "c:\DEMO\WinRmAccess.txt" -Value $WinRmAccess
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
-Log -color Green "Starting initialization"
-Log "Running $WindowsProductName"
-Log "Initialize, user: $env:USERNAME"
-Log "TemplateLink: $templateLink"
+AddToStatus -color Green "Starting initialization"
+AddToStatus "Running $WindowsProductName"
+AddToStatus "Initialize, user: $env:USERNAME"
+AddToStatus "TemplateLink: $templateLink"
 $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 
 New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
 
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
-    Log "Installing NuGet Package Provider"
+    AddToStatus "Installing NuGet Package Provider"
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
 if (!(Get-Module powershellget | Where-Object { $_.Version -ge [version]"2.2.1" })) {
-    Log "Installing PowerShellGet 2.2.1"
+    AddToStatus "Installing PowerShellGet 2.2.1"
     Install-Module powershellget -RequiredVersion 2.2.1 -force
 }
 
-Log "Installing Internet Information Server (this might take a few minutes)"
+AddToStatus "Installing Internet Information Server (this might take a few minutes)"
 if ($WindowsInstallationType -eq "Server") {
     Add-WindowsFeature Web-Server,web-Asp-Net45
 } else {
@@ -209,14 +209,14 @@ $title = 'Dynamics Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
 
 if ("$RemoteDesktopAccess" -ne "") {
-Log "Creating Connect.rdp"
+AddToStatus "Creating Connect.rdp"
 "full address:s:${publicDnsName}:3389
 prompt for credentials:i:1
 username:s:$vmAdminUsername" | Set-Content "c:\inetpub\wwwroot\Connect.rdp"
 }
 
 if ($WindowsInstallationType -eq "Server") {
-    Log "Turning off IE Enhanced Security Configuration"
+    AddToStatus "Turning off IE Enhanced Security Configuration"
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
 }
@@ -283,7 +283,7 @@ if ($workshopFilesUrl -ne "") {
     $workshopFilesFile = "C:\DOWNLOAD\WorkshopFiles.zip"
     New-Item -Path $workshopFilesFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 	Download-File -sourceUrl $workshopFilesUrl -destinationFile $workshopFilesFile
-    Log "Unpacking Workshop Files to $WorkshopFilesFolder"
+    AddToStatus "Unpacking Workshop Files to $WorkshopFilesFolder"
 	[Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
@@ -292,34 +292,34 @@ if ($nchBranch) {
     if ($nchBranch -notlike "https://*") {
         $nchBranch = "https://github.com/Microsoft/navcontainerhelper/archive/$($nchBranch).zip"
     }
-    Log "Using Nav Container Helper from $nchBranch"
+    AddToStatus "Using Nav Container Helper from $nchBranch"
     Download-File -sourceUrl $nchBranch -destinationFile "c:\demo\navcontainerhelper.zip"
     [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
     [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\navcontainerhelper.zip", "c:\demo")
     $module = Get-Item -Path "C:\demo\*\NavContainerHelper.psm1"
-    Log "Loading NavContainerHelper from $($module.FullName)"
+    AddToStatus "Loading NavContainerHelper from $($module.FullName)"
     Import-Module $module.FullName -DisableNameChecking
 } else {
-    Log "Installing Latest Nav Container Helper from PowerShell Gallery"
+    AddToStatus "Installing Latest Nav Container Helper from PowerShell Gallery"
     Install-Module -Name navcontainerhelper -Force
     Import-Module -Name navcontainerhelper -DisableNameChecking
-    Log ("Using Nav Container Helper version "+(get-module NavContainerHelper).Version.ToString())
+    AddToStatus ("Using Nav Container Helper version "+(get-module NavContainerHelper).Version.ToString())
 }
 
 if ($AddTraefik -eq "Yes") {
 
     if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
-        Log -color Red "Certificate specified, cannot add Traefik"
+        AddToStatus -color Red "Certificate specified, cannot add Traefik"
         $AddTraefik = "No"
     }
 
     if (-not $ContactEMailForLetsEncrypt) {
-        Log -color Red "Contact EMail for LetsEncrypt not specified, cannot add Traefik"
+        AddToStatus -color Red "Contact EMail for LetsEncrypt not specified, cannot add Traefik"
         $AddTraefik = "No"
     }
 
     if ($clickonce -eq "Yes") {
-        Log -color Red "ClickOnce specified, cannot add Traefik"
+        AddToStatus -color Red "ClickOnce specified, cannot add Traefik"
         $AddTraefik = "No"
     }
 
@@ -360,7 +360,7 @@ Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settin
 
 if ($WindowsInstallationType -eq "Server") {
     if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
-        Log "Installing Docker"
+        AddToStatus "Installing Docker"
         Install-module DockerMsftProvider -Force
         Install-Package -Name docker -ProviderName DockerMsftProvider -Force
     }
@@ -379,5 +379,5 @@ Register-ScheduledTask -TaskName "SetupStart" `
                        -RunLevel "Highest" `
                        -User "NT AUTHORITY\SYSTEM" | Out-Null
 
-Log "Restarting computer and start Installation tasks"
+AddToStatus "Restarting computer and start Installation tasks"
 Shutdown -r -t 60

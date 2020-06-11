@@ -1,4 +1,4 @@
-﻿function Log([string]$line, [string]$color = "Gray") {
+﻿function AddToStatus([string]$line, [string]$color = "Gray") {
     ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt"
 }
 
@@ -24,7 +24,7 @@ function Add-NativeMethods()
 "@
 }
 
-Log "SetupStart, User: $env:USERNAME"
+AddToStatus "SetupStart, User: $env:USERNAME"
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
@@ -42,10 +42,10 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
 if (-not (Get-InstalledModule ACME-PS -ErrorAction SilentlyContinue)) {
 
-    Log "Installing ACME-PS PowerShell Module"
+    AddToStatus "Installing ACME-PS PowerShell Module"
     Install-Module -Name ACME-PS -RequiredVersion "1.1.0-beta" -AllowPrerelease -Force
 
-    Log "Using Lets Encrypt certificate"
+    AddToStatus "Using Lets Encrypt certificate"
     # Use Lets encrypt
     # If rate limits are hit, log an error and revert to Self Signed
     try {
@@ -89,25 +89,25 @@ Restart-NavContainer -containerName navserver -renewBindings
 ') | Set-Content "c:\demo\RenewCertificate.ps1"
 
     } catch {
-        Log -color Red $_.Exception.Message
-        Log -color Red "Reverting to Self Signed Certificate"
+        AddToStatus -color Red $_.Exception.Message
+        AddToStatus -color Red "Reverting to Self Signed Certificate"
     }
 
 }
 }
 
 if (-not (Get-InstalledModule Az -ErrorAction SilentlyContinue)) {
-    Log "Installing Az module"
+    AddToStatus "Installing Az module"
     Install-Module Az -Force
 }
 
 if (-not (Get-InstalledModule AzureAD -ErrorAction SilentlyContinue)) {
-    Log "Installing AzureAD module"
+    AddToStatus "Installing AzureAD module"
     Install-Module AzureAD -Force
 }
 
 if (-not (Get-InstalledModule SqlServer -ErrorAction SilentlyContinue)) {
-    Log "Installing SqlServer module"
+    AddToStatus "Installing SqlServer module"
     Install-Module SqlServer -Force
 }
 
@@ -116,7 +116,7 @@ $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([Syst
 
 if ($requestToken) {
     if (!(Get-ScheduledTask -TaskName request -ErrorAction Ignore)) {
-        Log "Registering request task"
+        AddToStatus "Registering request task"
         $xml = [System.IO.File]::ReadAllText("c:\demo\RequestTaskDef.xml")
         Register-ScheduledTask -TaskName request -User $vmadminUsername -Password $plainPassword -Xml $xml
     }
@@ -124,7 +124,7 @@ if ($requestToken) {
 
 if ("$createStorageQueue" -eq "yes") {
     if (-not (Get-InstalledModule AzTable -ErrorAction SilentlyContinue)) {
-        Log "Installing AzTable Module"
+        AddToStatus "Installing AzTable Module"
         Install-Module AzTable -Force
     
         $taskName = "RunQueue"
@@ -149,7 +149,7 @@ if ("$createStorageQueue" -eq "yes") {
 
 $taskName = "RestartContainers"
 if (-not (Get-ScheduledTask -TaskName $taskName -ErrorAction Ignore)) {
-    Log "Register RestartContainers Task to start container delayed"
+    AddToStatus "Register RestartContainers Task to start container delayed"
     $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -file c:\demo\restartcontainers.ps1"
     $startupTrigger = New-ScheduledTaskTrigger -AtStartup
     $startupTrigger.Delay = "PT5M"
@@ -169,7 +169,7 @@ if ($WindowsInstallationType -eq "Server") {
         schtasks /DELETE /TN SetupVm /F | Out-Null
     }
 
-    Log "Launch SetupVm"
+    AddToStatus "Launch SetupVm"
     $onceAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File c:\demo\setupVm.ps1"
     Register-ScheduledTask -TaskName SetupVm `
                            -Action $onceAction `
@@ -197,7 +197,7 @@ else {
                            -User $vmAdminUsername `
                            -Password $plainPassword | Out-Null
     
-    Log -color Yellow "Restarting computer. After restart, please Login to computer using RDP in order to resume the installation process. This is not needed for Windows Server."
+    AddToStatus -color Yellow "Restarting computer. After restart, please Login to computer using RDP in order to resume the installation process. This is not needed for Windows Server."
     
     Shutdown -r -t 60
 

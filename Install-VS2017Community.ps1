@@ -1,5 +1,5 @@
-﻿if (!(Test-Path function:Log)) {
-    function Log([string]$line, [string]$color = "Gray") {
+﻿if (!(Test-Path function:AddToStatus)) {
+    function AddToStatus([string]$line, [string]$color = "Gray") {
         ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt"
         Write-Host -ForegroundColor $color $line 
     }
@@ -10,12 +10,12 @@ $Filename = "$Folder\vs_community.exe"
 New-Item $Folder -itemtype directory -ErrorAction ignore | Out-Null
 
 if (!(Test-Path $Filename)) {
-    Log "Downloading Visual Studio 2017 Community Setup Program"
+    AddToStatus "Downloading Visual Studio 2017 Community Setup Program"
     $WebClient = New-Object System.Net.WebClient
     $WebClient.DownloadFile("https://aka.ms/vs/15/release/vs_community.exe", $Filename)
 }
 
-Log "Installing Visual Studio 2017 Community (this might take a while)"
+AddToStatus "Installing Visual Studio 2017 Community (this might take a while)"
 $setupParameters = “--quiet --norestart"
 Start-Process -FilePath $Filename -WorkingDirectory $Folder -ArgumentList $setupParameters -Wait -Passthru | Out-Null
 
