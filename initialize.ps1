@@ -10,6 +10,7 @@ param
        [string] $navAdminUsername          = "admin",
        [string] $azureSqlAdminUsername     = "sqladmin",
        [string] $adminPassword             = "P@ssword1",
+       [string] $artifactUrl               = "",
        [string] $navDockerImage            = "",
        [string] $registryUsername          = "",
        [string] $registryPassword          = "",
@@ -98,6 +99,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "azureSqlAdminUsername"  | Add-Content $settingsScript
     Get-VariableDeclaration -name "Office365Username"      | Add-Content $settingsScript
     Get-VariableDeclaration -name "Office365CreatePortal"  | Add-Content $settingsScript
+    Get-VariableDeclaration -name "artifactUrl"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "navDockerImage"         | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryUsername"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "registryPassword"       | Add-Content $settingsScript

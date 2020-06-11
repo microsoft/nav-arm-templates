@@ -15,30 +15,85 @@ $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
 
 . "$settingsScript"
 
-if ($navDockerImage) {
-$imageName = Get-BestNavContainerImageName -imageName ($navDockerImage.Split(',')[0])
+if ($artifactUrl) {
 
-docker ps --filter name=$containerName -a -q | % {
-    Log "Removing container $containerName"
-    docker rm $_ -f | Out-Null
-}
+    $downloadsPath = "c:\bcartifacts.cache"
+    if (-not (Test-Path $downloadsPath)) {
+        New-Item -Path $downloadsPath -ItemType Directory | Out-Null
+    }
 
-$exist = $false
-docker images -q --no-trunc | ForEach-Object {
-    $inspect = docker inspect $_ | ConvertFrom-Json
-    if ($inspect | % { $_.RepoTags | Where-Object { "$_" -eq "$imageName" -or "$_" -eq "${imageName}:latest"} } ) { $exist = $true }
-}
-if (!$exist) {
-    Log "Pulling $imageName (this might take ~30 minutes)"
-    docker pull $imageName
-}
+    do {
+        $redir = $false
+        $appUri = [Uri]::new($artifactUrl)
 
-$inspect = docker inspect $imageName | ConvertFrom-Json
-$country = $inspect.Config.Labels.country
-$navVersion = $inspect.Config.Labels.version
-$nav = $inspect.Config.Labels.nav
-$cu = $inspect.Config.Labels.cu
-$locale = Get-LocaleFromCountry $country
+        $appArtifactPath = Join-Path $downloadsPath $appUri.AbsolutePath
+        if (-not (Test-Path $appArtifactPath)) {
+            Write-Host "Downloading application artifact $($appUri.AbsolutePath)"
+            $appZip = Join-Path $downloadsPath "app.zip"
+            Download-File -sourceUrl $artifactUrl -destinationFile $appZip
+            Write-Host "Unpacking application artifact"
+            Expand-Archive -Path $appZip -DestinationPath $appArtifactPath -Force
+            Remove-Item -Path $appZip -Force
+        }
+
+        $appManifestPath = Join-Path $appArtifactPath "manifest.json"
+        $appManifest = Get-Content $appManifestPath | ConvertFrom-Json
+
+        if ($appManifest.PSObject.Properties.name -eq "applicationUrl") {
+            $redir = $true
+            $artifactUrl = $appManifest.ApplicationUrl
+            if ($artifactUrl -notlike 'https://*') {
+                $artifactUrl = "https://$($appUri.Host)/$artifactUrl$($appUri.Query)"
+            }
+        }
+
+    } while ($redir)
+
+    $nav = ""
+    if ($appManifest.PSObject.Properties.name -eq "Nav") {
+        $nav = $appManifest.Nav
+    }
+    
+    $cu = ""
+    if ($appManifest.PSObject.Properties.name -eq "Cu") {
+        $cu =$appManifest.Cu
+    }
+
+    $navVersion = $appmanifest.Version
+    $country = $appManifest.Country.ToLowerInvariant()
+    $locale = Get-LocaleFromCountry $country    
+
+}
+elseif ($navDockerImage) {
+    $imageName = Get-BestNavContainerImageName -imageName ($navDockerImage.Split(',')[0])
+    docker ps --filter name=$containerName -a -q | % {
+        Log "Removing container $containerName"
+        docker rm $_ -f | Out-Null
+    }
+    
+    $exist = $false
+    docker images -q --no-trunc | ForEach-Object {
+        $inspect = docker inspect $_ | ConvertFrom-Json
+        if ($inspect | % { $_.RepoTags | Where-Object { "$_" -eq "$imageName" -or "$_" -eq "${imageName}:latest"} } ) { $exist = $true }
+    }
+    if (!$exist) {
+        Log "Pulling $imageName (this might take ~30 minutes)"
+        docker pull $imageName
+    }
+    
+    $inspect = docker inspect $imageName | ConvertFrom-Json
+    $country = $inspect.Config.Labels.country
+    $navVersion = $inspect.Config.Labels.version
+    $nav = $inspect.Config.Labels.nav
+    $cu = $inspect.Config.Labels.cu
+    $locale = Get-LocaleFromCountry $country
+
+    $Params = @{ "imageName" = $imageName }
+}
+else {
+    # no artifact, no container - exit
+    exit
+}
 
 if ($Office365UserName -eq "" -or $Office365Password -eq "") {
     $auth = "NavUserPassword"
@@ -112,7 +167,7 @@ Log "Locale $locale"
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
-$params = @{ "licensefile" = "$licensefileuri"
+$params += @{ "licensefile" = "$licensefileuri"
              "publicDnsName" = $publicDnsName }
 
 if ($AddTraefik -eq "Yes") {
@@ -174,24 +229,28 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
         Remove-Item $dbPath
     }
     else {
-        $imageName = Get-BestBCContainerImageName -imageName $imageName
-        docker pull $imageName
-    
-        $dbPath = Join-Path $env:TEMP ([Guid]::NewGuid().ToString())
-        Extract-FilesFromBCContainerImage -imageName $imageName -extract database -path $dbPath -force
-    
-        $files = @()
-        Get-ChildItem -Path (Join-Path $dbPath "databases") | % {
-            $DestinationFile = "{0}\{1}{2}" -f $databaseFolder, $DatabaseName, $_.Extension
-            Copy-Item -Path $_.FullName -Destination $DestinationFile -Force
-            $files += @("(FILENAME = N'$DestinationFile')")
+        if ($artifactsUrl) {
         }
-    
-        Remove-Item -Path $dbpath -Recurse -Force
-    
-        Write-Host "Attaching files as new Database $DatabaseName on host SQL Server"
-        Write-Host "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
-        Invoke-SqlCmd -Query "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
+        else {
+            $imageName = Get-BestBCContainerImageName -imageName $imageName
+            docker pull $imageName
+        
+            $dbPath = Join-Path $env:TEMP ([Guid]::NewGuid().ToString())
+            Extract-FilesFromBCContainerImage -imageName $imageName -extract database -path $dbPath -force
+        
+            $files = @()
+            Get-ChildItem -Path (Join-Path $dbPath "databases") | % {
+                $DestinationFile = "{0}\{1}{2}" -f $databaseFolder, $DatabaseName, $_.Extension
+                Copy-Item -Path $_.FullName -Destination $DestinationFile -Force
+                $files += @("(FILENAME = N'$DestinationFile')")
+            }
+        
+            Remove-Item -Path $dbpath -Recurse -Force
+        
+            Write-Host "Attaching files as new Database $DatabaseName on host SQL Server"
+            Write-Host "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
+            Invoke-SqlCmd -Query "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
+        }
     }
 
     Log "using host as database server"
@@ -261,7 +320,7 @@ $myScripts = @()
 Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
 try {
-    Log "Running $imageName (this will take a few minutes)"
+    Log "Running container (this will take a few minutes)"
     New-NavContainer -accept_eula -accept_outdated @Params `
                      -containerName $containerName `
                      -useSSL `
@@ -270,8 +329,7 @@ try {
                      -authenticationEMail $Office365UserName `
                      -credential $credential `
                      -additionalParameters $additionalParameters `
-                     -myScripts $myscripts `
-                     -imageName $imageName
+                     -myScripts $myscripts
     
 } catch {
     Log -color Red "Container output"
@@ -475,5 +533,3 @@ Log -color Green "Container output"
 docker logs $containerName | % { log $_ }
 
 Log -color Green "Container setup complete!"
-
-}
