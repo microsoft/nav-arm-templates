@@ -28,10 +28,10 @@ if ($artifactUrl) {
 
         $appArtifactPath = Join-Path $downloadsPath $appUri.AbsolutePath
         if (-not (Test-Path $appArtifactPath)) {
-            Write-Host "Downloading application artifact $($appUri.AbsolutePath)"
+            Log "Downloading application artifact $($appUri.AbsolutePath)"
             $appZip = Join-Path $downloadsPath "app.zip"
             Download-File -sourceUrl $artifactUrl -destinationFile $appZip
-            Write-Host "Unpacking application artifact"
+            Log "Unpacking application artifact"
             Expand-Archive -Path $appZip -DestinationPath $appArtifactPath -Force
             Remove-Item -Path $appZip -Force
         }
@@ -63,6 +63,7 @@ if ($artifactUrl) {
     $country = $appManifest.Country.ToLowerInvariant()
     $locale = Get-LocaleFromCountry $country    
 
+    $Params = @{ "artifactUrl" = $artifactUrl }
 }
 elseif ($navDockerImage) {
     $imageName = Get-BestNavContainerImageName -imageName ($navDockerImage.Split(',')[0])
@@ -214,11 +215,11 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
 
         Remove-BCContainer $containerName
         
-        Write-Host "Dropping database $DatabaseName from host SQL Server"
+        Log "Dropping database $DatabaseName from host SQL Server"
         Invoke-SqlCmd -Query "ALTER DATABASE [$DatabaseName] SET OFFLINE WITH ROLLBACK IMMEDIATE" 
         Invoke-Sqlcmd -Query "DROP DATABASE [$DatabaseName]"
         
-        Write-Host "Removing Database files $($databaseFolder)\$($DatabaseName).*"
+        Log "Removing Database files $($databaseFolder)\$($DatabaseName).*"
         Remove-Item -Path (Join-Path $DatabaseFolder "$($DatabaseName).*") -Force
     }
 
@@ -247,8 +248,8 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
         
             Remove-Item -Path $dbpath -Recurse -Force
         
-            Write-Host "Attaching files as new Database $DatabaseName on host SQL Server"
-            Write-Host "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
+            Log "Attaching files as new Database $DatabaseName on host SQL Server"
+            Log "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
             Invoke-SqlCmd -Query "CREATE DATABASE [$DatabaseName] ON $([string]::Join(", ",$Files)) FOR ATTACH"
         }
     }
