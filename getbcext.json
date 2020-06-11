@@ -268,6 +268,13 @@
                 "Description": "Optional: Specify a Url to a PowerShell script that should be executed on the VM before the Container is setup."
             }
         },
+	"UserPersonalizationUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a Url to a User Personalization File that will import the data to the container."
+            }
+        },
         "FinalSetupScriptUrl": {
             "type": "string",
             "defaultValue": "",
@@ -375,6 +382,7 @@
         "CreateStorageQueue": "[parameters('CreateStorageQueue')]",
         "BeforeContainerSetupScriptUrl": "[parameters('BeforeContainerSetupScriptUrl')]",
         "FinalSetupScriptUrl": "[parameters('FinalSetupScriptUrl')]",
+	"UserPersonalizationUrl": "[parameters('UserPersonalizationUrl')]",
         "RunWindowsUpdate": "[parameters('RunWindowsUpdate')]",
         "ContactEMailForLetsEncrypt": "[parameters('ContactEMailForLetsEncrypt')]",
         "AutoShutdown": "[parameters('AutoShutdown')]",
