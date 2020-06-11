@@ -231,14 +231,14 @@ elseif ("$sqlServerType" -eq "SQLDeveloper") {
     if ($databaseBakUri) {
         $dbPath = Join-Path "C:\DEMO" "$([Guid]::NewGuid().ToString()).bak"
         Download-File -sourceUrl $databaseBakUri -destinationFile $dbpath
-        Restore-SqlDatabase -ServerInstance "localhost" -Database $DatabaseName -BackupFile $dbpath -SqlCredential $dbcredentials
+        Restore-SqlDatabase -ServerInstance "localhost" -Database $DatabaseName -BackupFile $dbpath -SqlCredential $dbcredentials -AutoRelocateFile
         Remove-Item $dbPath
     }
     else {
-        if ($artifactsUrl) {
+        if ($artifactUrl) {
             if ($appManifest.PSObject.Properties.name -eq 'database') {
                 $dbPath = Join-Path $appManifestPath $appManifest.database
-                Restore-SqlDatabase -ServerInstance "localhost" -Database $DatabaseName -BackupFile $dbpath -SqlCredential $dbcredentials
+                Restore-SqlDatabase -ServerInstance "localhost" -Database $DatabaseName -BackupFile $dbpath -SqlCredential $dbcredentials -AutoRelocateFile
             }
             else {
                 AddToStatus "WARNING: Application Artifact doesn't contain a database. You need to make sure that the database is restored."
