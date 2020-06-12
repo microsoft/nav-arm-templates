@@ -115,14 +115,14 @@
             "type": "string",
             "defaultValue": "https://bcartifacts.azureedge.net/businesscentral/onprem/w1",
             "metadata": {
-                "Description": "Specify the Business Central Artifact URL"
+                "Description": "Specify the Business Central Artifact URL. This value is ignored if a Docker Image is specified."
             }
         },
         "BCDockerImage": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "Select the Business Central Docker Image to deploy. This field is ignored if an artifactUrl is specified."
+                "Description": "Select the Business Central Docker Image to deploy. ArtifactUrl is ignored if you specify a Docker Image."
             }
         },
         "AssignPremiumPlan": {
