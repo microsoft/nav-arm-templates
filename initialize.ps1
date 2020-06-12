@@ -76,6 +76,12 @@ if ($publicDnsName -eq "") {
     $publicDnsName = $hostname
 }
 
+if ($artifactUrl -ne "" -and $navDockerImage -ne "") {
+    # Both artifact Url AND navDockerImage specified, navDockerImage wins
+    # Reason: ArtifactUrl is defaulted, navDockerImage is not - hence user must have specified a navDockerImage
+    $artifactUrl = ""
+}
+
 $ComputerInfo = Get-ComputerInfo
 $WindowsInstallationType = $ComputerInfo.WindowsInstallationType
 $WindowsProductName = $ComputerInfo.WindowsProductName
