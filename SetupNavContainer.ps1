@@ -17,37 +17,10 @@ $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
 
 if ($artifactUrl) {
 
-    $downloadsPath = "c:\bcartifacts.cache"
-    if (-not (Test-Path $downloadsPath)) {
-        New-Item -Path $downloadsPath -ItemType Directory | Out-Null
-    }
+    $appArtifactPath = Download-Artifacts -artifactUrl $artifactUrl -includePlatform
 
-    do {
-        $redir = $false
-        $appUri = [Uri]::new($artifactUrl)
-
-        $appArtifactPath = Join-Path $downloadsPath $appUri.AbsolutePath
-        if (-not (Test-Path $appArtifactPath)) {
-            AddToStatus "Downloading application artifact $($appUri.AbsolutePath)"
-            $appZip = Join-Path $downloadsPath "app.zip"
-            Download-File -sourceUrl $artifactUrl -destinationFile $appZip
-            AddToStatus "Unpacking application artifact"
-            Expand-Archive -Path $appZip -DestinationPath $appArtifactPath -Force
-            Remove-Item -Path $appZip -Force
-        }
-
-        $appManifestPath = Join-Path $appArtifactPath "manifest.json"
-        $appManifest = Get-Content $appManifestPath | ConvertFrom-Json
-
-        if ($appManifest.PSObject.Properties.name -eq "applicationUrl") {
-            $redir = $true
-            $artifactUrl = $appManifest.ApplicationUrl
-            if ($artifactUrl -notlike 'https://*') {
-                $artifactUrl = "https://$($appUri.Host)/$artifactUrl$($appUri.Query)"
-            }
-        }
-
-    } while ($redir)
+    $appManifestPath = Join-Path $appArtifactPath "manifest.json"
+    $appManifest = Get-Content $appManifestPath | ConvertFrom-Json
 
     $nav = ""
     if ($appManifest.PSObject.Properties.name -eq "Nav") {
