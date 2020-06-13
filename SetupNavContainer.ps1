@@ -17,7 +17,9 @@ $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
 
 if ($artifactUrl) {
 
-    $appArtifactPath = Download-Artifacts -artifactUrl $artifactUrl -includePlatform
+    $artifactPaths = Download-Artifacts -artifactUrl $artifactUrl -includePlatform
+    $appArtifactPath = $artifactPaths[0]
+    $platformArtifactPath = $artifactPaths[1]
 
     $appManifestPath = Join-Path $appArtifactPath "manifest.json"
     $appManifest = Get-Content $appManifestPath | ConvertFrom-Json
