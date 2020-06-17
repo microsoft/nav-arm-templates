@@ -30,6 +30,7 @@ param
 	   [string] $workshopFilesUrl          = "",
 	   [string] $beforeContainerSetupScriptUrl = "",
 	   [string] $finalSetupScriptUrl       = "",
+	   [string] $UserPersonalizationUrl    = "",
        [string] $style                     = "devpreview",
        [string] $AssignPremiumPlan         = "No",
        [string] $CreateTestUsers           = "No",
@@ -266,6 +267,11 @@ if ($beforeContainerSetupScriptUrl) {
 if ($finalSetupScriptUrl) {
     $finalSetupScript = "c:\demo\FinalSetupScript.ps1"
     Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
+}
+
+if ($UserPersonalizationUrl) {
+    $UserPersonalization = "c:\demo\UserPersonalizationUrl.json"
+    Download-File -sourceUrl $UserPersonalizationUrl -destinationFile $UserPersonalization
 }
 
 if ($fobFileUrl -ne "") {
