@@ -375,7 +375,12 @@ if ($auth -eq "AAD") {
 }
 
 if ($CreateTestUsers -eq "Yes") {
-    Setup-NavContainerTestUsers -containerName $containerName -tenant "default" -password $credential.Password -credential $credential
+    if ($licenseFileUri -eq "") {
+        Log "Skipping creation of Test Users, as no licensefile has been specified"
+    }
+    else {
+        Setup-NavContainerTestUsers -containerName $containerName -tenant "default" -password $credential.Password -credential $credential
+    }
 }
 
 if ($CreateAadUsers -eq "Yes" -and $Office365UserName -ne "" -and $Office365Password -ne "") {
