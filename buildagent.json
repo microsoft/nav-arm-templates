@@ -113,7 +113,7 @@
         },
         "FinalSetupScriptUrl": {
             "type": "string",
-            "defaultValue": "additional-installforbuildgent.ps1",
+            "defaultValue": "additional-installforbuildagent.ps1",
             "metadata": {
                 "Description": "Optional: Specify a Url to a PowerShell script that should be executed on the VM to do the final setup of the VM."
             }
