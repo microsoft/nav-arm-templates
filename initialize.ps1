@@ -201,13 +201,13 @@ if ($WindowsInstallationType -eq "Server") {
 }
 
 Remove-Item -Path "C:\inetpub\wwwroot\iisstart.*" -Force
-Download-File -sourceUrl "${scriptPath}Default.aspx"            -destinationFile "C:\inetpub\wwwroot\default.aspx"
-Download-File -sourceUrl "${scriptPath}status.aspx"             -destinationFile "C:\inetpub\wwwroot\status.aspx"
-Download-File -sourceUrl "${scriptPath}line.png"                -destinationFile "C:\inetpub\wwwroot\line.png"
-Download-File -sourceUrl "${scriptPath}Microsoft.png"           -destinationFile "C:\inetpub\wwwroot\Microsoft.png"
-Download-File -sourceUrl "${scriptPath}web.config"              -destinationFile "C:\inetpub\wwwroot\web.config"
+Download-File -sourceUrl "$($scriptPath)Default.aspx"            -destinationFile "C:\inetpub\wwwroot\default.aspx"
+Download-File -sourceUrl "$($scriptPath)status.aspx"             -destinationFile "C:\inetpub\wwwroot\status.aspx"
+Download-File -sourceUrl "$($scriptPath)line.png"                -destinationFile "C:\inetpub\wwwroot\line.png"
+Download-File -sourceUrl "$($scriptPath)Microsoft.png"           -destinationFile "C:\inetpub\wwwroot\Microsoft.png"
+Download-File -sourceUrl "$($scriptPath)web.config"              -destinationFile "C:\inetpub\wwwroot\web.config"
 if ($requestToken) {
-    Download-File -sourceUrl "${scriptPath}request.aspx"            -destinationFile "C:\inetpub\wwwroot\request.aspx"
+    Download-File -sourceUrl "$($scriptPath)request.aspx"            -destinationFile "C:\inetpub\wwwroot\request.aspx"
 }
 
 $title = 'Dynamics Container Host'
@@ -246,36 +246,42 @@ Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ig
 ' | Set-Content "c:\myfolder\SetupWindowsUsers.ps1"
 }
 
-Download-File -sourceUrl "${scriptPath}SetupWebClient.ps1"    -destinationFile "c:\myfolder\SetupWebClient.ps1"
+Download-File -sourceUrl "$($scriptPath)SetupWebClient.ps1"    -destinationFile "c:\myfolder\SetupWebClient.ps1"
 
-Download-File -sourceUrl "${scriptPath}SetupDesktop.ps1"      -destinationFile $setupDesktopScript
-Download-File -sourceUrl "${scriptPath}SetupNavContainer.ps1" -destinationFile $setupNavContainerScript
-Download-File -sourceUrl "${scriptPath}SetupAAD.ps1"          -destinationFile $setupAadScript
-Download-File -sourceUrl "${scriptPath}SetupVm.ps1"           -destinationFile $setupVmScript
-Download-File -sourceUrl "${scriptPath}SetupStart.ps1"        -destinationFile $setupStartScript
-Download-File -sourceUrl "${scriptPath}RestartContainers.ps1" -destinationFile "c:\demo\restartContainers.ps1"
+Download-File -sourceUrl "$($scriptPath)SetupDesktop.ps1"      -destinationFile $setupDesktopScript
+Download-File -sourceUrl "$($scriptPath)SetupNavContainer.ps1" -destinationFile $setupNavContainerScript
+Download-File -sourceUrl "$($scriptPath)SetupAAD.ps1"          -destinationFile $setupAadScript
+Download-File -sourceUrl "$($scriptPath)SetupVm.ps1"           -destinationFile $setupVmScript
+Download-File -sourceUrl "$($scriptPath)SetupStart.ps1"        -destinationFile $setupStartScript
+Download-File -sourceUrl "$($scriptPath)RestartContainers.ps1" -destinationFile "c:\demo\restartContainers.ps1"
 if ($requestToken) {
-    Download-File -sourceUrl "${scriptPath}Request.ps1"           -destinationFile "C:\DEMO\Request.ps1"
-    Download-File -sourceUrl "${scriptPath}RequestTaskDef.xml"    -destinationFile "C:\DEMO\RequestTaskDef.xml"
+    Download-File -sourceUrl "$($scriptPath)Request.ps1"           -destinationFile "C:\DEMO\Request.ps1"
+    Download-File -sourceUrl "$($scriptPath)RequestTaskDef.xml"    -destinationFile "C:\DEMO\RequestTaskDef.xml"
 }
 if ("$createStorageQueue" -eq "yes") {
-    Download-File -sourceUrl "${scriptPath}RunQueue.ps1"          -destinationFile "C:\DEMO\RunQueue.ps1"
+    Download-File -sourceUrl "$($scriptPath)RunQueue.ps1"          -destinationFile "C:\DEMO\RunQueue.ps1"
 }
 if ("$requestToken" -ne "" -or "$createStorageQueue" -eq "yes") {
     # Request commands
     New-Item -Path "C:\DEMO\request" -ItemType Directory | Out-Null
-    Download-File -sourceUrl "${scriptPath}request\Demo.ps1"                         -destinationFile "C:\DEMO\request\Demo.ps1"
-    Download-File -sourceUrl "${scriptPath}request\ReplaceNavServerContainer.ps1"    -destinationFile "C:\DEMO\request\ReplaceNavServerContainer.ps1"
-    Download-File -sourceUrl "${scriptPath}request\RestartComputer.ps1"              -destinationFile "C:\DEMO\request\RestartComputer.ps1"
+    Download-File -sourceUrl "$($scriptPath)request\Demo.ps1"                         -destinationFile "C:\DEMO\request\Demo.ps1"
+    Download-File -sourceUrl "$($scriptPath)request\ReplaceNavServerContainer.ps1"    -destinationFile "C:\DEMO\request\ReplaceNavServerContainer.ps1"
+    Download-File -sourceUrl "$($scriptPath)request\RestartComputer.ps1"              -destinationFile "C:\DEMO\request\RestartComputer.ps1"
 }
-Download-File -sourceUrl "${scriptPath}Install-VS2017Community.ps1" -destinationFile "C:\DEMO\Install-VS2017Community.ps1"
+Download-File -sourceUrl "$($scriptPath)Install-VS2017Community.ps1" -destinationFile "C:\DEMO\Install-VS2017Community.ps1"
 
 if ($beforeContainerSetupScriptUrl) {
+    if ($beforeContainerSetupScriptUrl -notlike "https://*" -and $beforeContainerSetupScriptUrl -notlike "http://*") {
+        $beforeContainerSetupScriptUrl = "$($scriptPath)$beforeContainerSetupScriptUrl"
+    }
     $beforeContainerSetupScript = "c:\demo\BeforeContainerSetupScript.ps1"
     Download-File -sourceUrl $beforeContainerSetupScriptUrl -destinationFile $beforeContainerSetupScript
 }
 
 if ($finalSetupScriptUrl) {
+    if ($finalSetupScriptUrl -notlike "https://*" -and $finalSetupScriptUrl -notlike "http://*") {
+        $finalSetupScriptUrl = "$($scriptPath)$finalSetupScriptUrl"
+    }
     $finalSetupScript = "c:\demo\FinalSetupScript.ps1"
     Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
 }
@@ -285,6 +291,9 @@ if ($fobFileUrl -ne "") {
 }
 
 if ($workshopFilesUrl -ne "") {
+    if ($workshopFilesUrl -notlike "https://*" -and $workshopFilesUrl -notlike "http://*") {
+        $workshopFilesUrl = "$($scriptPath)$workshopFilesUrl"
+    }
     $workshopFilesFolder = "c:\WorkshopFiles"
     $workshopFilesFile = "C:\DOWNLOAD\WorkshopFiles.zip"
     New-Item -Path $workshopFilesFolder -ItemType Directory -ErrorAction Ignore | Out-Null
