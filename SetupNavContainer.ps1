@@ -19,7 +19,7 @@ if ($artifactUrl) {
 
     if ($artifactUrl -notlike "https://*") {
         $segments = "$artifactUrl/////".Split('/')
-        $artifactUrl = Get-BCArtifactUrl -storageAccount $segments[0] -type $segments[1] -version $segments[2] -country $segments[3] -select $segments[4] -sasToken $segment[5] | Select-Object -First 1
+        $artifactUrl = Get-BCArtifactUrl -storageAccount $segments[0] -type $segments[1] -version $segments[2] -country $segments[3] -select $segments[4] -sasToken $segments[5] | Select-Object -First 1
     }
 
     $artifactPaths = Download-Artifacts -artifactUrl $artifactUrl -includePlatform
