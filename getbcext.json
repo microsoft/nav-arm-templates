@@ -58,7 +58,7 @@
         },
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_D4_v3",
+            "defaultValue": "Standard_D4s_v3",
             "allowedValues": [
                 "Standard_D2_v2",
                 "Standard_D3_v2",
@@ -413,7 +413,6 @@
         "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'19h2-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
         "storageAccountType": "[parameters('StorageAccountType')]",
         "OSDiskName": "[concat(variables('vmName'),'_osdisk')]",
-        "vmStorageAccountContainerName": "vhds",
         "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "storagequeueAccountName": "[concat('queue', uniqueString(resourceGroup().id))]",
