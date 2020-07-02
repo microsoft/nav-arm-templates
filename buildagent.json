@@ -105,7 +105,7 @@
         },
         "VstsAgentUrl": {
             "type": "string",
-            "defaultValue": "https://vstsagentpackage.azureedge.net/agent/2.142.1/vsts-agent-win-x64-2.142.1.zip",
+            "defaultValue": "https://vstsagentpackage.azureedge.net/agent/2.170.1/vsts-agent-win-x64-2.170.1.zip",
             "minLength": 1,
             "metadata": {
                 "Description": "Specify the URL for downloading the x64 VSTS Agent for your Azure DevOps Organization (go to https://dev.azure.com/{your_organization}/_admin/_AgentPool and click Download agent and select x64 to get the URL)"
