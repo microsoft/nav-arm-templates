@@ -104,7 +104,7 @@
         },
         "ArtifactUrl": {
             "type": "string",
-            "defaultValue": "https://bcartifacts.azureedge.net/businesscentral/sandbox/us",
+            "defaultValue": "bcartifacts/sandbox//us/latest",
             "metadata": {
                 "Description": "Specify the Business Central Artifact URL. This value is ignored if a Docker Image is specified."
             }

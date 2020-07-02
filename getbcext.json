@@ -140,7 +140,7 @@
         },
         "ArtifactUrl": {
             "type": "string",
-            "defaultValue": "https://bcartifacts.azureedge.net/businesscentral/onprem/w1",
+            "defaultValue": "bcartifacts/onprem//w1/latest",
             "metadata": {
                 "Description": "Specify the Business Central Artifact URL. This value is ignored if a Docker Image is specified."
             }

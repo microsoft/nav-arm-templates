@@ -17,6 +17,11 @@ $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
 
 if ($artifactUrl) {
 
+    if ($artifactUrl -notlike "https://*") {
+        $segments = "$artifactUrl/////".Split('/')
+        $artifactUrl = Get-BCArtifactUrl -storageAccount $segments[0] -type $segments[1] -version $segments[2] -country $segments[3] -select $segments[4] -sasToken $segment[5] | Select-Object -First 1
+    }
+
     $artifactPaths = Download-Artifacts -artifactUrl $artifactUrl -includePlatform
     $appArtifactPath = $artifactPaths[0]
     $platformArtifactPath = $artifactPaths[1]
