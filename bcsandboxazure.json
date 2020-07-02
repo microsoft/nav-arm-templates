@@ -106,7 +106,7 @@
             "type": "string",
             "defaultValue": "bcartifacts/sandbox//us/latest",
             "metadata": {
-                "Description": "Specify the Business Central Artifact URL. This value is ignored if a Docker Image is specified."
+                "Description": "Specify the Business Central Artifact URL or a /-separated string with parameters for Get-BcArtifactUrl: storageaccount/type/version/country/select/sasToken. This value is ignored if a Docker Image is specified."
             }
         },
         "navDockerImage": {
