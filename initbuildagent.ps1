@@ -65,6 +65,10 @@ if ($installDocker) {
 }
 
 if ($finalSetupScriptUrl) {
+    if ($finalSetupScriptUrl -notlike "https://*" -and $finalSetupScriptUrl -notlike "http://*") {
+        $finalSetupScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+$finalSetupScriptUrl    
+    }
+    Set-Content -Path (Join-Path $DownloadFolder "url.txt") -Value "$finalSetupScriptUrl"
     $finalSetupScript = Join-Path $DownloadFolder "FinalSetupScript.ps1"
     Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
     . $finalSetupScript

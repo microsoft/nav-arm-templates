@@ -49,7 +49,8 @@
             "allowedValues": [
                 "Windows Server 2016",
                 "Windows Server 2019",
-                "Windows Server 2019 with Containers"
+                "Windows Server 2019 with Containers",
+                "Windows 10"
             ],
             "metadata": {
                 "Description": "Select the Operating System of the VM"
@@ -57,7 +58,7 @@
         },
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_D4_v3",
+            "defaultValue": "Standard_D4s_v3",
             "allowedValues": [
                 "Standard_D2_v2",
                 "Standard_D3_v2",
@@ -80,6 +81,14 @@
                 "Description": "Select the VM size of the deployment"
             }
         },
+        "Isolation": {
+		    "type": "string",
+            "defaultValue": "Default",
+            "allowedValues": [ "Default", "Process", "Hyperv" ],
+            "metadata": {
+                "Description": "What isolation do you want to use for the main container. Default will allow NavContainerHelper to decide."
+            }
+		},
         "StorageAccountType": {
             "type": "string",
             "defaultValue": "Standard_LRS",
@@ -129,11 +138,18 @@
                 "Description": "Prepare Container for System App and BaseApp AL development."
             }
         },
+        "ArtifactUrl": {
+            "type": "string",
+            "defaultValue": "bcartifacts/onprem//w1/latest",
+            "metadata": {
+                "Description": "Specify the Business Central Artifact URL or a /-separated string with parameters for Get-BcArtifactUrl: storageaccount/type/version/country/select/sasToken. This value is ignored if a Docker Image is specified."
+            }
+        },
         "BCDockerImage": {
             "type": "string",
-            "defaultValue": "mcr.microsoft.com/businesscentral/onprem",
+            "defaultValue": "",
             "metadata": {
-                "Description": "Select the Docker Image to deploy. See https://hub.docker.com/r/microsoft/bconprem/ for a list of public images."
+                "Description": "Select the Business Central Docker Image to deploy. ArtifactUrl is ignored if you specify a Docker Image."
             }
         },
         "registryUsername": {
@@ -351,10 +367,12 @@
         "vmSize": "[parameters('vmSize')]",
         "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
         "WinRmAccess": "[parameters('WinRmAccess')]",
+        "Isolation": "[parameters('Isolation')]",
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
         "navAdminUsername": "[trim(parameters('BCAdminUsername'))]",
 		"azureSqlAdminUsername": "[trim(parameters('azureSqlAdminUsername'))]",
         "adminPassword": "[parameters('adminPassword')]",
+        "artifactUrl": "[parameters('artifactUrl')]",
         "navDockerImage": "[trim(parameters('BCDockerImage'))]",
         "registryUsername": "[parameters('registryUsername')]",
         "registryPassword": "[parameters('registryPassword')]",
@@ -392,10 +410,9 @@
         "OperatingSystem": "[parameters('OperatingSystem')]",
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
         "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 10'),'Windows-10','WindowsServer')]",
-        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
+        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'19h2-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
         "storageAccountType": "[parameters('StorageAccountType')]",
         "OSDiskName": "[concat(variables('vmName'),'_osdisk')]",
-        "vmStorageAccountContainerName": "vhds",
         "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "storagequeueAccountName": "[concat('queue', uniqueString(resourceGroup().id))]",
@@ -1014,7 +1031,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -storageConnectionString \"',if(equals(variables('CreateStorageQueue'),'Yes'),Concat('DefaultEndpointsProtocol=https;AccountName=',variables('storagequeueAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storagequeueAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value),''),'\" -RemoteDesktopAccess \"',variables('rdpAddresses'),'\" -WinRmAccess \"',variables('winRmAddresses'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',replace(variables('registryPassword'),'\"','\\\"'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -DatabaseBakUri \"',variables('DatabaseBakUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',replace(variables('CertificatePfxPassword'),'\"','\\\"'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -IncludeCSIDE \"',variables('IncludeCSIDE'),'\" -IncludeAL \"',variables('IncludeAL'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',replace(variables('Office365Password'),'\"','\\\"'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -RequestToken \"',variables('RequestToken'),'\" -CreateStorageQueue \"',variables('CreateStorageQueue'),'\" -beforeContainerSetupScriptUrl \"',variables('beforeContainerSetupScriptUrl'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\" -nchbranch \"',variables('nchbranch'),'\" -AddTraefik \"',variables('AddTraefik'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -storageConnectionString \"',if(equals(variables('CreateStorageQueue'),'Yes'),Concat('DefaultEndpointsProtocol=https;AccountName=',variables('storagequeueAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storagequeueAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value),''),'\" -RemoteDesktopAccess \"',variables('rdpAddresses'),'\" -WinRmAccess \"',variables('winRmAddresses'),'\" -Isolation \"',variables('Isolation'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -artifactUrl \"',variables('artifactUrl'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',replace(variables('registryPassword'),'\"','\\\"'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -DatabaseBakUri \"',variables('DatabaseBakUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',replace(variables('CertificatePfxPassword'),'\"','\\\"'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -IncludeCSIDE \"',variables('IncludeCSIDE'),'\" -IncludeAL \"',variables('IncludeAL'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',replace(variables('Office365Password'),'\"','\\\"'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -RequestToken \"',variables('RequestToken'),'\" -CreateStorageQueue \"',variables('CreateStorageQueue'),'\" -beforeContainerSetupScriptUrl \"',variables('beforeContainerSetupScriptUrl'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\" -nchbranch \"',variables('nchbranch'),'\" -AddTraefik \"',variables('AddTraefik'),'\"')]"
                 },
                 "protectedSettings": {}
             }
