@@ -16,25 +16,5 @@ choco install git --force --params "/NoAutoCrlf"
 AddToStatus "Install Edge"
 choco install microsoft-edge
 
-AddToStatus "Install Chrome"
-choco install googlechrome
-
-AddToStatus "Install firefox"
-choco install firefox
-
-AddToStatus "Install Office 365 Business"
-choco install office365business
-
-AddToStatus "Install PowerBI Desktop"
-choco install powerbi
-
-#Add VSCode Extensions
-"eamodio.gitlens", "ms-vscode.PowerShell", "heaths.vscode-guid", "github.vscode-pull-request-github", "formulahendry.docker-explorer" | % {
-    AddToStatus "Install VSCode Extension: $_"
-    code --install-extension $_
-}
-
-. "C:\DEMO\Settings.ps1"
-& "C:\Program Files\GIT\bin\git.exe" config --global core.safecrlf false
-& "C:\Program Files\GIT\bin\git.exe" config --global user.email "$($vmAdminUsername)@$($hostName)"
-& "C:\Program Files\GIT\bin\git.exe" config --global user.name "$vmAdminUsername"
+AddToStatus "VSCode"
+choco install vscode
