@@ -105,7 +105,7 @@
         },
         "ArtifactUrl": {
             "type": "string",
-            "defaultValue": "https://bcartifacts.azureedge.net/dynamicsnav/w1",
+            "defaultValue": "bcartifacts/onprem/11/w1/latest",
             "metadata": {
                 "Description": "Specify the Dynamics NAV Artifact URL. This value is ignored if a Docker Image is specified."
             }
