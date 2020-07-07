@@ -1,6 +1,6 @@
-﻿if (!(Test-Path function:Log)) {
-    function Log([string]$line, [string]$color = "Gray") {
-        ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt"
+﻿if (!(Test-Path function:AddToStatus)) {
+    function AddToStatus([string]$line, [string]$color = "Gray") {
+        ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt" -Force -ErrorAction SilentlyContinue
         Write-Host -ForegroundColor $color $line 
     }
 }
@@ -13,7 +13,7 @@ if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
-Log -color Green "Setting up Desktop Experience"
+AddToStatus -color Green "Setting up Desktop Experience"
 
 $codeCmd = "C:\Program Files\Microsoft VS Code\bin\Code.cmd"
 $codeExe = "C:\Program Files\Microsoft VS Code\Code.exe"
@@ -31,11 +31,11 @@ if ($firsttime) {
         Download-File -SourceUrl $sourceUrl -destinationFile $Filename
     }
     
-    Log "Installing Visual Studio Code (this might take a few minutes)"
+    AddToStatus "Installing Visual Studio Code (this might take a few minutes)"
     $setupParameters = “/VerySilent /CloseApplications /NoCancel /LoadInf=""c:\demo\vscode.inf"" /MERGETASKS=!runcode"
     Start-Process -FilePath $Filename -WorkingDirectory $Folder -ArgumentList $setupParameters -Wait -Passthru | Out-Null
 
-    Log "Downloading samples"
+    AddToStatus "Downloading samples"
     $Folder = "C:\DOWNLOAD"
     $Filename = "$Folder\samples.zip"
     Download-File -sourceUrl "https://www.github.com/Microsoft/AL/archive/master.zip" -destinationFile $filename
@@ -53,13 +53,13 @@ if ($firsttime) {
 
 $codeProcess = get-process Code -ErrorAction SilentlyContinue
 if ($codeProcess) {
-    Log "WARNING: VS Code is running, skipping .vsix installation"
+    AddToStatus "WARNING: VS Code is running, skipping .vsix installation"
 }
 elseif (Test-Path "C:\ProgramData\navcontainerhelper\Extensions\$containerName\*.vsix") {
     $vsixFileName = (Get-Item "C:\ProgramData\navcontainerhelper\Extensions\$containerName\*.vsix").FullName
     if ($vsixFileName -ne "") {
     
-        Log "Installing .vsix"
+        AddToStatus "Installing .vsix"
         try { & $codeCmd @('--install-extension', $VsixFileName) | Out-Null } catch {}
     
         $username = [Environment]::UserName
@@ -78,7 +78,7 @@ if ($disableVsCodeUpdate) {
     }' | Set-Content $vsCodeSettingsFile
 }
 
-Log "Creating Desktop Shortcuts"
+AddToStatus "Creating Desktop Shortcuts"
 if ($AddTraefik -eq "Yes") {
     $landingPageUrl = "http://${publicDnsName}:8180"
 }
@@ -91,4 +91,4 @@ New-DesktopShortcut -Name "PowerShell ISE" -TargetPath "C:\Windows\system32\Wind
 New-DesktopShortcut -Name "Command Prompt" -TargetPath "C:\Windows\system32\cmd.exe" -WorkingDirectory "c:\demo"
 New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "c:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -Arguments "-noexit ""& { Write-NavContainerHelperWelcomeText }""" -WorkingDirectory "C:\ProgramData\navcontainerhelper"
 
-Log -color Green "Desktop setup complete!"
+AddToStatus -color Green "Desktop setup complete!"

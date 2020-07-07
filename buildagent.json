@@ -33,7 +33,7 @@
         },
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_D4_v3",
+            "defaultValue": "Standard_D4s_v3",
             "allowedValues": [
                 "Standard_D2_v2",
                 "Standard_D3_v2",
@@ -54,6 +54,17 @@
             ],
             "metadata": {
                 "Description": "Select the VM size of the deployment"
+            }
+        },
+        "StorageAccountType": {
+            "type": "string",
+            "defaultValue": "Premium_LRS",
+            "allowedValues": [
+                "Standard_LRS",
+                "Premium_LRS"
+            ],
+            "metadata": {
+                "Description": "Select the preferred storage account type. Standard_LRS is HDD, Premium_LRS is SSD."
             }
         },
         "vmAdminUsername": {
@@ -94,7 +105,7 @@
         },
         "VstsAgentUrl": {
             "type": "string",
-            "defaultValue": "https://vstsagentpackage.azureedge.net/agent/2.142.1/vsts-agent-win-x64-2.142.1.zip",
+            "defaultValue": "https://vstsagentpackage.azureedge.net/agent/2.170.1/vsts-agent-win-x64-2.170.1.zip",
             "minLength": 1,
             "metadata": {
                 "Description": "Specify the URL for downloading the x64 VSTS Agent for your Azure DevOps Organization (go to https://dev.azure.com/{your_organization}/_admin/_AgentPool and click Download agent and select x64 to get the URL)"
@@ -102,7 +113,7 @@
         },
         "FinalSetupScriptUrl": {
             "type": "string",
-            "defaultValue": "",
+            "defaultValue": "additional-installforbuildagent.ps1",
             "metadata": {
                 "Description": "Optional: Specify a Url to a PowerShell script that should be executed on the VM to do the final setup of the VM."
             }
@@ -118,8 +129,8 @@
         "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
         "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 10'),'Windows-10','WindowsServer')]",
         "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
-        "storageAccountType": "Standard_LRS",
-        "vmStorageAccountContainerName": "vhds",
+        "storageAccountType": "[parameters('StorageAccountType')]",
+        "OSDiskName": "[concat(variables('vmName'),'_osdisk')]",
         "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
@@ -287,7 +298,7 @@
             }
         },
         {
-            "apiVersion": "2015-06-15",
+            "apiVersion": "2018-10-01",
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[variables('server1Name')]",
             "location": "[resourceGroup().location]",
@@ -315,12 +326,14 @@
                         "version": "latest"
                     },
                     "osDisk": {
-                        "name": "osdisk",
-                        "vhd": {
-                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/',variables('vmStorageAccountContainerName'),'/',variables('server1Name'),'.vhd')]"
-                        },
+                        "createOption": "FromImage",
+                        "osType": "Windows",
+                        "name": "[variables('OSDiskName')]",
                         "caching": "ReadWrite",
-                        "createOption": "FromImage"
+                        "managedDisk": {
+                          "storageAccountType": "[variables('storageAccountType')]"
+                        },
+                        "diskSizeGB": 128
                     }
                 },
                 "networkProfile": {
@@ -354,7 +367,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initbuildagent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',variables('adminPassword'),'\" -DevOpsOrganization \"',parameters('devopsorganization'),'\" -PersonalAccessToken \"',parameters('personalaccesstoken'),'\" -VstsAgentUrl \"',parameters('VstsAgentUrl'),'\" -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('pool'),'\" -vmName \"',variables('vmName'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -DevOpsOrganization \"',parameters('devopsorganization'),'\" -PersonalAccessToken \"',parameters('personalaccesstoken'),'\" -VstsAgentUrl \"',parameters('VstsAgentUrl'),'\" -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('pool'),'\" -vmName \"',variables('vmName'),'\"')]"
                 },
                 "protectedSettings": {}
             }
