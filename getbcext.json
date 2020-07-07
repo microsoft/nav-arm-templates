@@ -179,7 +179,7 @@
             "defaultValue": "No",
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
-                "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin). This setting only makes sense for Sandbox images (mcr.microsoft.com/businesscentral/sandbox:*)."
+                "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin). This setting only makes sense for Sandbox images (mcr.microsoft.com/businesscentral/sandbox:*). Setting this option to Yes requires you to specify a license file."
             }
         },
         "LicenseFileUri": {
