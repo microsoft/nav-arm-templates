@@ -126,10 +126,10 @@
         },
         "CreateTestUsers": {
 		    "type": "string",
-            "defaultValue": "Yes",
+            "defaultValue": "No",
             "allowedValues": [ "Yes", "No" ],
             "metadata": {
-                "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin)."
+                "Description": "Create a set of users for test purposes (ExternalAccountant, Premium, Essential, InternalAdmin, TeamMember and DelegatedAdmin). Setting this option to Yes requires you to specify a license file."
             }
         },
         "LicenseFileUri": {
