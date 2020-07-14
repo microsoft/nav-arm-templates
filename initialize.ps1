@@ -34,6 +34,7 @@ param
 	   [string] $beforeContainerSetupScriptUrl = "",
 	   [string] $finalSetupScriptUrl       = "",
        [string] $style                     = "devpreview",
+       [string] $TestToolkit               = "No",
        [string] $AssignPremiumPlan         = "No",
        [string] $CreateTestUsers           = "No",
        [string] $CreateAadUsers            = "No",
@@ -125,6 +126,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "workshopFilesUrl"       | Add-Content $settingsScript
     Get-VariableDeclaration -name "style"                  | Add-Content $settingsScript
     Get-VariableDeclaration -name "RunWindowsUpdate"       | Add-Content $settingsScript
+    Get-VariableDeclaration -name "TestToolkit"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "AssignPremiumPlan"      | Add-Content $settingsScript
     Get-VariableDeclaration -name "CreateTestUsers"        | Add-Content $settingsScript
     Get-VariableDeclaration -name "CreateAadUsers"         | Add-Content $settingsScript
