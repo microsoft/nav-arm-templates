@@ -308,6 +308,21 @@ if ($multitenant -eq "Yes") {
     $params += @{ "multitenant" = $true }
 }
 
+if ($testToolkit -ne "No") {
+    if ($licensefileuri -eq "") {
+        AddToStatus -color Red -Line "Ignoring TestToolkit setting as no licensefile has been specified."
+    }
+    else {
+        $params += @{ "includeTestToolkit" = $true }
+        if ($testToolkit -eq "Framework") {
+            $params += @{ "includeTestFrameworkOnly" = $true }
+        }
+        elseif ($testToolkit -eq "Libraries") {
+            $params += @{ "includeTestLibrariesOnly" = $true }
+        }
+    }
+}
+
 if ($assignPremiumPlan -eq "Yes") {
     $params += @{ "assignPremiumPlan" = $true }
 }
