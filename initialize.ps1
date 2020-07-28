@@ -53,6 +53,10 @@ param
        [string] $nchBranch                 = ""
 )
 
+$verbosePreference = "SilentlyContinue"
+$warningPreference = 'Continue'
+$errorActionPreference = 'Stop'
+
 function Get-VariableDeclaration([string]$name) {
     $var = Get-Variable -Name $name
     if ($var) {
@@ -178,10 +182,6 @@ Set-Content "c:\DEMO\WinRmAccess.txt" -Value $WinRmAccess
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
-$verbosePreference = "SilentlyContinue"
-$warningPreference = 'Continue'
-$errorActionPreference = 'Stop'
-
 AddToStatus -color Green "Starting initialization"
 AddToStatus "Running $WindowsProductName"
 AddToStatus "Initialize, user: $env:USERNAME"
@@ -230,8 +230,8 @@ username:s:$vmAdminUsername" | Set-Content "c:\inetpub\wwwroot\Connect.rdp"
 
 if ($WindowsInstallationType -eq "Server") {
     AddToStatus "Turning off IE Enhanced Security Configuration"
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
-    Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 | Out-Null
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 -ErrorAction SilentlyContinue | Out-Null
+    Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 -ErrorAction SilentlyContinue | Out-Null
 }
 
 $setupDesktopScript = "c:\demo\SetupDesktop.ps1"
