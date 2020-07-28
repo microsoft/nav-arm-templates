@@ -32,12 +32,60 @@ $ComputerInfo = Get-ComputerInfo
 $WindowsInstallationType = $ComputerInfo.WindowsInstallationType
 $WindowsProductName = $ComputerInfo.WindowsProductName
 
-
-if (Test-Path -Path "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1") {
-    Import-module "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1" -DisableNameChecking
-} else {
-    Import-Module -name bccontainerhelper -DisableNameChecking
+if ($nchBranch -eq "dev") {
+    AddToStatus "Installing Latest BcContainerHelper preview from PowerShell Gallery"
+    Install-Module -Name bccontainerhelper -Force -AllowPrerelease
+    Import-Module -Name bccontainerhelper -DisableNameChecking
+    AddToStatus ("Using BcContainerHelper version "+(get-module BcContainerHelper).Version.ToString())
 }
+elseif ($nchBranch -eq "") {
+    AddToStatus "Installing Latest Business Central Container Helper from PowerShell Gallery"
+    Install-Module -Name bccontainerhelper -Force
+    Import-Module -Name bccontainerhelper -DisableNameChecking
+    AddToStatus ("Using BcContainerHelper version "+(get-module BcContainerHelper).Version.ToString())
+} else {
+    if ($nchBranch -notlike "https://*") {
+        $nchBranch = "https://github.com/Microsoft/navcontainerhelper/archive/$($nchBranch).zip"
+    }
+    AddToStatus "Using BcContainerHelper from $nchBranch"
+    Download-File -sourceUrl $nchBranch -destinationFile "c:\demo\bccontainerhelper.zip"
+    [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\bccontainerhelper.zip", "c:\demo")
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    AddToStatus "Loading BcContainerHelper from $($module.FullName)"
+    Import-Module $module.FullName -DisableNameChecking
+}
+
+if ($AddTraefik -eq "Yes") {
+
+    if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
+        AddToStatus -color Red "Certificate specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if (-not $ContactEMailForLetsEncrypt) {
+        AddToStatus -color Red "Contact EMail for LetsEncrypt not specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($clickonce -eq "Yes") {
+        AddToStatus -color Red "ClickOnce specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($AddTraefik -eq "Yes") {
+        Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
+    }
+    else {
+        Get-VariableDeclaration -name "AddTraefik" | Add-Content $settingsScript
+    }
+}
+
+#if (Test-Path -Path "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1") {
+#    Import-module "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1" -DisableNameChecking
+#} else {
+#    Import-Module -name bccontainerhelper -DisableNameChecking
+#}
 
 if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
 if (-not (Get-InstalledModule ACME-PS -ErrorAction SilentlyContinue)) {
