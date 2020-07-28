@@ -1,5 +1,5 @@
 ﻿Param(
-    [string] $backupFolder = "c:\ProgramData\NavContainerHelper\backup",
+    [string] $backupFolder = "c:\ProgramData\BcContainerHelper\backup",
     [string] $backupName = (Get-Date).ToString("yyyy-MM-dd-HH-mm"),
     [string] $force = ""
 )

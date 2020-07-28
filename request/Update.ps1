@@ -5,7 +5,7 @@
 )
 
 $sessionParam = @{ "session" = (Get-NavContainerSession -containerName navserver -silent) }
-$Path = "c:\ProgramData\NavContainerHelper"
+$Path = "c:\ProgramData\BcContainerHelper"
 
 Write-Host "Downloading .fob"
 $fobFile = Join-Path $Path $fob

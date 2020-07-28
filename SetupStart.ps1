@@ -33,10 +33,10 @@ $WindowsInstallationType = $ComputerInfo.WindowsInstallationType
 $WindowsProductName = $ComputerInfo.WindowsProductName
 
 
-if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+if (Test-Path -Path "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1") {
+    Import-module "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1" -DisableNameChecking
 } else {
-    Import-Module -name navcontainerhelper -DisableNameChecking
+    Import-Module -name bccontainerhelper -DisableNameChecking
 }
 
 if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
@@ -50,7 +50,7 @@ if (-not (Get-InstalledModule ACME-PS -ErrorAction SilentlyContinue)) {
     # If rate limits are hit, log an error and revert to Self Signed
     try {
         $plainPfxPassword = [GUID]::NewGuid().ToString()
-        $certificatePfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
+        $certificatePfxFilename = "c:\ProgramData\bccontainerhelper\certificate.pfx"
         New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
 
         # Override SetupCertificate.ps1 in container
