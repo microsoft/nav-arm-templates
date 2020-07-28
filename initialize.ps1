@@ -257,7 +257,6 @@ Download-File -sourceUrl "$($scriptPath)SetupWebClient.ps1"    -destinationFile 
 
 Download-File -sourceUrl "$($scriptPath)SetupDesktop.ps1"      -destinationFile $setupDesktopScript
 Download-File -sourceUrl "$($scriptPath)SetupNavContainer.ps1" -destinationFile $setupNavContainerScript
-Download-File -sourceUrl "$($scriptPath)SetupAAD.ps1"          -destinationFile $setupAadScript
 Download-File -sourceUrl "$($scriptPath)SetupVm.ps1"           -destinationFile $setupVmScript
 Download-File -sourceUrl "$($scriptPath)SetupStart.ps1"        -destinationFile $setupStartScript
 Download-File -sourceUrl "$($scriptPath)RestartContainers.ps1" -destinationFile "c:\demo\restartContainers.ps1"
