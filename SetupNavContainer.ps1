@@ -5,10 +5,10 @@
     }
 }
 
-if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+if (Test-Path -Path "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1") {
+    Import-module "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1" -DisableNameChecking
 } else {
-    Import-Module -name navcontainerhelper -DisableNameChecking
+    Import-Module -name bccontainerhelper -DisableNameChecking
 }
 
 $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
@@ -530,7 +530,7 @@ if ("$bingmapskey" -ne "") {
 }
 
 # Copy .vsix and Certificate to container folder
-$containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
+$containerFolder = "C:\ProgramData\bccontainerhelper\Extensions\$containerName"
 AddToStatus "Copying .vsix and Certificate to $containerFolder"
 docker exec $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force

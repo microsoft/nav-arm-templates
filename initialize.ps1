@@ -305,22 +305,28 @@ if ($workshopFilesUrl -ne "") {
 	[System.IO.Compression.ZipFile]::ExtractToDirectory($workshopFilesFile, $workshopFilesFolder)
 }
 
-if ($nchBranch) {
+if ($nchBranch -eq "dev") {
+    AddToStatus "Installing Latest BcContainerHelper preview from PowerShell Gallery"
+    Install-Module -Name bccontainerhelper -Force -allowPrerelease
+    Import-Module -Name bccontainerhelper -DisableNameChecking
+    AddToStatus ("Using BcContainerHelper version "+(get-module BcContainerHelper).Version.ToString())
+}
+elseif ($nchBranch -eq "") {
+    AddToStatus "Installing Latest Business Central Container Helper from PowerShell Gallery"
+    Install-Module -Name bccontainerhelper -Force
+    Import-Module -Name bccontainerhelper -DisableNameChecking
+    AddToStatus ("Using BcContainerHelper version "+(get-module BcContainerHelper).Version.ToString())
+} else {
     if ($nchBranch -notlike "https://*") {
         $nchBranch = "https://github.com/Microsoft/navcontainerhelper/archive/$($nchBranch).zip"
     }
-    AddToStatus "Using Nav Container Helper from $nchBranch"
-    Download-File -sourceUrl $nchBranch -destinationFile "c:\demo\navcontainerhelper.zip"
+    AddToStatus "Using BcContainerHelper from $nchBranch"
+    Download-File -sourceUrl $nchBranch -destinationFile "c:\demo\bccontainerhelper.zip"
     [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\navcontainerhelper.zip", "c:\demo")
-    $module = Get-Item -Path "C:\demo\*\NavContainerHelper.psm1"
-    AddToStatus "Loading NavContainerHelper from $($module.FullName)"
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\bccontainerhelper.zip", "c:\demo")
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    AddToStatus "Loading BcContainerHelper from $($module.FullName)"
     Import-Module $module.FullName -DisableNameChecking
-} else {
-    AddToStatus "Installing Latest Nav Container Helper from PowerShell Gallery"
-    Install-Module -Name navcontainerhelper -Force
-    Import-Module -Name navcontainerhelper -DisableNameChecking
-    AddToStatus ("Using Nav Container Helper version "+(get-module NavContainerHelper).Version.ToString())
 }
 
 if ($AddTraefik -eq "Yes") {
@@ -349,10 +355,10 @@ if ($AddTraefik -eq "Yes") {
 }
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
-    Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\navcontainerhelper\certificate.pfx"
+    Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\bccontainerhelper\certificate.pfx"
 
 ('$certificatePfxPassword = "'+$certificatePfxPassword+'"
-$certificatePfxFile = "c:\programdata\navcontainerhelper\certificate.pfx"
+$certificatePfxFile = "c:\programdata\bccontainerhelper\certificate.pfx"
 $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
 $certificateThumbprint = $cert.Thumbprint
 Write-Host "Certificate File Thumbprint $certificateThumbprint"

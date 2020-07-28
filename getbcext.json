@@ -86,7 +86,7 @@
             "defaultValue": "Default",
             "allowedValues": [ "Default", "Process", "Hyperv" ],
             "metadata": {
-                "Description": "What isolation do you want to use for the main container. Default will allow NavContainerHelper to decide."
+                "Description": "What isolation do you want to use for the main container. Default will allow BcContainerHelper to decide."
             }
 		},
         "StorageAccountType": {
