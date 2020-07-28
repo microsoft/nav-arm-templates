@@ -178,6 +178,10 @@ Set-Content "c:\DEMO\WinRmAccess.txt" -Value $WinRmAccess
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
+$verbosePreference = "SilentlyContinue"
+$warningPreference = 'Continue'
+$errorActionPreference = 'Stop'
+
 AddToStatus -color Green "Starting initialization"
 AddToStatus "Running $WindowsProductName"
 AddToStatus "Initialize, user: $env:USERNAME"
@@ -193,6 +197,7 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
 if (!(Get-Module powershellget | Where-Object { $_.Version -ge [version]"2.2.1" })) {
     AddToStatus "Installing PowerShellGet 2.2.1"
     Install-Module powershellget -RequiredVersion 2.2.1 -force
+    Import-Module powershellget -RequiredVersion 2.2.1
 }
 
 AddToStatus "Installing Internet Information Server (this might take a few minutes)"
@@ -307,7 +312,7 @@ if ($workshopFilesUrl -ne "") {
 
 if ($nchBranch -eq "dev") {
     AddToStatus "Installing Latest BcContainerHelper preview from PowerShell Gallery"
-    Install-Module -Name bccontainerhelper -Force -allowPrerelease
+    Install-Module -Name bccontainerhelper -Force -AllowPrerelease
     Import-Module -Name bccontainerhelper -DisableNameChecking
     AddToStatus ("Using BcContainerHelper version "+(get-module BcContainerHelper).Version.ToString())
 }
