@@ -4,8 +4,9 @@ $ErrorActionPreference = "Stop"
 
 . (Join-Path $PsScriptRoot "settings.ps1")
 
-if (Test-Path -Path "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1") {
-    Import-module "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1" -DisableNameChecking
+if (Test-Path -Path "C:\demo\*\BcContainerHelper.psm1") {
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    Import-module $module.FullName -DisableNameChecking
 } else {
     Import-Module -name bccontainerhelper -DisableNameChecking
 }

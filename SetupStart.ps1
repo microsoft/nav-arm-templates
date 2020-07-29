@@ -32,7 +32,7 @@ $ComputerInfo = Get-ComputerInfo
 $WindowsInstallationType = $ComputerInfo.WindowsInstallationType
 $WindowsProductName = $ComputerInfo.WindowsProductName
 
-if ($nchBranch -eq "dev") {
+if ($nchBranch -eq "preview") {
     AddToStatus "Installing Latest BcContainerHelper preview from PowerShell Gallery"
     Install-Module -Name bccontainerhelper -Force -AllowPrerelease
     Import-Module -Name bccontainerhelper -DisableNameChecking
@@ -58,7 +58,7 @@ elseif ($nchBranch -eq "") {
 
 if ($AddTraefik -eq "Yes") {
 
-    if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
+    if (Test-Path "c:\programdata\bccontainerhelper\certificate.pfx") {
         AddToStatus -color Red "Certificate specified, cannot add Traefik"
         $AddTraefik = "No"
     }
@@ -80,12 +80,6 @@ if ($AddTraefik -eq "Yes") {
         Get-VariableDeclaration -name "AddTraefik" | Add-Content $settingsScript
     }
 }
-
-#if (Test-Path -Path "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1") {
-#    Import-module "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1" -DisableNameChecking
-#} else {
-#    Import-Module -name bccontainerhelper -DisableNameChecking
-#}
 
 if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
 if (-not (Get-InstalledModule ACME-PS -ErrorAction SilentlyContinue)) {
