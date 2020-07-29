@@ -102,8 +102,9 @@ function DockerDo {
     return $result
 }
 
-if (Test-Path -Path "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1") {
-    Import-module "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1" -DisableNameChecking
+if (Test-Path -Path "C:\demo\*\BcContainerHelper.psm1") {
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    Import-module $module.FullName -DisableNameChecking
 } else {
     Import-Module -name bccontainerhelper -DisableNameChecking
 }
@@ -224,8 +225,9 @@ AddToStatus "Add Import bccontainerhelper to PowerShell profile"
 $winPsFolder = Join-Path ([Environment]::GetFolderPath("MyDocuments")) "WindowsPowerShell"
 New-Item $winPsFolder -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 
-'if (Test-Path -Path "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1") {
-    Import-module "C:\demo\bccontainerhelper-dev\BcContainerHelper.psm1" -DisableNameChecking
+'if (Test-Path -Path "C:\demo\*\BcContainerHelper.psm1") {
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    Import-module $module.FullName -DisableNameChecking
 } else {
     Import-Module -name bccontainerhelper -DisableNameChecking
 }' | Set-Content (Join-Path $winPsFolder "Profile.ps1")
