@@ -2,6 +2,14 @@
     ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt" -Force -ErrorAction SilentlyContinue
 }
 
+function Download-File([string]$sourceUrl, [string]$destinationFile)
+{
+    AddToStatus "Downloading $destinationFile"
+    Remove-Item -Path $destinationFile -Force -ErrorAction Ignore
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
+}
+
 function Register-NativeMethod([string]$dll, [string]$methodSignature)
 {
     $script:nativeMethods += [PSCustomObject]@{ Dll = $dll; Signature = $methodSignature; }
