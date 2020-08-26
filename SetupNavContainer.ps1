@@ -5,10 +5,11 @@
     }
 }
 
-if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+if (Test-Path -Path "C:\demo\*\BcContainerHelper.psm1") {
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    Import-module $module.FullName -DisableNameChecking
 } else {
-    Import-Module -name navcontainerhelper -DisableNameChecking
+    Import-Module -name bccontainerhelper -DisableNameChecking
 }
 
 $settingsScript = Join-Path $PSScriptRoot "settings.ps1"
@@ -308,6 +309,21 @@ if ($multitenant -eq "Yes") {
     $params += @{ "multitenant" = $true }
 }
 
+if ($testToolkit -ne "No") {
+    if ($licensefileuri -eq "") {
+        AddToStatus -color Red -Line "Ignoring TestToolkit setting as no licensefile has been specified."
+    }
+    else {
+        $params += @{ "includeTestToolkit" = $true }
+        if ($testToolkit -eq "Framework") {
+            $params += @{ "includeTestFrameworkOnly" = $true }
+        }
+        elseif ($testToolkit -eq "Libraries") {
+            $params += @{ "includeTestLibrariesOnly" = $true }
+        }
+    }
+}
+
 if ($assignPremiumPlan -eq "Yes") {
     $params += @{ "assignPremiumPlan" = $true }
 }
@@ -358,7 +374,10 @@ if ($auth -eq "AAD") {
     } 
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
-        if (([System.Version]$navVersion).Major -ge 15) {
+        if (([System.Version]$navVersion) -ge ([System.Version]"16.4.14693.15445")) {
+            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_16.4.app" -destinationFile $appfile
+        }
+        elseif (([System.Version]$navVersion).Major -ge 15) {
             Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_15.0.app" -destinationFile $appfile
         }
         else {
@@ -515,7 +534,7 @@ if ("$bingmapskey" -ne "") {
 }
 
 # Copy .vsix and Certificate to container folder
-$containerFolder = "C:\ProgramData\navcontainerhelper\Extensions\$containerName"
+$containerFolder = "C:\ProgramData\bccontainerhelper\Extensions\$containerName"
 AddToStatus "Copying .vsix and Certificate to $containerFolder"
 docker exec $containerName powershell "copy-item -Path 'C:\Run\*.vsix' -Destination '$containerFolder' -force
 copy-item -Path 'C:\Run\*.cer' -Destination '$containerFolder' -force

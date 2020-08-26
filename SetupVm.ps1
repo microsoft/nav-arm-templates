@@ -102,10 +102,11 @@ function DockerDo {
     return $result
 }
 
-if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+if (Test-Path -Path "C:\demo\*\BcContainerHelper.psm1") {
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    Import-module $module.FullName -DisableNameChecking
 } else {
-    Import-Module -name navcontainerhelper -DisableNameChecking
+    Import-Module -name bccontainerhelper -DisableNameChecking
 }
 
 . (Join-Path $PSScriptRoot "settings.ps1")
@@ -220,14 +221,15 @@ if ($WindowsInstallationType -eq "Server") {
     New-ItemProperty -Path "HKCU:\Software\Microsoft\ServerManager" -Name "DoNotOpenServerManagerAtLogon" -PropertyType "DWORD" -Value "0x1" –Force | Out-Null
 }
 
-AddToStatus "Add Import navcontainerhelper to PowerShell profile"
+AddToStatus "Add Import bccontainerhelper to PowerShell profile"
 $winPsFolder = Join-Path ([Environment]::GetFolderPath("MyDocuments")) "WindowsPowerShell"
 New-Item $winPsFolder -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 
-'if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+'if (Test-Path -Path "C:\demo\*\BcContainerHelper.psm1") {
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    Import-module $module.FullName -DisableNameChecking
 } else {
-    Import-Module -name navcontainerhelper -DisableNameChecking
+    Import-Module -name bccontainerhelper -DisableNameChecking
 }' | Set-Content (Join-Path $winPsFolder "Profile.ps1")
 
 AddToStatus "Adding Landing Page to Startup Group"

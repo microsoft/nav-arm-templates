@@ -13,7 +13,7 @@ private string getHostname()
 
 private string getClickOnceUrl()
 {
-  return System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\clickonce.txt");
+  return System.IO.File.ReadAllText(@"c:\programdata\bccontainerhelper\extensions\navserver\clickonce.txt");
 }
 
 private string GetIPAddress()
@@ -23,8 +23,8 @@ private string GetIPAddress()
 
 private string getProduct()
 {
-  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\title.txt")) {
-    return System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\title.txt");
+  if (System.IO.File.Exists(@"c:\programdata\bccontainerhelper\extensions\navserver\title.txt")) {
+    return System.IO.File.ReadAllText(@"c:\programdata\bccontainerhelper\extensions\navserver\title.txt");
   }
   return System.IO.File.ReadAllText(Server.MapPath(".")+@"\title.txt");
 }
@@ -64,9 +64,9 @@ private string createQrForLandingPage()
 
 private string getCountry()
 {
-  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\country.txt"))
+  if (System.IO.File.Exists(@"c:\programdata\bccontainerhelper\extensions\navserver\country.txt"))
   {
-    var ct = System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\country.txt").ToUpperInvariant().Trim();
+    var ct = System.IO.File.ReadAllText(@"c:\programdata\bccontainerhelper\extensions\navserver\country.txt").ToUpperInvariant().Trim();
     if (string.IsNullOrEmpty(ct)) {
       return "W1";
     }
@@ -81,18 +81,18 @@ private string getCountry()
 private string getBuildNumber()
 {
   var ct = "";
-  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\country.txt"))
+  if (System.IO.File.Exists(@"c:\programdata\bccontainerhelper\extensions\navserver\country.txt"))
   {
-    ct = System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\country.txt").Trim();
+    ct = System.IO.File.ReadAllText(@"c:\programdata\bccontainerhelper\extensions\navserver\country.txt").Trim();
   }
   var cu = "";
-  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\cu.txt"))
+  if (System.IO.File.Exists(@"c:\programdata\bccontainerhelper\extensions\navserver\cu.txt"))
   {
-    cu = System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\cu.txt").Trim();
+    cu = System.IO.File.ReadAllText(@"c:\programdata\bccontainerhelper\extensions\navserver\cu.txt").Trim();
   }
-  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt"))
+  if (System.IO.File.Exists(@"c:\programdata\bccontainerhelper\extensions\navserver\version.txt"))
   {
-    var version = System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt").Trim();
+    var version = System.IO.File.ReadAllText(@"c:\programdata\bccontainerhelper\extensions\navserver\version.txt").Trim();
     if (cu != "") { 
       version += " ("+cu+", "+ct+")"; 
     } else { 
@@ -107,10 +107,10 @@ private XmlDocument customSettings = null;
 
 private bool GetCustomSettings()
 {
-  if ((this.customSettings == null) && (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\CustomSettings.config")))
+  if ((this.customSettings == null) && (System.IO.File.Exists(@"c:\programdata\bccontainerhelper\extensions\navserver\CustomSettings.config")))
   {
     customSettings = new XmlDocument();
-    customSettings.Load(@"c:\programdata\navcontainerhelper\extensions\navserver\CustomSettings.config");
+    customSettings.Load(@"c:\programdata\bccontainerhelper\extensions\navserver\CustomSettings.config");
   }
   return this.customSettings != null;
 }
@@ -151,7 +151,7 @@ private string getODataBaseUrl()
 {
   if (GetCustomSettings())
   {
-    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant()+"/";
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant().TrimEnd('/')+"/";
     if (isMultitenant()) 
     {
       url += "?tenant=default";
@@ -165,7 +165,7 @@ private string getSoapBaseUrl()
 {
   if (GetCustomSettings())
   {
-    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicSOAPBaseUrl']").Attributes["value"].Value.ToLowerInvariant()+"/services";
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicSOAPBaseUrl']").Attributes["value"].Value.ToLowerInvariant().TrimEnd('/')+"/services";
     if (isMultitenant()) 
     {
       url += "?tenant=default";
@@ -205,9 +205,9 @@ private string getApisBaseUrl()
 private string getApisSampleUrl()
 {
   System.Version version = System.Version.Parse("1.0.0.0");
-  if (System.IO.File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt"))
+  if (System.IO.File.Exists(@"c:\programdata\bccontainerhelper\extensions\navserver\version.txt"))
   {
-    version = System.Version.Parse(System.IO.File.ReadAllText(@"c:\programdata\navcontainerhelper\extensions\navserver\version.txt").Trim());
+    version = System.Version.Parse(System.IO.File.ReadAllText(@"c:\programdata\bccontainerhelper\extensions\navserver\version.txt").Trim());
   }
   var query = "/microsoft/automation/beta/companies";
   if (version.Major >= 14) {
@@ -264,7 +264,7 @@ private string getAzureSQL()
 
 private bool isTraefikUsed()
 {
-  return System.IO.File.Exists(@"c:\programdata\navcontainerhelper\traefikforbc\traefik.txt");
+  return System.IO.File.Exists(@"c:\programdata\bccontainerhelper\traefikforbc\traefik.txt");
 }
 
 </script>
@@ -415,7 +415,7 @@ function refresh()
     </tr>
     <tr><td colspan="4"><img src="line.png" width="100%" height="14"></td></tr>
 <%
-    if (GetCustomSettings() && File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\Certificate.cer") && ! isTraefikUsed()) {
+    if (GetCustomSettings() && File.Exists(@"c:\programdata\bccontainerhelper\extensions\navserver\Certificate.cer") && ! isTraefikUsed()) {
 %>
     <tr><td colspan="4"><h3>Download Self Signed Certificate</h3></td></tr>
     <tr>
@@ -507,7 +507,7 @@ You can view the installation status by following this link.
       <td><a href="<% =getWebBaseUrl() %>" target="_blank">Web&nbsp;Client</a></td>
     </tr>
 <%
-    if (File.Exists(@"c:\programdata\navcontainerhelper\extensions\navserver\clickonce.txt")) {
+    if (File.Exists(@"c:\programdata\bccontainerhelper\extensions\navserver\clickonce.txt")) {
 %>
     <tr>
       <td colspan="2">The <%=getProduct() %> supports running the Microsoft Dynamics NAV Windows client over the internet. Choose this link to install the Microsoft Dynamics NAV Windows client using ClickOnce.</td>
@@ -550,7 +550,7 @@ You can view the installation status by following this link.
     </tr>
 <%
     }
-    var vsix = System.IO.Directory.GetFiles(@"c:\programdata\navcontainerhelper\extensions\navserver", "*.vsix");
+    var vsix = System.IO.Directory.GetFiles(@"c:\programdata\bccontainerhelper\extensions\navserver", "*.vsix");
     if (vsix.Length == 1) {
       var vsixURL = "";
       if (isTraefikUsed())
@@ -576,7 +576,7 @@ You can view the installation status by following this link.
 <%
     }
   }
-  if (System.IO.Directory.Exists(@"C:\ProgramData\NavContainerHelper\traefikforbc")) {
+  if (System.IO.Directory.Exists(@"C:\ProgramData\bcContainerHelper\traefikforbc")) {
 %>
     <tr><td colspan="4"><h3>Traefik containers</h3></td></tr>
     <tr><td colspan="4">This VM is setup with Traefik and below are the containers setup for access through Traefik.</td></tr>
@@ -584,7 +584,7 @@ You can view the installation status by following this link.
       <table>
           <tr><td><b>Name</b></td><td><b>WebClient</b></td><td><b>Soap</b></td><td><b>Rest</b></td><td><b>Developer Endpoint</b></td><td><b>VSIX</b></td></tr>
 <%
-        var directories = System.IO.Directory.GetDirectories(@"C:\ProgramData\NavContainerHelper\Extensions", "*");
+        var directories = System.IO.Directory.GetDirectories(@"C:\ProgramData\bcContainerHelper\Extensions", "*");
         foreach(var directory in directories) {
           if (System.IO.Directory.Exists(directory+@"\my")) {
             var name = System.IO.Path.GetFileName(directory);
@@ -593,7 +593,7 @@ You can view the installation status by following this link.
             var soap = webclient+"soap";
             var rest = webclient+"rest";
             var developer = webclient+"dev";
-            var vsixFile = System.IO.Directory.GetFiles(@"c:\programdata\navcontainerhelper\extensions\"+name, "*.vsix");
+            var vsixFile = System.IO.Directory.GetFiles(@"c:\programdata\bccontainerhelper\extensions\"+name, "*.vsix");
             var vsix = "";
             if (vsixFile.Length == 1) {
               vsix = webclient+"dl/"+System.IO.Path.GetFileName(vsixFile[0]);
