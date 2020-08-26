@@ -37,8 +37,8 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
 
-Install-Module -Name navcontainerhelper -Force
-Import-Module -Name navcontainerhelper -DisableNameChecking
+Install-Module -Name bccontainerhelper -Force
+Import-Module -Name bccontainerhelper -DisableNameChecking
 
 $installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
 if ($installDocker) {

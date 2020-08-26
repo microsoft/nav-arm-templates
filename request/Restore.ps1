@@ -1,11 +1,11 @@
 ﻿Param(
-    [string] $backupFolder = "c:\ProgramData\NavContainerHelper\backup",
+    [string] $backupFolder = "c:\ProgramData\BcContainerHelper\backup",
     [string] $backupName = ([Guid]::NewGuid.ToString()),
     [string] $removeBackup = ""
 )
 
 $sessionParam = @{ "session" = (Get-NavContainerSession -containerName navserver -silent) }
-$backupDir = Join-Path "c:\ProgramData\NavContainerHelper\backup" $backupName
+$backupDir = Join-Path "c:\ProgramData\BcContainerHelper\backup" $backupName
 
 if (!(Test-Path -Path $backupDir)) {
     throw "Backup doesn't exist"
