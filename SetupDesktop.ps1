@@ -5,10 +5,11 @@
     }
 }
 
-if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+if (Test-Path -Path "C:\demo\*\BcContainerHelper.psm1") {
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    Import-module $module.FullName -DisableNameChecking
 } else {
-    Import-Module -name navcontainerhelper -DisableNameChecking
+    Import-Module -name bccontainerhelper -DisableNameChecking
 }
 
 . (Join-Path $PSScriptRoot "settings.ps1")
@@ -55,8 +56,8 @@ $codeProcess = get-process Code -ErrorAction SilentlyContinue
 if ($codeProcess) {
     AddToStatus "WARNING: VS Code is running, skipping .vsix installation"
 }
-elseif (Test-Path "C:\ProgramData\navcontainerhelper\Extensions\$containerName\*.vsix") {
-    $vsixFileName = (Get-Item "C:\ProgramData\navcontainerhelper\Extensions\$containerName\*.vsix").FullName
+elseif (Test-Path "C:\ProgramData\bccontainerhelper\Extensions\$containerName\*.vsix") {
+    $vsixFileName = (Get-Item "C:\ProgramData\bccontainerhelper\Extensions\$containerName\*.vsix").FullName
     if ($vsixFileName -ne "") {
     
         AddToStatus "Installing .vsix"
@@ -89,6 +90,6 @@ New-DesktopShortcut -Name "Landing Page" -TargetPath $landingPageUrl -IconLocati
 New-DesktopShortcut -Name "Visual Studio Code" -TargetPath $codeExe
 New-DesktopShortcut -Name "PowerShell ISE" -TargetPath "C:\Windows\system32\WindowsPowerShell\v1.0\powershell_ise.exe" -WorkingDirectory "c:\demo"
 New-DesktopShortcut -Name "Command Prompt" -TargetPath "C:\Windows\system32\cmd.exe" -WorkingDirectory "c:\demo"
-New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "c:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -Arguments "-noexit ""& { Write-NavContainerHelperWelcomeText }""" -WorkingDirectory "C:\ProgramData\navcontainerhelper"
+New-DesktopShortcut -Name "Nav Container Helper" -TargetPath "c:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -Arguments "-noexit ""& { Write-NavContainerHelperWelcomeText }""" -WorkingDirectory "C:\ProgramData\bccontainerhelper"
 
 AddToStatus -color Green "Desktop setup complete!"
