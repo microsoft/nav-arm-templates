@@ -151,7 +151,7 @@ private string getODataBaseUrl()
 {
   if (GetCustomSettings())
   {
-    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant()+"/";
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicODataBaseUrl']").Attributes["value"].Value.ToLowerInvariant().TrimEnd('/')+"/";
     if (isMultitenant()) 
     {
       url += "?tenant=default";
@@ -165,7 +165,7 @@ private string getSoapBaseUrl()
 {
   if (GetCustomSettings())
   {
-    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicSOAPBaseUrl']").Attributes["value"].Value.ToLowerInvariant()+"/services";
+    var url = customSettings.SelectSingleNode("//appSettings/add[@key='PublicSOAPBaseUrl']").Attributes["value"].Value.ToLowerInvariant().TrimEnd('/')+"/services";
     if (isMultitenant()) 
     {
       url += "?tenant=default";
