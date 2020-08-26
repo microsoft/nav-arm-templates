@@ -2,6 +2,14 @@
     ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt" -Force -ErrorAction SilentlyContinue
 }
 
+function Download-File([string]$sourceUrl, [string]$destinationFile)
+{
+    AddToStatus "Downloading $destinationFile"
+    Remove-Item -Path $destinationFile -Force -ErrorAction Ignore
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
+}
+
 function Register-NativeMethod([string]$dll, [string]$methodSignature)
 {
     $script:nativeMethods += [PSCustomObject]@{ Dll = $dll; Signature = $methodSignature; }
@@ -32,11 +40,53 @@ $ComputerInfo = Get-ComputerInfo
 $WindowsInstallationType = $ComputerInfo.WindowsInstallationType
 $WindowsProductName = $ComputerInfo.WindowsProductName
 
-
-if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+if ($nchBranch -eq "preview") {
+    AddToStatus "Installing Latest BcContainerHelper preview from PowerShell Gallery"
+    Install-Module -Name bccontainerhelper -Force -AllowPrerelease
+    Import-Module -Name bccontainerhelper -DisableNameChecking
+    AddToStatus ("Using BcContainerHelper version "+(get-module BcContainerHelper).Version.ToString())
+}
+elseif ($nchBranch -eq "") {
+    AddToStatus "Installing Latest Business Central Container Helper from PowerShell Gallery"
+    Install-Module -Name bccontainerhelper -Force
+    Import-Module -Name bccontainerhelper -DisableNameChecking
+    AddToStatus ("Using BcContainerHelper version "+(get-module BcContainerHelper).Version.ToString())
 } else {
-    Import-Module -name navcontainerhelper -DisableNameChecking
+    if ($nchBranch -notlike "https://*") {
+        $nchBranch = "https://github.com/Microsoft/navcontainerhelper/archive/$($nchBranch).zip"
+    }
+    AddToStatus "Using BcContainerHelper from $nchBranch"
+    Download-File -sourceUrl $nchBranch -destinationFile "c:\demo\bccontainerhelper.zip"
+    [Reflection.Assembly]::LoadWithPartialName("System.IO.Compression.Filesystem") | Out-Null
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("c:\demo\bccontainerhelper.zip", "c:\demo")
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    AddToStatus "Loading BcContainerHelper from $($module.FullName)"
+    Import-Module $module.FullName -DisableNameChecking
+}
+
+if ($AddTraefik -eq "Yes") {
+
+    if (Test-Path "c:\programdata\bccontainerhelper\certificate.pfx") {
+        AddToStatus -color Red "Certificate specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if (-not $ContactEMailForLetsEncrypt) {
+        AddToStatus -color Red "Contact EMail for LetsEncrypt not specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($clickonce -eq "Yes") {
+        AddToStatus -color Red "ClickOnce specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($AddTraefik -eq "Yes") {
+        Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
+    }
+    else {
+        Get-VariableDeclaration -name "AddTraefik" | Add-Content $settingsScript
+    }
 }
 
 if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
@@ -50,7 +100,7 @@ if (-not (Get-InstalledModule ACME-PS -ErrorAction SilentlyContinue)) {
     # If rate limits are hit, log an error and revert to Self Signed
     try {
         $plainPfxPassword = [GUID]::NewGuid().ToString()
-        $certificatePfxFilename = "c:\ProgramData\navcontainerhelper\certificate.pfx"
+        $certificatePfxFilename = "c:\ProgramData\bccontainerhelper\certificate.pfx"
         New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
 
         # Override SetupCertificate.ps1 in container

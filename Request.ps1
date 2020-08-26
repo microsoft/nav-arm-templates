@@ -9,10 +9,11 @@ if (!(Test-Path function:AddToStatus)) {
     }
 }
 
-if (Test-Path -Path "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1") {
-    Import-module "C:\demo\navcontainerhelper-dev\NavContainerHelper.psm1" -DisableNameChecking
+if (Test-Path -Path "C:\demo\*\BcContainerHelper.psm1") {
+    $module = Get-Item -Path "C:\demo\*\BcContainerHelper.psm1"
+    Import-module $module.FullName -DisableNameChecking
 } else {
-    Import-Module -name navcontainerhelper -DisableNameChecking
+    Import-Module -name bccontainerhelper -DisableNameChecking
 }
 
 . (Join-Path $PSScriptRoot "settings.ps1")

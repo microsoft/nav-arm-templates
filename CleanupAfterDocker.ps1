@@ -4,7 +4,7 @@ $WarningActionPreference = "Stop"
 # Specify which images to download
 $ImagesToDownload = @()
 
-$navContainerHelperFolder = "C:\ProgramData\NavContainerHelper"
+$bcContainerHelperFolder = "C:\ProgramData\BcContainerHelper"
 
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if (!($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
@@ -33,7 +33,7 @@ if (!(Test-Path $dockerRootDir -PathType Container)) {
 }
 
 Write-Host -Foregroundcolor Red "This function will remove all containers, remove all images and clear the folder $dockerRootDir"
-Write-Host -Foregroundcolor Red "The function will also clear the contents of $navContainerHelperFolder."
+Write-Host -Foregroundcolor Red "The function will also clear the contents of $bcContainerHelperFolder."
 Write-Host -Foregroundcolor Red "Are you absolutely sure you want to do this? (This cannot be undone)"
 Write-Host -ForegroundColor Red "Type Yes to continue:" -NoNewline
 if ((Read-Host) -ne "Yes") {
@@ -65,9 +65,9 @@ Remove-Item $dockerCiZapExe
 Write-Host "Starting Docker Service"
 Start-Service docker
 
-if (Test-Path $navContainerHelperFolder -PathType Container) {
-    Write-Host "Cleaning up $navContainerHelperFolder"
-    Get-ChildItem $navContainerHelperFolder -Force | ForEach-Object { 
+if (Test-Path $bcContainerHelperFolder -PathType Container) {
+    Write-Host "Cleaning up $bcContainerHelperFolder"
+    Get-ChildItem $bcContainerHelperFolder -Force | ForEach-Object { 
         Remove-Item $_.FullName -Recurse -force
     }
 }
