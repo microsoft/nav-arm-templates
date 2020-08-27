@@ -73,11 +73,7 @@ function AddToStatus([string]$line, [string]$color = "Gray") {
 
 function Download-File([string]$sourceUrl, [string]$destinationFile)
 {
-    AddToStatus "Downloading $destinationFile from $sourceUrl"
-    [System.IO.FileInfo]$FileInfo = $destinationFile
-    if (!(test-path $FileInfo.DirectoryName)) {
-        new-item -Path $FileInfo.DirectoryName -ItemType Directory
-    }
+    AddToStatus "Downloading $destinationFile"
     Remove-Item -Path $destinationFile -Force -ErrorAction Ignore
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
     (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
@@ -322,10 +318,10 @@ if ($workshopFilesUrl -ne "") {
 }
 
 if ($certificatePfxUrl -ne "" -and $certificatePfxPassword -ne "") {
-    Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\programdata\bccontainerhelper\certificate.pfx"
+    Download-File -sourceUrl $certificatePfxUrl -destinationFile "c:\myfolder\certificate.pfx"
 
 ('$certificatePfxPassword = "'+$certificatePfxPassword+'"
-$certificatePfxFile = "c:\programdata\bccontainerhelper\certificate.pfx"
+$certificatePfxFile = Join-Path $PSScriptRoot "certificate.pfx"
 $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
 $certificateThumbprint = $cert.Thumbprint
 Write-Host "Certificate File Thumbprint $certificateThumbprint"
