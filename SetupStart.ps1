@@ -66,7 +66,7 @@ elseif ($nchBranch -eq "") {
 
 if ($AddTraefik -eq "Yes") {
 
-    if (Test-Path "c:\programdata\bccontainerhelper\certificate.pfx") {
+    if (Test-Path "c:\myfolder\certificate.pfx") {
         AddToStatus -color Red "Certificate specified, cannot add Traefik"
         $AddTraefik = "No"
     }
