@@ -73,7 +73,7 @@ function AddToStatus([string]$line, [string]$color = "Gray") {
 
 function Download-File([string]$sourceUrl, [string]$destinationFile)
 {
-    AddToStatus "Downloading $destinationFile"
+    AddToStatus "Downloading $destinationFile from $sourceUrl"
     Remove-Item -Path $destinationFile -Force -ErrorAction Ignore
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
     (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
