@@ -85,7 +85,7 @@
             "defaultValue": "Default",
             "allowedValues": [ "Default", "Process", "Hyperv" ],
             "metadata": {
-                "Description": "What isolation do you want to use for the main container. Default will allow NavContainerHelper to decide."
+                "Description": "What isolation do you want to use for the main container. Default will allow BcContainerHelper to decide."
             }
 		},
         "vmAdminUsername": {
@@ -123,6 +123,14 @@
             "defaultValue": "",
             "metadata": {
                 "Description": "Select the Business Central Docker Image to deploy. ArtifactUrl is ignored if you specify a Docker Image."
+            }
+        },
+        "TestToolkit": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "No", "Framework", "Libraries", "All" ],
+            "metadata": {
+                "Description": "Specify whether you want the Test Toolkit to be installed. Installing the Test Toolkit requires you to specify a license file. Specifying All installs Test Framework, Test Libraries and all Microsoft Tests."
             }
         },
         "AssignPremiumPlan": {
@@ -250,6 +258,7 @@
         "CertificatePfxPassword": "",
         "PublicDnsName": "",
         "Multitenant": "No",
+        "TestToolkit": "[parameters('TestToolkit')]",
         "AssignPremiumPlan": "[parameters('AssignPremiumPlan')]",
         "CreateTestUsers": "[parameters('CreateTestUsers')]",
         "CreateAadUsers": "[parameters('CreateAadUsers')]",
@@ -877,7 +886,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initialize.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -WinRmAccess \"',variables('winRmAddresses'),'\" -Isolation \"',variables('Isolation'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -artifactUrl \"',variables('artifactUrl'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',replace(variables('registryPassword'),'\"','\\\"'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',replace(variables('CertificatePfxPassword'),'\"','\\\"'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -IncludeCSIDE \"',variables('IncludeCSIDE'),'\" -IncludeAL \"',variables('IncludeAL'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',replace(variables('Office365Password'),'\"','\\\"'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\" -nchbranch \"',variables('nchbranch'),'\" -AddTraefik \"',variables('AddTraefik'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initialize.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -hostName \"',reference(variables('publicIPAddressName')).dnsSettings.fqdn,'\" -RemoteDesktopAccess \"',variables('RdpAddresses'),'\" -WinRmAccess \"',variables('winRmAddresses'),'\" -Isolation \"',variables('Isolation'),'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -NAVAdminUsername \"',variables('navAdminUsername'),'\" -AzureSQLAdminUsername \"',variables('azureSqlAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -artifactUrl \"',variables('artifactUrl'),'\" -navDockerImage \"',variables('navDockerImage'),'\" -registryUsername \"',variables('registryUsername'),'\" -registryPassword \"',replace(variables('registryPassword'),'\"','\\\"'),'\" -LicenseFileUri \"',variables('licenseFileUri'),'\" -SQLServerType \"',variables('SQLServerType'),'\" -AzureSqlServer \"',if(equals(variables('SQLServerType'),'AzureSQL'),variables('azureSqlServerDnsName'),''),'\" -AppBacpacUri \"',variables('AppBacpacUri'),'\" -TenantBacpacUri \"',variables('TenantBacpacUri'),'\" -IncludeAppUris \"',variables('IncludeAppUris'),'\" -CertificatePfxUrl \"',variables('CertificatePfxUrl'),'\" -CertificatePfxPassword \"',replace(variables('CertificatePfxPassword'),'\"','\\\"'),'\" -PublicDnsName \"',variables('PublicDnsName'),'\" -Multitenant \"',variables('Multitenant'),'\" -TestToolkit \"',variables('TestToolkit'),'\" -AssignPremiumPlan \"',variables('AssignPremiumPlan'),'\" -CreateTestUsers \"',variables('CreateTestUsers'),'\" -CreateAadUsers \"',variables('CreateAadUsers'),'\" -EnableSymbolLoading \"',variables('EnableSymbolLoading'),'\" -IncludeCSIDE \"',variables('IncludeCSIDE'),'\" -IncludeAL \"',variables('IncludeAL'),'\" -ClickOnce \"',variables('ClickOnce'),'\" -EnableTaskScheduler \"',variables('EnableTaskScheduler'),'\" -Office365UserName \"',variables('Office365UserName'),'\" -Office365Password \"',replace(variables('Office365Password'),'\"','\\\"'),'\" -BingMapsKey \"',variables('BingMapsKey'),'\" -finalSetupScriptUrl \"',variables('finalSetupScriptUrl'),'\" -RunWindowsUpdate \"',variables('RunWindowsUpdate'),'\" -ContactEMailForLetsEncrypt \"',variables('ContactEMailForLetsEncrypt'),'\" -style \"',variables('style'),'\" -nchbranch \"',variables('nchbranch'),'\" -AddTraefik \"',variables('AddTraefik'),'\"')]"
                 },
                 "protectedSettings": {}
             }
