@@ -447,9 +447,9 @@ if ("$bingmapskey" -ne "") {
           9 { $appFile = "" }
          10 { $appFile = "" }
          11 { $appFile = "http://aka.ms/bingmaps11.app"; $codeunitId = 50103 }
-         12 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 50103 }
-         13 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 50103 }
-         14 { $appFile = "http://aka.ms/bingmaps.app" }
+         12 { $appFile = "http://aka.ms/bingmaps12.app"; $codeunitId = 50103 }
+         13 { $appFile = "http://aka.ms/bingmaps12.app"; $codeunitId = 50103 }
+         14 { $appFile = "http://aka.ms/bingmaps12.app" }
          15 { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
     default { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
     }
