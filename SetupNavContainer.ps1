@@ -494,7 +494,12 @@ if ("$bingmapskey" -ne "") {
             if ($sqlServerType -eq "SQLExpress") {
                 Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
                     $config = Get-NAVServerConfiguration -serverinstance $serverinstance -asxml
-                    $databaseName = $config.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
+                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value) {
+                        $databaseName = "default"
+                    }
+                    else {
+                        $databaseName = $config.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
+                    }
                     Invoke-Sqlcmd -Database $databaseName -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('a949d4bf-5f3c-49d8-b4be-5359d609683b', 1)"
                 }
             }
