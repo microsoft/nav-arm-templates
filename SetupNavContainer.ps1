@@ -446,9 +446,9 @@ if ("$bingmapskey" -ne "") {
           9 { $appFile = "" }
          10 { $appFile = "" }
          11 { $appFile = "http://aka.ms/bingmaps11.app"; $codeunitId = 50103 }
-         12 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 50103 }
-         13 { $appFile = "http://aka.ms/bingmaps.app"; $codeunitId = 50103 }
-         14 { $appFile = "http://aka.ms/bingmaps.app" }
+         12 { $appFile = "http://aka.ms/bingmaps12.app"; $codeunitId = 50103 }
+         13 { $appFile = "http://aka.ms/bingmaps12.app"; $codeunitId = 50103 }
+         14 { $appFile = "http://aka.ms/bingmaps12.app" }
          15 { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
     default { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
     }
@@ -493,7 +493,12 @@ if ("$bingmapskey" -ne "") {
             if ($sqlServerType -eq "SQLExpress") {
                 Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
                     $config = Get-NAVServerConfiguration -serverinstance $serverinstance -asxml
-                    $databaseName = $config.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
+                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value) {
+                        $databaseName = "default"
+                    }
+                    else {
+                        $databaseName = $config.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
+                    }
                     Invoke-Sqlcmd -Database $databaseName -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('a949d4bf-5f3c-49d8-b4be-5359d609683b', 1)"
                 }
             }
