@@ -186,6 +186,13 @@
                 "Description": "Create users from the Aad (users in Office 365) as SUPER (only when using Office 365 integration)"
             }
         },
+        "FinalSetupScriptUrl": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "Description": "Optional: Specify a Url to a PowerShell script that should be executed on the VM to do the final setup of the VM."
+            }
+        },
 		"BingMapsKey": {
 			"type": "string",
 			"defaultValue": "",
@@ -270,7 +277,7 @@
         "Office365UserName": "[parameters('Office365UserName')]",
         "Office365Password": "[parameters('Office365Password')]",
         "BingMapsKey": "[parameters('BingMapsKey')]",
-        "FinalSetupScriptUrl": "",
+        "FinalSetupScriptUrl": "[parameters('FinalSetupScriptUrl')]",
         "RunWindowsUpdate": "[parameters('RunWindowsUpdate')]",
         "ContactEMailForLetsEncrypt": "[parameters('ContactEMailForLetsEncrypt')]",
         "AutoShutdown": "[parameters('AutoShutdown')]",
