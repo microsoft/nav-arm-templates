@@ -411,7 +411,7 @@ if ($auth -eq "AAD") {
             if ($sqlServerType -eq "SQLExpress") {
                 Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
                     $config = Get-NAVServerConfiguration -serverinstance $serverinstance -asxml
-                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value) {
+                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value -eq 'True') {
                         $databaseName = "default"
                     }
                     else {
@@ -536,7 +536,7 @@ if ("$bingmapskey" -ne "") {
             if ($sqlServerType -eq "SQLExpress") {
                 Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
                     $config = Get-NAVServerConfiguration -serverinstance $serverinstance -asxml
-                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value) {
+                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value -eq 'True') {
                         $databaseName = "default"
                     }
                     else {
