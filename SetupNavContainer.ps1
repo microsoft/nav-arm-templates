@@ -378,7 +378,10 @@ if ($auth -eq "AAD") {
     } 
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
-        if (([System.Version]$navVersion) -ge ([System.Version]"16.4.14693.15445")) {
+        if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
+            Download-File -sourceUrl "https://businesscentralapps.azureedge.net/azureadappsetup/17.1.11329.0/apps.zip" -destinationFile $appfile
+        }
+        elseif (([System.Version]$navVersion) -ge ([System.Version]"16.4.14693.15445")) {
             Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_16.4.app" -destinationFile $appfile
         }
         elseif (([System.Version]$navVersion).Major -ge 15) {
@@ -397,6 +400,41 @@ if ($auth -eq "AAD") {
             "value" = "$PowerBiAdAppId,$PowerBiAdAppKeyValue"
         }
         Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
+
+        if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
+            $parameters = @{ 
+                "name" = "SetupEMailAdApp"
+                "value" = "$EMailAdAppId,$EMailAdAppKeyValue,$Office365UserName"
+            }
+            Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
+    
+            if ($sqlServerType -eq "SQLExpress") {
+                Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
+                    $config = Get-NAVServerConfiguration -serverinstance $serverinstance -asxml
+                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value) {
+                        $databaseName = "default"
+                    }
+                    else {
+                        $databaseName = $config.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
+                    }
+                    Invoke-Sqlcmd -Database $databaseName -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('e6328152-bb29-4664-9dae-3bc7eaae1fd8', 1)"
+                    Invoke-Sqlcmd -Database $databaseName -Query "UPDATE [dbo].[Isolated Storage] SET [App Id] = 'e6328152-bb29-4664-9dae-3bc7eaae1fd8' WHERE [App Id] = '4C06EAFF-C198-4764-94A4-B695861CE379'"
+                }
+            }
+            else {
+                if ($sqlserverType -eq "SQLDeveloper") {
+                    $databaseServerInstance = "localhost"
+                }
+                else {
+                    $databaseServerInstance = $params.databaseServer
+                }
+                if ($params.databaseInstance) {
+                    $databaseServerInstance += "\$($params.databaseInstance)"
+                }
+                Invoke-Sqlcmd -ServerInstance $databaseServerInstance -Database $params.databaseName -Credential $params.databaseCredential -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('e6328152-bb29-4664-9dae-3bc7eaae1fd8', 1)"
+                Invoke-Sqlcmd -ServerInstance $databaseServerInstance -Database $params.databaseName -Credential $params.databaseCredential -Query "UPDATE [dbo].[Isolated Storage] SET [App Id] = 'e6328152-bb29-4664-9dae-3bc7eaae1fd8' WHERE [App Id] = '4C06EAFF-C198-4764-94A4-B695861CE379'"
+            }
+        }
 
         UnPublish-NavContainerApp -containerName $containerName -appName AzureAdAppSetup -unInstall -doNotSaveData
     }
