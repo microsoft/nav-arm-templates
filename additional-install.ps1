@@ -22,11 +22,11 @@ choco install googlechrome
 AddToStatus "Install firefox"
 choco install firefox
 
-AddToStatus "Install Office 365 Business"
-choco install office365business
+#AddToStatus "Install Office 365 Business"
+#choco install office365business
 
-AddToStatus "Install PowerBI Desktop"
-choco install powerbi
+#AddToStatus "Install PowerBI Desktop"
+#choco install powerbi
 
 #Add VSCode Extensions
 "eamodio.gitlens", "ms-vscode.PowerShell", "heaths.vscode-guid", "github.vscode-pull-request-github", "formulahendry.docker-explorer" | % {
