@@ -42,7 +42,7 @@ $WindowsProductName = $ComputerInfo.WindowsProductName
 
 if ($nchBranch -eq "preview") {
     AddToStatus "Installing Latest BcContainerHelper preview from PowerShell Gallery"
-    Install-Module -Name bccontainerhelper -Force -AllowPrerelease
+    Install-Module -Name bccontainerhelper -Force -RequiredVersion "1.0.14"
     Import-Module -Name bccontainerhelper -DisableNameChecking
     AddToStatus ("Using BcContainerHelper version "+(get-module BcContainerHelper).Version.ToString())
 }
