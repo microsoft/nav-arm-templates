@@ -42,13 +42,13 @@ $WindowsProductName = $ComputerInfo.WindowsProductName
 
 if ($nchBranch -eq "preview") {
     AddToStatus "Installing Latest BcContainerHelper preview from PowerShell Gallery"
-    Install-Module -Name bccontainerhelper -Force -RequiredVersion "1.0.14"
+    Install-Module -Name bccontainerhelper -Force -AllowPrerelease
     Import-Module -Name bccontainerhelper -DisableNameChecking
     AddToStatus ("Using BcContainerHelper version "+(get-module BcContainerHelper).Version.ToString())
 }
 elseif ($nchBranch -eq "") {
     AddToStatus "Installing Latest Business Central Container Helper from PowerShell Gallery"
-    Install-Module -Name bccontainerhelper -Force -RequiredVersion "1.0.14"
+    Install-Module -Name bccontainerhelper -Force
     Import-Module -Name bccontainerhelper -DisableNameChecking
     AddToStatus ("Using BcContainerHelper version "+(get-module BcContainerHelper).Version.ToString())
 } else {
