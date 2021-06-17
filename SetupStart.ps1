@@ -39,6 +39,7 @@ AddToStatus "SetupStart, User: $env:USERNAME"
 $ComputerInfo = Get-ComputerInfo
 $WindowsInstallationType = $ComputerInfo.WindowsInstallationType
 $WindowsProductName = $ComputerInfo.WindowsProductName
+$nchBranch = "preview"
 
 if ($nchBranch -eq "preview") {
     AddToStatus "Installing Latest BcContainerHelper preview from PowerShell Gallery"
