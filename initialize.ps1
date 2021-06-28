@@ -51,7 +51,7 @@ param
        [string] $requestToken              = "",
        [string] $createStorageQueue        = "",
        [string] $AddTraefik                = "No",
-       [string] $nchBranch                 = "preview"
+       [string] $nchBranch                 = ""
 )
 
 $verbosePreference = "SilentlyContinue"
