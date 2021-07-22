@@ -372,6 +372,14 @@
             "metadata": {
                 "Description": "Add traefik.io as reverse proxy. When using traefik, you will find the landing page on http://publicdnsname:8180."
             }
+        },
+    	"nchBranch": {
+		    "type": "string",
+            "defaultValue": "No",
+            "allowedValues": [ "preview" ],
+            "metadata": {
+                "Description": "Using Preview Build"
+            }
         }
     },
     "variables": {
