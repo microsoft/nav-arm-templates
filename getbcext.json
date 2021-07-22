@@ -376,7 +376,6 @@
     	"nchBranch": {
 		    "type": "string",
             "defaultValue": "No",
-            "allowedValues": [ "preview" ],
             "metadata": {
                 "Description": "Using Preview Build"
             }
