@@ -18,3 +18,6 @@ choco install microsoft-edge
 
 AddToStatus "VSCode"
 choco install vscode
+
+AddToStatus "7zip"
+choco install 7zip
