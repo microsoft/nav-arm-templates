@@ -22,6 +22,9 @@ choco install googlechrome
 AddToStatus "Install firefox"
 choco install firefox
 
+AddToStatus "7zip"
+choco install 7zip
+
 #AddToStatus "Install Office 365 Business"
 #choco install office365business
 
