@@ -382,7 +382,7 @@
         }
     },
     "variables": {
-        "nchbranch": "",
+        "nchbranch": "[parameters('nchbranch')]",
         "vmName": "[trim(parameters('vmName'))]",
         "TimezoneId": "[parameters('TimezoneId')]",
         "AcceptEula": "[parameters('AcceptEula')]",
