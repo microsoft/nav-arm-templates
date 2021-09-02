@@ -1,5 +1,10 @@
 ﻿# Script slightly modified from AJ Kaufmanns blog post https://www.kauffmann.nl/2019/03/04/how-to-install-docker-on-windows-10-without-hyper-v/
 
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw "This script needs to run as admin"
+}
+
 # Install Windows feature containers
 $restartNeeded = $false
 if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Enabled') {
