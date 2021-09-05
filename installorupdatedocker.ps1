@@ -14,7 +14,7 @@ if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Ena
 $dockerVersion = docker version -f "{{.Server.Version}}"
 Write-Host "Current installed docker version $dockerVersion"
 
-$json = Invoke-WebRequest https://dockermsft.azureedge.net/dockercontainer/DockerMsftIndex.json | ConvertFrom-Json
+$json = Invoke-WebRequest -UseBasicParsing https://dockermsft.azureedge.net/dockercontainer/DockerMsftIndex.json | ConvertFrom-Json
 $stableversion = $json.channels.cs.alias
 $version = $json.channels.$stableversion.version
 $url = $json.versions.$version.url
