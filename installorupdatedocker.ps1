@@ -1,4 +1,4 @@
-﻿# Script slightly modified from AJ Kaufmanns blog post https://www.kauffmann.nl/2019/03/04/how-to-install-docker-on-windows-10-without-hyper-v/
+# Script slightly modified from AJ Kaufmanns blog post https://www.kauffmann.nl/2019/03/04/how-to-install-docker-on-windows-10-without-hyper-v/
 
 # Install Windows feature containers
 $restartNeeded = $false
@@ -6,10 +6,15 @@ if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Ena
     $restartNeeded = (Enable-WindowsOptionalFeature -FeatureName containers -Online).RestartNeeded
 }
 
-$dockerVersion = docker version -f "{{.Server.Version}}"
-Write-Host "Current installed docker version $dockerVersion"
+try {
+    $dockerVersion = docker version -f "{{.Server.Version}}"
+    Write-Host "Current installed docker version $dockerVersion"
+}
+catch {
+    $dockerVersion = "1.0.0.0"
+}
 
-$json = Invoke-WebRequest https://dockermsft.azureedge.net/dockercontainer/DockerMsftIndex.json | ConvertFrom-Json
+$json = Invoke-WebRequest -UseBasicParsing https://dockermsft.azureedge.net/dockercontainer/DockerMsftIndex.json | ConvertFrom-Json
 $stableversion = $json.channels.cs.alias
 $version = $json.channels.$stableversion.version
 $url = $json.versions.$version.url
