@@ -1,4 +1,8 @@
-# Script slightly modified from AJ Kaufmanns blog post https://www.kauffmann.nl/2019/03/04/how-to-install-docker-on-windows-10-without-hyper-v/
+
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw "This script needs to run as admin"
+}
 
 # Install Windows feature containers
 $restartNeeded = $false
@@ -6,55 +10,54 @@ if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Ena
     $restartNeeded = (Enable-WindowsOptionalFeature -FeatureName containers -Online).RestartNeeded
 }
 
-try {
-    $dockerVersion = docker version -f "{{.Server.Version}}"
-    Write-Host "Current installed docker version $dockerVersion"
+# Get Latest Stable version and URL
+$latestZipFile = (Invoke-WebRequest -UseBasicParsing -uri "https://download.docker.com/win/static/stable/x86_64/").Content.split("`r`n") | 
+                 Where-Object { $_ -like "<a href=""docker-*"">docker-*" } | Select-Object -Last 1 | ForEach-Object { $_.Split('"')[1] }
+if (-not $latestZipFile) {
+    throw "Unable to locate latest stable docker download"
 }
-catch {
-    $dockerVersion = "1.0.0.0"
-}
+$latestZipFileUrl = "https://download.docker.com/win/static/stable/x86_64/$latestZipFile"
+$latestVersion = [Version]($latestZipFile.SubString(7,$latestZipFile.Length-11))
+Write-Host "Latest stable available Docker Engine version is $latestVersion"
 
-$json = Invoke-WebRequest -UseBasicParsing https://dockermsft.azureedge.net/dockercontainer/DockerMsftIndex.json | ConvertFrom-Json
-$stableversion = $json.channels.cs.alias
-$version = $json.channels.$stableversion.version
-$url = $json.versions.$version.url
-$zipfile = Join-Path "$env:USERPROFILE\Downloads\" $json.versions.$version.url.Split('/')[-1]
-Write-Host "Latest available docker engine $version"
-
-if ([Version]$version -le [Version]$dockerVersion) {
-    Write-Host "No new version available"
+# Check existing docker version
+$dockerService = get-service docker -ErrorAction SilentlyContinue
+if ($dockerService) {
+    if ($dockerService.Status -eq "Running") {
+        $dockerVersion = [Version](docker version -f "{{.Server.Version}}")
+        Write-Host "Current installed Docker Engine version $dockerVersion"
+        if ($latestVersion -le $dockerVersion) {
+            Write-Host "No new Docker Engine available"
+            Exit
+        }
+        Write-Host "New Docker Engine available"
+    }
+    else {
+        Write-Host "Docker Service not running"
+    }
 }
 else {
-    if (Get-Service docker -ErrorAction SilentlyContinue)
-    {
-        Stop-Service docker
-    }
-    
-    Invoke-WebRequest -UseBasicparsing -Outfile $zipfile -Uri $url
-    
-    # Extract the archive.
-    Expand-Archive $zipfile -DestinationPath $Env:ProgramFiles -Force
-    
-    # Modify PATH to persist across sessions.
-    $newPath = [Environment]::GetEnvironmentVariable("PATH",[EnvironmentVariableTarget]::Machine) + ";$env:ProgramFiles\docker"
-    $splittedPath = $newPath -split ';'
-    $cleanedPath = $splittedPath | Sort-Object -Unique
-    $newPath = $cleanedPath -join ';'
-    [Environment]::SetEnvironmentVariable("PATH", $newPath, [EnvironmentVariableTarget]::Machine)
-    $env:path = $newPath
-    
-    # Register the Docker daemon as a service.
-    if (!(Get-Service docker -ErrorAction SilentlyContinue)) {
-      dockerd --exec-opt isolation=process --register-service
-    }
-    
-    # Start the Docker service.
-    if ($restartNeeded) {
-        Write-Host 'A restart is needed to finish the installation' -ForegroundColor Green
-        If ((Read-Host 'Restart now? [Y/N]') -eq 'Y') {
-          Restart-Computer
-        }
-    } else {
-        Start-Service docker
-    }
+    Write-Host "Docker Engine not found"
 }
+
+Read-Host "Press Enter to Install new Docker Engine version (or Ctrl+C to break) ?"
+
+if ($dockerService) {
+    Stop-Service docker
+}
+
+# Download new version
+$tempFile = "$([System.IO.Path]::GetTempFileName()).zip"
+Invoke-WebRequest -UseBasicParsing -Uri $latestZipFileUrl -OutFile $tempFile
+Expand-Archive $tempFile -DestinationPath $env:ProgramFiles -Force
+Remove-Item $tempFile -Force
+
+# Register service if necessary
+if (-not $dockerService) {
+    [Environment]::SetEnvironmentVariable("Path", "$($env:path);$env:ProgramFiles\docker", [System.EnvironmentVariableTarget]::Machine)
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+    dockerd --register-service
+    Start-Service docker
+}
+
+Start-Service docker
