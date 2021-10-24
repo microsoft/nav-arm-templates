@@ -1,7 +1,10 @@
-
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     throw "This script needs to run as admin"
+}
+
+if ((Test-Path (Join-Path $env:ProgramFiles "Docker Desktop")) -or (Test-Path (Join-Path $env:ProgramFiles "DockerDesktop"))) {
+    throw "Docker Desktop is installed on this Computer, cannot run this script"
 }
 
 # Install Windows feature containers
