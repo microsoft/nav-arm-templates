@@ -1,4 +1,4 @@
-$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+﻿$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     throw "This script needs to run as admin"
 }
@@ -15,7 +15,10 @@ if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Ena
 
 # Get Latest Stable version and URL
 $latestZipFile = (Invoke-WebRequest -UseBasicParsing -uri "https://download.docker.com/win/static/stable/x86_64/").Content.split("`r`n") | 
-                 Where-Object { $_ -like "<a href=""docker-*"">docker-*" } | Select-Object -Last 1 | ForEach-Object { $_.Split('"')[1] }
+                 Where-Object { $_ -like "<a href=""docker-*"">docker-*" } | 
+                 ForEach-Object { $zipName = $_.Split('"')[1]; [Version]($zipName.SubString(7,$zipName.Length-11).Split('-')[0]) } | 
+                 Sort-Object | Select-Object -Last 1 | ForEach-Object { "docker-$_.zip" }
+
 if (-not $latestZipFile) {
     throw "Unable to locate latest stable docker download"
 }
@@ -31,7 +34,7 @@ if ($dockerService) {
         Write-Host "Current installed Docker Engine version $dockerVersion"
         if ($latestVersion -le $dockerVersion) {
             Write-Host "No new Docker Engine available"
-            Exit
+            Return
         }
         Write-Host "New Docker Engine available"
     }
@@ -60,7 +63,6 @@ if (-not $dockerService) {
     [Environment]::SetEnvironmentVariable("Path", "$($env:path);$env:ProgramFiles\docker", [System.EnvironmentVariableTarget]::Machine)
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
     dockerd --register-service
-    Start-Service docker
 }
 
 Start-Service docker
