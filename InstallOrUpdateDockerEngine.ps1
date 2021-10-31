@@ -22,9 +22,6 @@ $latestZipFile = (Invoke-WebRequest -UseBasicParsing -uri "https://download.dock
 if (-not $latestZipFile) {
     throw "Unable to locate latest stable docker download"
 }
-if ($latestZipFile -eq "docker-20.10.10.zip") {
-    $latestZipFile = "docker-20.10.9.zip"
-}
 $latestZipFileUrl = "https://download.docker.com/win/static/stable/x86_64/$latestZipFile"
 $latestVersion = [Version]($latestZipFile.SubString(7,$latestZipFile.Length-11))
 Write-Host "Latest stable available Docker Engine version is $latestVersion"
@@ -61,14 +58,15 @@ Invoke-WebRequest -UseBasicParsing -Uri $latestZipFileUrl -OutFile $tempFile
 Expand-Archive $tempFile -DestinationPath $env:ProgramFiles -Force
 Remove-Item $tempFile -Force
 
-if ("$($env:Path);" -notlike "*;$($env:ProgramFiles)\docker;*") {
-    [Environment]::SetEnvironmentVariable("Path", "$($env:path);$env:ProgramFiles\docker", [System.EnvironmentVariableTarget]::User)
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","User")
+$path = [System.Environment]::GetEnvironmentVariable("Path", "User")
+if (";$path;" -notlike "*;$($env:ProgramFiles)\docker;*") {
+    [Environment]::SetEnvironmentVariable("Path", "$path;$env:ProgramFiles\docker", [System.EnvironmentVariableTarget]::User)
 }
 
 # Register service if necessary
 if (-not $dockerService) {
-    dockerd --register-service
+    $dockerdExe = 'C:\Program Files\docker\dockerd.exe'
+    & $dockerdExe --register-service
 }
 
 Start-Service docker
