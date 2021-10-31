@@ -1,4 +1,7 @@
 ﻿# Stop and Remove docker service
+dockerd --unregister-service
+Start-Sleep -Seconds 30
+
 $dockerService = get-service docker -ErrorAction SilentlyContinue
 if ($dockerService) {
     if ($dockerService.Status -eq "Running") {
