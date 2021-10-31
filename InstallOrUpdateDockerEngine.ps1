@@ -22,6 +22,9 @@ $latestZipFile = (Invoke-WebRequest -UseBasicParsing -uri "https://download.dock
 if (-not $latestZipFile) {
     throw "Unable to locate latest stable docker download"
 }
+if ($latestZipFile -eq "docker-20.10.10.zip") {
+    $latestZipFile = "docker-20.10.9.zip"
+}
 $latestZipFileUrl = "https://download.docker.com/win/static/stable/x86_64/$latestZipFile"
 $latestVersion = [Version]($latestZipFile.SubString(7,$latestZipFile.Length-11))
 Write-Host "Latest stable available Docker Engine version is $latestVersion"
