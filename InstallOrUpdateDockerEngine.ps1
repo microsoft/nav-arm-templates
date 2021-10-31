@@ -58,11 +58,15 @@ Invoke-WebRequest -UseBasicParsing -Uri $latestZipFileUrl -OutFile $tempFile
 Expand-Archive $tempFile -DestinationPath $env:ProgramFiles -Force
 Remove-Item $tempFile -Force
 
+$path = [System.Environment]::GetEnvironmentVariable("Path", "User")
+if (";$path;" -notlike "*;$($env:ProgramFiles)\docker;*") {
+    [Environment]::SetEnvironmentVariable("Path", "$path;$env:ProgramFiles\docker", [System.EnvironmentVariableTarget]::User)
+}
+
 # Register service if necessary
 if (-not $dockerService) {
-    [Environment]::SetEnvironmentVariable("Path", "$($env:path);$env:ProgramFiles\docker", [System.EnvironmentVariableTarget]::Machine)
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
-    dockerd --register-service
+    $dockerdExe = 'C:\Program Files\docker\dockerd.exe'
+    & $dockerdExe --register-service
 }
 
 Start-Service docker
