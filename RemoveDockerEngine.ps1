@@ -11,8 +11,15 @@ if ($dockerService) {
     $service.Delete()
 }
 
+$path = [System.Environment]::GetEnvironmentVariable("Path", "User")
+if (";$path;" -notlike "*;$($env:ProgramFiles)\docker;*") {
+    [Environment]::SetEnvironmentVariable("Path", "$path;" -replace ";C:\\Program files\\docker;", ";", [System.EnvironmentVariableTarget]::User)
+}
+
 # Remove installation folder
 Remove-Item -path $env:ProgramFiles\docker -Recurse -Force
+
+
 
 # Remove docker in ProgramData
 # Remove docker data-root
