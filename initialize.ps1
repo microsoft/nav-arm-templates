@@ -193,7 +193,8 @@ AddToStatus "Initialize, user: $env:USERNAME"
 AddToStatus "TemplateLink: $templateLink"
 $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 
-New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
+$downloadFolder = "C:\DOWNLOAD"
+New-Item -Path $downloadFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 
 if (!(Get-Module powershellget | Where-Object { $_.Version -ge [version]"2.2.5" })) {
     AddToStatus "Installing PowerShellGet 2.2.5"
@@ -306,7 +307,7 @@ if ($workshopFilesUrl -ne "") {
         $workshopFilesUrl = "$($scriptPath)$workshopFilesUrl"
     }
     $workshopFilesFolder = "c:\WorkshopFiles"
-    $workshopFilesFile = "C:\DOWNLOAD\WorkshopFiles.zip"
+    $workshopFilesFile = Join-Path $downloadFolder "WorkshopFiles.zip"
     New-Item -Path $workshopFilesFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 	Download-File -sourceUrl $workshopFilesUrl -destinationFile $workshopFilesFile
     AddToStatus "Unpacking Workshop Files to $WorkshopFilesFolder"
@@ -342,10 +343,12 @@ Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settin
 }
 
 if ($WindowsInstallationType -eq "Server") {
-    if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
-        AddToStatus "Installing Docker"
-        Install-module DockerMsftProvider -Force
-        Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+    $installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
+    if ($installDocker) {
+        $installDockerScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'InstallOrUpdateDockerEngine.ps1'
+        $installDockerScript = Join-Path $DownloadFolder "InstallOrUpdateDockerEngine.ps1"
+        Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
+        . $installDockerScript -Force
     }
 } else {
     Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
