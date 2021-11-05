@@ -82,6 +82,7 @@ if ($AddTraefik -eq "Yes") {
     }
 
     if ($AddTraefik -eq "Yes") {
+        AddToStatus -color Red "Setup Traefik container"
         Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
     }
     else {
