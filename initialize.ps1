@@ -344,7 +344,8 @@ Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settin
 
 if ($AddTraefik -eq "yes" -and [environment]::OSVersion.Version.Build -ne 17763) {
     # Traefik currently requires hyperv if not 1809
-    Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -NoRestart | Out-Null
+    AddToStatus "Enable Hyper-V and containers"
+    Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
 }
 
 $installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
