@@ -342,16 +342,14 @@ Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settin
 
 }
 
-if ($WindowsInstallationType -eq "Server") {
-    $installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
-    if ($installDocker) {
-        $installDockerScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'InstallOrUpdateDockerEngine.ps1'
-        $installDockerScript = Join-Path $DownloadFolder "InstallOrUpdateDockerEngine.ps1"
-        Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
-        . $installDockerScript -Force -envScope "Machine"
-    }
-} else {
-    Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -NoRestart | Out-Null
+
+$installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
+if ($installDocker) {
+    $installDockerScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'InstallOrUpdateDockerEngine.ps1'
+    $installDockerScript = Join-Path $DownloadFolder "InstallOrUpdateDockerEngine.ps1"
+    Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
+    . $installDockerScript -Force -envScope "Machine"
 }
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
