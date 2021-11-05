@@ -344,7 +344,7 @@ Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settin
 
 if ($AddTraefik -eq "yes" -and [environment]::OSVersion.Version.Build -ne 17763) {
     # Traefik currently requires hyperv if not 1809
-    AddToStatus "Enable Hyper-V and containers"
+    AddToStatus "Enable Hyper-V and containers (needed by Traefik)"
     Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
 }
 
