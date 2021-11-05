@@ -47,7 +47,7 @@ if ($installDocker) {
     $installDockerScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'InstallOrUpdateDockerEngine.ps1'
     $installDockerScript = Join-Path $DownloadFolder "InstallOrUpdateDockerEngine.ps1"
     Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
-    . $installDockerScript -Force
+    . $installDockerScript -Force -envScope "Machine"
 }
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
