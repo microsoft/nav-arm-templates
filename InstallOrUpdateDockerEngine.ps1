@@ -1,5 +1,6 @@
 ﻿Param(
-    [switch] $force
+    [switch] $force,
+    [string] $envScope = "User"
 )
 
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
@@ -67,9 +68,9 @@ Invoke-WebRequest -UseBasicParsing -Uri $latestZipFileUrl -OutFile $tempFile
 Expand-Archive $tempFile -DestinationPath $env:ProgramFiles -Force
 Remove-Item $tempFile -Force
 
-$path = [System.Environment]::GetEnvironmentVariable("Path", "User")
+$path = [System.Environment]::GetEnvironmentVariable("Path", $envScope)
 if (";$path;" -notlike "*;$($env:ProgramFiles)\docker;*") {
-    [Environment]::SetEnvironmentVariable("Path", "$path;$env:ProgramFiles\docker", [System.EnvironmentVariableTarget]::User)
+    [Environment]::SetEnvironmentVariable("Path", "$path;$env:ProgramFiles\docker", $envScope)
 }
 
 # Register service if necessary
