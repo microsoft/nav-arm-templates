@@ -9,7 +9,7 @@ param
     [Parameter(Mandatory=$true)]
     [string] $organization,
     [Parameter(Mandatory=$true)]
-    [string] $personalaccesstoken,
+    [string] $token,
     [Parameter(Mandatory=$true)]
     [string] $pool,
     [Parameter(Mandatory=$true)]
@@ -62,10 +62,10 @@ Download-File -sourceUrl $agentUrl -destinationFile $agentFullname
     [System.IO.Compression.ZipFile]::ExtractToDirectory($agentFullname, $agentFolder)
 
     if ($agentUrl -like 'https://github.com/actions/runner/releases/download/*') {
-        .\config.cmd --unattended --url "$organization" --token "$personalaccesstoken" --name $agentName --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
+        .\config.cmd --unattended --url "$organization" --token "$token" --name $agentName --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
     }
     else {
-        .\config.cmd --unattended --url "$organization" --auth PAT --token "$personalaccesstoken" --pool "$pool" --agent $agentName --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
+        .\config.cmd --unattended --url "$organization" --auth PAT --token "$token" --pool "$pool" --agent $agentName --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
     }
 }
 
