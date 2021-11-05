@@ -21,11 +21,12 @@
 		},
         "OperatingSystem": {
             "type": "string",
-            "defaultValue": "Windows Server 2019 with Containers",
+            "defaultValue": "Windows Server 2022",
             "allowedValues": [
-                "Windows Server 2016",
+                "Windows 11",
                 "Windows Server 2019",
-                "Windows Server 2019 with Containers"
+                "Windows Server 2019 with Containers",
+                "Windows Server 2022"
             ],
             "metadata": {
                 "Description": "Select the Operating System of the VM"
@@ -126,9 +127,9 @@
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
         "adminPassword": "[parameters('adminPassword')]",
         "OperatingSystem": "[parameters('OperatingSystem')]",
-        "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
-        "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 10'),'Windows-10','WindowsServer')]",
-        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
+        "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 11'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
+        "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 11'),'Windows-11','WindowsServer')]",
+        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 11'),'win11-21h2-pro',if(equals(variables('OperatingSystem'),'Windows Server 2022'),'2022-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
         "storageAccountType": "[parameters('StorageAccountType')]",
         "OSDiskName": "[concat(variables('vmName'),'_osdisk')]",
         "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
