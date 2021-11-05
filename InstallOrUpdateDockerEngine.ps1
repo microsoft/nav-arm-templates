@@ -1,4 +1,8 @@
-﻿$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+﻿Param(
+    [switch] $force
+)
+
+$currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
 if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
     throw "This script needs to run as admin"
 }
@@ -10,7 +14,10 @@ if ((Test-Path (Join-Path $env:ProgramFiles "Docker Desktop")) -or (Test-Path (J
 # Install Windows feature containers
 $restartNeeded = $false
 if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Enabled') {
-    $restartNeeded = (Enable-WindowsOptionalFeature -FeatureName containers -Online).RestartNeeded
+    $restartNeeded = (Enable-WindowsOptionalFeature -FeatureName containers -Online -NoRestart).RestartNeeded
+    if ($restartNeeded) {
+        Write-Host "A restart is needed before you can start the docker service after installation"
+    }
 }
 
 # Get Latest Stable version and URL
@@ -46,7 +53,9 @@ else {
     Write-Host "Docker Engine not found"
 }
 
-Read-Host "Press Enter to Install new Docker Engine version (or Ctrl+C to break) ?"
+if (!$force) {
+    Read-Host "Press Enter to Install new Docker Engine version (or Ctrl+C to break) ?"
+}
 
 if ($dockerService) {
     Stop-Service docker
@@ -69,4 +78,6 @@ if (-not $dockerService) {
     & $dockerdExe --register-service
 }
 
-Start-Service docker
+if (!$restartNeeded) {
+    Start-Service docker
+}
