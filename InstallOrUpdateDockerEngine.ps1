@@ -78,6 +78,10 @@ if (-not $dockerService) {
     & $dockerdExe --register-service
 }
 
+New-Item 'c:\ProgramData\Docker' -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+Remove-Item 'c:\ProgramData\Docker\panic.log' -Force -ErrorAction SilentlyContinue | Out-Null
+New-Item 'c:\ProgramData\Docker\panic.log' -ItemType File -ErrorAction SilentlyContinue | Out-Null
+
 if (!$restartNeeded) {
     Start-Service docker
 }

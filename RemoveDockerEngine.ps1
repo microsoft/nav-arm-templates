@@ -4,7 +4,8 @@ if ($dockerService) {
     if ($dockerService.Status -eq "Running") {
         Stop-Service docker
     }
-    dockerd --unregister-service
+    Set-Location "c:\program files\docker"
+    .\dockerd.exe --unregister-service
 }
 
 $path = [System.Environment]::GetEnvironmentVariable("Path", "User")
@@ -13,9 +14,8 @@ if (";$path;" -like "*;$($env:ProgramFiles)\docker;*") {
 }
 
 # Remove installation folder
+Set-Location c:\
 Remove-Item -path $env:ProgramFiles\docker -Recurse -Force
-
-
 
 # Remove docker in ProgramData
 # Remove docker data-root

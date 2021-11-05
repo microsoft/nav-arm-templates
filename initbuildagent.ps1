@@ -39,9 +39,6 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
 
-Install-Module -Name bccontainerhelper -Force
-Import-Module -Name bccontainerhelper -DisableNameChecking
-
 $DownloadFolder = "C:\Download"
 MkDir $DownloadFolder -ErrorAction Ignore | Out-Null
 
@@ -52,7 +49,6 @@ if ($installDocker) {
     Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
     . $installDockerScript -Force
 }
-
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $agentFilename = $agentUrl.Substring($agentUrl.LastIndexOf('/')+1)

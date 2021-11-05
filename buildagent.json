@@ -16,7 +16,7 @@
 			"defaultValue": "",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify * (star) to allow all remote desktop access, specify - (minus) to deny all remote desktop access or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
+                "Description": "Specify * (star) to allow all remote desktop access, specify - (minus) to deny all remote desktop access (use JIT) or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
             }
 		},
         "OperatingSystem": {
@@ -105,11 +105,11 @@
                 "Description": "Select the number of agents you want to create on the VM"
             }
         },
-        "PersonalAccessToken": {
+        "Token": {
             "type": "securestring",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify a personal access token with permissions to add/remove agents from the agent pool (GitHub or Azure DevOps)"
+                "Description": "Specify a personal access token with permissions to add/remove agents from the agent pool for Azure DevOps or the token provided at https://github.com/{organization}/{repository}/settings/actions/runners/new for Github"
             }
         },
         "Organization": {
