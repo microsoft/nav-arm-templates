@@ -196,14 +196,14 @@ $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 $downloadFolder = "C:\DOWNLOAD"
 New-Item -Path $downloadFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 
+if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
+    AddToStatus "Installing NuGet Package Provider"
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
+}
 if (!(Get-Module powershellget | Where-Object { $_.Version -ge [version]"2.2.5" })) {
     AddToStatus "Installing PowerShellGet 2.2.5"
     Install-Module powershellget -RequiredVersion 2.2.5 -force
     Import-Module powershellget -RequiredVersion 2.2.5
-}
-if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
-    AddToStatus "Installing NuGet Package Provider"
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
 
 AddToStatus "Installing Internet Information Server (this might take a few minutes)"
