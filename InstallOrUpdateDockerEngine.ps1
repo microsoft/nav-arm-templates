@@ -83,6 +83,10 @@ New-Item 'c:\ProgramData\Docker' -ItemType Directory -ErrorAction SilentlyContin
 Remove-Item 'c:\ProgramData\Docker\panic.log' -Force -ErrorAction SilentlyContinue | Out-Null
 New-Item 'c:\ProgramData\Docker\panic.log' -ItemType File -ErrorAction SilentlyContinue | Out-Null
 
-if (!$restartNeeded) {
+try {
     Start-Service docker
 }
+catch {
+    Write-Host -ForegroundColor Red "Could not start docker service, you might need to reboot your computer."
+}
+
