@@ -287,36 +287,8 @@ if ($sqlServerType -eq "SQLDeveloper") {
 }
 
 
-if ($WindowsInstallationType -eq "Server") {
-    AddToStatus "Starting docker"
-    start-service docker
-} else {
-    if (!(Test-Path -Path "C:\Program Files\Docker\Docker\Docker Desktop.exe" -PathType Leaf)) {
-        AddToStatus "Install Docker"
-        $dockerexe = "C:\DOWNLOAD\DockerInstall.exe"
-        (New-Object System.Net.WebClient).DownloadFile("https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe", $dockerexe)
-        Start-Process -FilePath $dockerexe -ArgumentList "install --quiet" -Wait
-
-        AddToStatus "Restarting computer and start Docker"
-        shutdown -r -t 30
-
-        exit
-
-    } else {
-        AddToStatus "Waiting for docker to start... (this should only take a few minutes)"
-        Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe" -PassThru
-        $serverOsStr = "  OS/Arch:      "
-        do {
-            Start-Sleep -Seconds 10
-            $dockerver = docker version
-        } while ($LASTEXITCODE -ne 0)
-        $serverOs = ($dockerver | where-Object { $_.startsWith($serverOsStr) }).SubString($serverOsStr.Length)
-        if (!$serverOs.startsWith("windows")) {
-            AddToStatus "Switching to Windows Containers"
-            & "c:\program files\docker\docker\dockercli" -SwitchDaemon
-        }
-    }
-}
+AddToStatus "Starting docker"
+start-service docker
 
 AddToStatus "Enabling Docker API"
 New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
