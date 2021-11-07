@@ -226,6 +226,7 @@ if ($requestToken) {
 $title = 'Dynamics Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
+[System.IO.File]::WriteAllText("C:\inetpub\wwwroot\containerName.txt", $containerName)
 
 if ("$RemoteDesktopAccess" -ne "") {
 AddToStatus "Creating Connect.rdp"
