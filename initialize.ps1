@@ -352,7 +352,7 @@ if ($AddTraefik -eq "yes" -and [environment]::OSVersion.Version.Build -ne 17763)
 $installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
 if ($installDocker) {
     $installDockerScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'InstallOrUpdateDockerEngine.ps1'
-    $installDockerScript = Join-Path $DownloadFolder "InstallOrUpdateDockerEngine.ps1"
+    $installDockerScript = "C:\DEMO\InstallOrUpdateDockerEngine.ps1"
     Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
     . $installDockerScript -Force -envScope "Machine"
 }
