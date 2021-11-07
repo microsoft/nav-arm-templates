@@ -96,6 +96,14 @@
                 "Description": "Select the VM size of the deployment"
             }
         },
+        "ContainerName": {
+		    "type": "string",
+            "defaultValue": "bcserver",
+            "minLength": 2,
+            "metadata": {
+                "Description": "Name of the default container to create in the VM"
+            }
+		},
         "Isolation": {
 		    "type": "string",
             "defaultValue": "Default",
@@ -384,13 +392,13 @@
     },
     "variables": {
         "nchbranch": "dev",
-        "containerName": "bcserver",
         "vmName": "[trim(parameters('vmName'))]",
         "TimezoneId": "[parameters('TimezoneId')]",
         "AcceptEula": "[parameters('AcceptEula')]",
         "vmSize": "[parameters('vmSize')]",
         "RemoteDesktopAccess": "[parameters('RemoteDesktopAccess')]",
         "WinRmAccess": "[parameters('WinRmAccess')]",
+        "containerName": "[parameters('ContainerName')]",
         "Isolation": "[parameters('Isolation')]",
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
         "navAdminUsername": "[trim(parameters('BCAdminUsername'))]",
