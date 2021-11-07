@@ -4,7 +4,9 @@
     [string] $force = ""
 )
 
-$sessionParam = @{ "session" = (Get-NavContainerSession -containerName navserver -silent) }
+. "c:\demo\settings.ps1"
+
+$sessionParam = @{ "session" = (Get-NavContainerSession -containerName $containerName -silent) }
 $backupDir = Join-Path $backupFolder $backupName
 
 if (Test-Path -Path $backupDir) {
@@ -20,11 +22,12 @@ Invoke-Command @sessionParam -ScriptBlock { Param($backupDir)
     $serviceTierFolder = (Get-Item "C:\Program Files\Microsoft Dynamics NAV\*\Service").FullName
     $customConfigFile = Join-Path $serviceTierFolder "CustomSettings.config"
     [xml]$customConfig = [System.IO.File]::ReadAllText($customConfigFile)
+    $serverInstance = $customConfig.SelectSingleNode("//appSettings/add[@key='ServerInstance']").Value
     $databaseServer = $customConfig.SelectSingleNode("//appSettings/add[@key='DatabaseServer']").Value
     $databaseInstance = $customConfig.SelectSingleNode("//appSettings/add[@key='DatabaseInstance']").Value
     $databaseName = $customConfig.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
 
-    Set-NavServerInstance -ServerInstance NAV -Stop
+    Set-NavServerInstance -ServerInstance $serverInstance -Stop
     try
     {
         Write-Host "Taking database $DatabaseName offline"
@@ -43,6 +46,6 @@ Invoke-Command @sessionParam -ScriptBlock { Param($backupDir)
         Write-Host "Putting database $DatabaseName back online"
         Invoke-SqlCmd -Query ("ALTER DATABASE [{0}] SET ONLINE" -f $DatabaseName)
 
-        Set-NavServerInstance -ServerInstance NAV -Start
+        Set-NavServerInstance -ServerInstance $serverInstance -Start
     }
 } -ArgumentList $backupDir
