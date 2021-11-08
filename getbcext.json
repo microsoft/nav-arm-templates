@@ -391,7 +391,7 @@
         }
     },
     "variables": {
-        "nchbranch": "dev",
+        "nchbranch": "",
         "vmName": "[trim(parameters('vmName'))]",
         "TimezoneId": "[parameters('TimezoneId')]",
         "AcceptEula": "[parameters('AcceptEula')]",
