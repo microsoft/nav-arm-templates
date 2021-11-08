@@ -1,5 +1,6 @@
 ﻿Param(
-    [switch] $force
+    [switch] $force,
+    [string] $envScope = "User"
 )
 
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
@@ -67,9 +68,9 @@ Invoke-WebRequest -UseBasicParsing -Uri $latestZipFileUrl -OutFile $tempFile
 Expand-Archive $tempFile -DestinationPath $env:ProgramFiles -Force
 Remove-Item $tempFile -Force
 
-$path = [System.Environment]::GetEnvironmentVariable("Path", "User")
+$path = [System.Environment]::GetEnvironmentVariable("Path", $envScope)
 if (";$path;" -notlike "*;$($env:ProgramFiles)\docker;*") {
-    [Environment]::SetEnvironmentVariable("Path", "$path;$env:ProgramFiles\docker", [System.EnvironmentVariableTarget]::User)
+    [Environment]::SetEnvironmentVariable("Path", "$path;$env:ProgramFiles\docker", $envScope)
 }
 
 # Register service if necessary
@@ -82,6 +83,10 @@ New-Item 'c:\ProgramData\Docker' -ItemType Directory -ErrorAction SilentlyContin
 Remove-Item 'c:\ProgramData\Docker\panic.log' -Force -ErrorAction SilentlyContinue | Out-Null
 New-Item 'c:\ProgramData\Docker\panic.log' -ItemType File -ErrorAction SilentlyContinue | Out-Null
 
-if (!$restartNeeded) {
+try {
     Start-Service docker
 }
+catch {
+    Write-Host -ForegroundColor Red "Could not start docker service, you might need to reboot your computer."
+}
+

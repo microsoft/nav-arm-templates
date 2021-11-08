@@ -193,16 +193,17 @@ AddToStatus "Initialize, user: $env:USERNAME"
 AddToStatus "TemplateLink: $templateLink"
 $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 
-New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
+$downloadFolder = "C:\DOWNLOAD"
+New-Item -Path $downloadFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 
+if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
+    AddToStatus "Installing NuGet Package Provider"
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
+}
 if (!(Get-Module powershellget | Where-Object { $_.Version -ge [version]"2.2.5" })) {
     AddToStatus "Installing PowerShellGet 2.2.5"
     Install-Module powershellget -RequiredVersion 2.2.5 -force
     Import-Module powershellget -RequiredVersion 2.2.5
-}
-if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
-    AddToStatus "Installing NuGet Package Provider"
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
 
 AddToStatus "Installing Internet Information Server (this might take a few minutes)"
@@ -225,6 +226,7 @@ if ($requestToken) {
 $title = 'Dynamics Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
+[System.IO.File]::WriteAllText("C:\inetpub\wwwroot\containerName.txt", $containerName)
 
 if ("$RemoteDesktopAccess" -ne "") {
 AddToStatus "Creating Connect.rdp"
@@ -306,7 +308,7 @@ if ($workshopFilesUrl -ne "") {
         $workshopFilesUrl = "$($scriptPath)$workshopFilesUrl"
     }
     $workshopFilesFolder = "c:\WorkshopFiles"
-    $workshopFilesFile = "C:\DOWNLOAD\WorkshopFiles.zip"
+    $workshopFilesFile = Join-Path $downloadFolder "WorkshopFiles.zip"
     New-Item -Path $workshopFilesFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 	Download-File -sourceUrl $workshopFilesUrl -destinationFile $workshopFilesFile
     AddToStatus "Unpacking Workshop Files to $WorkshopFilesFolder"
@@ -341,14 +343,18 @@ Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settin
 
 }
 
-if ($WindowsInstallationType -eq "Server") {
-    if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
-        AddToStatus "Installing Docker"
-        Install-module DockerMsftProvider -Force
-        Install-Package -Name docker -ProviderName DockerMsftProvider -Force
-    }
-} else {
+if ($AddTraefik -eq "yes" -and [environment]::OSVersion.Version.Build -ne 17763) {
+    # Traefik currently requires hyperv if not 1809
+    AddToStatus "Enable Hyper-V and containers (needed by Traefik)"
     Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
+}
+
+$installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
+if ($installDocker) {
+    $installDockerScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'InstallOrUpdateDockerEngine.ps1'
+    $installDockerScript = "C:\DEMO\InstallOrUpdateDockerEngine.ps1"
+    Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
+    . $installDockerScript -Force -envScope "Machine"
 }
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"

@@ -111,6 +111,129 @@ if (Test-Path -Path "C:\demo\*\BcContainerHelper.psm1") {
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
+if ($AddTraefik -eq "Yes") {
+
+    if (Test-Path "c:\myfolder\certificate.pfx") {
+        AddToStatus -color Red "Certificate specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if (-not $ContactEMailForLetsEncrypt) {
+        AddToStatus -color Red "Contact EMail for LetsEncrypt not specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($clickonce -eq "Yes") {
+        AddToStatus -color Red "ClickOnce specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($AddTraefik -eq "Yes") {
+
+        if ([System.Environment]::OSVersion.Version.Build -gt 17763 -and $bcContainerHelperConfig.TraefikImage.EndsWith('-1809')) {
+            $bestGenericImage = Get-BestGenericImageName
+            $servercoreVersion = $bestGenericImage.Split(':')[1]
+            $serverCoreImage = "mcr.microsoft.com/windows/servercore:$serverCoreVersion"
+
+            AddToStatus "Pulling $serverCoreImage (this might take some time)"
+            if (!(DockerDo -imageName $serverCoreImage -command pull))  {
+                throw "Error pulling image"
+            }
+            $traefikVersion = "v1.7.33"
+
+            New-Item 'C:\DEMO\Traefik' -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+            Set-Location 'C:\DEMO\Traefik'
+
+            @"
+FROM $serverCoreImage
+SHELL ["powershell", "-Command", "`$ErrorActionPreference = 'Stop'; `$ProgressPreference = 'SilentlyContinue';"]
+
+RUN Invoke-WebRequest \
+    -Uri "https://github.com/traefik/traefik/releases/download/$traefikVersion/traefik_windows-amd64.exe" \
+    -OutFile "/traefik.exe"
+
+EXPOSE 80
+ENTRYPOINT [ "/traefik" ]
+
+# Metadata
+LABEL org.opencontainers.image.vendor="Traefik Labs" \
+    org.opencontainers.image.url="https://traefik.io" \
+    org.opencontainers.image.title="Traefik" \
+    org.opencontainers.image.description="A modern reverse-proxy" \
+    org.opencontainers.image.version="$traefikVersion" \
+    org.opencontainers.image.documentation="https://docs.traefik.io"
+"@ | Set-Content 'DOCKERFILE'
+
+            docker build --tag mytraefik .
+
+            $bcContainerHelperConfig.TraefikImage = "mytraefik:latest"
+        }
+
+        AddToStatus "Setup Traefik container"
+        Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
+    }
+    else {
+        Get-VariableDeclaration -name "AddTraefik" | Add-Content $settingsScript
+    }
+}
+
+if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
+if (-not (Get-InstalledModule ACME-PS -ErrorAction SilentlyContinue)) {
+
+    AddToStatus "Installing ACME-PS PowerShell Module"
+    Install-Module -Name ACME-PS -RequiredVersion "1.1.0-beta" -AllowPrerelease -Force
+
+    AddToStatus "Using Lets Encrypt certificate"
+    # Use Lets encrypt
+    # If rate limits are hit, log an error and revert to Self Signed
+    try {
+        $plainPfxPassword = [GUID]::NewGuid().ToString()
+        $certificatePfxFilename = "c:\ProgramData\bccontainerhelper\certificate.pfx"
+        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
+
+        # Override SetupCertificate.ps1 in container
+        ('if ([int](get-item "C:\Program Files\Microsoft Dynamics NAV\*").Name -le 100) {
+    Write-Host "WARNING: This version doesn''t support LetsEncrypt certificates, reverting to self-signed"
+    . "C:\run\SetupCertificate.ps1"
+}
+else {
+    . (Join-Path $PSScriptRoot "InstallCertificate.ps1")
+}
+') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
+
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+$certificateThumbprint = $cert.Thumbprint
+Write-Host "Certificate File Thumbprint $certificateThumbprint"
+if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+    Write-Host "Import Certificate to LocalMachine\my"
+    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password $certificatePfxPassword | Out-Null
+}
+$dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+if ($dnsidentity.StartsWith("*")) {
+    $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
+}
+') | Set-Content "c:\myfolder\InstallCertificate.ps1"
+
+        # Create RenewCertificate script
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$publicDnsName = "'+$publicDnsName+'"
+Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword
+Start-Sleep -seconds 30
+Restart-NavContainer -containerName "'+$containerName+'" -renewBindings
+') | Set-Content "c:\demo\RenewCertificate.ps1"
+
+    } catch {
+        AddToStatus -color Red $_.Exception.Message
+        AddToStatus -color Red "Reverting to Self Signed Certificate"
+    }
+
+}
+}
+
 if ("$WinRmAccess" -ne "") {
     if (Test-Path "c:\myfolder\InstallCertificate.ps1") {
         # Using trusted certificate - install on host
@@ -164,36 +287,8 @@ if ($sqlServerType -eq "SQLDeveloper") {
 }
 
 
-if ($WindowsInstallationType -eq "Server") {
-    AddToStatus "Starting docker"
-    start-service docker
-} else {
-    if (!(Test-Path -Path "C:\Program Files\Docker\Docker\Docker Desktop.exe" -PathType Leaf)) {
-        AddToStatus "Install Docker"
-        $dockerexe = "C:\DOWNLOAD\DockerInstall.exe"
-        (New-Object System.Net.WebClient).DownloadFile("https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe", $dockerexe)
-        Start-Process -FilePath $dockerexe -ArgumentList "install --quiet" -Wait
-
-        AddToStatus "Restarting computer and start Docker"
-        shutdown -r -t 30
-
-        exit
-
-    } else {
-        AddToStatus "Waiting for docker to start... (this should only take a few minutes)"
-        Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe" -PassThru
-        $serverOsStr = "  OS/Arch:      "
-        do {
-            Start-Sleep -Seconds 10
-            $dockerver = docker version
-        } while ($LASTEXITCODE -ne 0)
-        $serverOs = ($dockerver | where-Object { $_.startsWith($serverOsStr) }).SubString($serverOsStr.Length)
-        if (!$serverOs.startsWith("windows")) {
-            AddToStatus "Switching to Windows Containers"
-            & "c:\program files\docker\docker\dockercli" -SwitchDaemon
-        }
-    }
-}
+AddToStatus "Starting docker"
+start-service docker
 
 AddToStatus "Enabling Docker API"
 New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
