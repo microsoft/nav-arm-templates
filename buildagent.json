@@ -118,12 +118,12 @@
                 "Description": "Specify the URL for your GitHub Project/Organization or your Azure DevOps Organization (ex. https://github.com/freddydk/BingMaps.AppSource or https://dev.azure.com/freddykristiansen)"
             }
         },
-        "Pool": {
+        "LabelsOrPool": {
             "type": "string",
             "defaultValue": "default",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify pool in which your agent should live. (Only for Azure DevOps)"
+                "Description": "Specify additional labels for GitHub runners or specify the pool in which your agent should live for Azure DevOps"
             }
         },
         "AgentUrl": {
@@ -394,7 +394,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initbuildagent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -Organization \"',parameters('organization'),'\" -token \"',parameters('token'),'\" -Count ',parameters('count'),' -agentUrl \"',parameters('agentUrl'),'\" -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('pool'),'\" -vmName \"',variables('vmName'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -Organization \"',parameters('organization'),'\" -token \"',parameters('token'),'\" -Count ',parameters('count'),' -agentUrl \"',parameters('agentUrl'),'\" -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('labelsorpool'),'\" -vmName \"',variables('vmName'),'\"')]"
                 },
                 "protectedSettings": {}
             }
