@@ -80,7 +80,7 @@ else {
     exit
 }
 
-if ($Office365UserName -eq "" -or $Office365Password -eq "") {
+if ($Office365Password -eq "" -or (!$Office365UserName.contains('@'))) {
     $auth = "NavUserPassword"
     if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
         Remove-Item -Path "c:\myfolder\SetupConfiguration.ps1" -Force
@@ -92,9 +92,6 @@ else {
         AddToStatus "Reusing existing Aad Apps for Office 365 integration"
     }
     else {
-        '. "c:\run\SetupConfiguration.ps1"
-        ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
-
         AddToStatus "Creating Aad Apps for Office 365 integration"
         if (([System.Version]$navVersion).Major -ge 15) {
             $publicWebBaseUrl = "https://$publicDnsName/BC/"
@@ -104,8 +101,15 @@ else {
         }
         $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
         $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
+        $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$($Office365UserName.split('@')[1])"
+
+@"
+`$appIdUri = '$appIdUri'
+. 'c:\run\SetupConfiguration.ps1'
+"@ | Set-Content "c:\myfolder\SetupConfiguration.ps1"
+
         try {
-            $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp -IncludeEMailAadApp
+            $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $appIdUri -publicWebBaseUrl $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp -IncludeEMailAadApp
 
             $SsoAdAppId = $AdProperties.SsoAdAppId
             $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
@@ -115,12 +119,13 @@ else {
             $EMailAdAppId = $AdProperties.EMailAdAppId
             $EMailAdAppKeyValue = $AdProperties.EMailAdAppKeyValue
 
-    'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
-    Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
-    Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$ExcelAdAppId+'" -WarningAction Ignore
-    Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ValidAudiences" -KeyValue "'+$SsoAdAppId+'" -WarningAction Ignore -ErrorAction Ignore
-    ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
-            
+@"
+Write-Host 'Changing Server config to NavUserPassword to enable basic web services'
+Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ClientServicesCredentialType' -KeyValue 'NavUserPassword' -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddInAzureActiveDirectoryClientId' -KeyValue '$ExcelAdAppId' -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ValidAudiences' -KeyValue '$SsoAdAppId' -WarningAction Ignore -ErrorAction Ignore
+"@ | Add-Content "c:\myfolder\SetupConfiguration.ps1"
+
             $settings = Get-Content -path $settingsScript | Where-Object { $_ -notlike '$SsoAdAppId = *' -and $_ -notlike '$SsoAdAppKeyValue = *' -and $_ -notlike '$ExcelAdAppId = *' -and $_ -notlike '$PowerBiAdAppId = *' -and $_ -notlike '$PowerBiAdAppKeyValue = *' -and $_ -notlike '$EMailAdAppId = *' -and $_ -notlike '$EMailAdAppKeyValue = *' }
 
             $settings += "`$SsoAdAppId = '$SsoAdAppId'"
