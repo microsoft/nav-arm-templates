@@ -290,13 +290,6 @@ if ($sqlServerType -eq "SQLDeveloper") {
 AddToStatus "Starting docker"
 start-service docker
 
-AddToStatus "Enabling Docker API"
-New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
-'{
-    "hosts": ["tcp://0.0.0.0:2375", "npipe://"]
-}' | Set-Content "C:\ProgramData\docker\config\daemon.json"
-netsh advfirewall firewall add rule name="Docker" dir=in action=allow protocol=TCP localport=2375 | Out-Null
-
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
 
 AddToStatus "Enabling File Download in IE"
