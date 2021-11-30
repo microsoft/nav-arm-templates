@@ -105,13 +105,15 @@ else {
         $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
         $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
         try {
-            $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp
+            $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp -IncludeEMailAadApp
 
             $SsoAdAppId = $AdProperties.SsoAdAppId
             $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
             $ExcelAdAppId = $AdProperties.ExcelAdAppId
             $PowerBiAdAppId = $AdProperties.PowerBiAdAppId
             $PowerBiAdAppKeyValue = $AdProperties.PowerBiAdAppKeyValue
+            $EMailAdAppId = $AdProperties.EMailAdAppId
+            $EMailAdAppKeyValue = $AdProperties.EMailAdAppKeyValue
 
     'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
     Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
@@ -119,13 +121,15 @@ else {
     Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ValidAudiences" -KeyValue "'+$SsoAdAppId+'" -WarningAction Ignore -ErrorAction Ignore
     ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
             
-            $settings = Get-Content -path $settingsScript
+            $settings = Get-Content -path $settingsScript | Where-Object { $_ -notlike '$SsoAdAppId = *' -and $_ -notlike '$SsoAdAppKeyValue = *' -and $_ -notlike '$ExcelAdAppId = *' -and $_ -notlike '$PowerBiAdAppId = *' -and $_ -notlike '$PowerBiAdAppKeyValue = *' -and $_ -notlike '$EMailAdAppId = *' -and $_ -notlike '$EMailAdAppKeyValue = *' }
 
             $settings += "`$SsoAdAppId = '$SsoAdAppId'"
             $settings += "`$SsoAdAppKeyValue = '$SsoAdAppKeyValue'"
             $settings += "`$ExcelAdAppId = '$ExcelAdAppId'"
             $settings += "`$PowerBiAdAppId = '$PowerBiAdAppId'"
             $settings += "`$PowerBiAdAppKeyValue = '$PowerBiAdAppKeyValue'"
+            $settings += "`$EMailAdAppId = '$EMailAdAppId'"
+            $settings += "`$EMailAdAppKeyValue = '$EMailAdAppKeyValue'"
 
             Set-Content -Path $settingsScript -Value $settings
     
@@ -374,9 +378,11 @@ if ($auth -eq "AAD") {
     } 
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
-        if (([System.Version]$navVersion) -ge ([System.Version]"16.4.14693.15445")) {
-           #Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_16.4.app" -destinationFile $appfile
-           Download-File -sourceUrl "https://erpsources.blob.core.windows.net/azure-ad-app-setup/Microsoft_AzureAdAppSetup_16.4.app" -destinationFile $appfile
+        if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
+            Download-File -sourceUrl "https://businesscentralapps.azureedge.net/azureadappsetup/17.1.11329.0/apps.zip" -destinationFile $appfile
+        }
+        elseif (([System.Version]$navVersion) -ge ([System.Version]"16.4.14693.15445")) {
+            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_16.4.app" -destinationFile $appfile
         }
         elseif (([System.Version]$navVersion).Major -ge 15) {
             #Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_15.0.app" -destinationFile $appfile
@@ -396,6 +402,41 @@ if ($auth -eq "AAD") {
             "value" = "$PowerBiAdAppId,$PowerBiAdAppKeyValue"
         }
         Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
+
+        if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
+            $parameters = @{ 
+                "name" = "SetupEMailAdApp"
+                "value" = "$EMailAdAppId,$EMailAdAppKeyValue,$Office365UserName"
+            }
+            Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
+    
+            if ($sqlServerType -eq "SQLExpress") {
+                Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
+                    $config = Get-NAVServerConfiguration -serverinstance $serverinstance -asxml
+                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value -eq 'True') {
+                        $databaseName = "default"
+                    }
+                    else {
+                        $databaseName = $config.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
+                    }
+                    Invoke-Sqlcmd -Database $databaseName -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('e6328152-bb29-4664-9dae-3bc7eaae1fd8', 1)"
+                    Invoke-Sqlcmd -Database $databaseName -Query "UPDATE [dbo].[Isolated Storage] SET [App Id] = 'e6328152-bb29-4664-9dae-3bc7eaae1fd8' WHERE [App Id] = '4C06EAFF-C198-4764-94A4-B695861CE379'"
+                }
+            }
+            else {
+                if ($sqlserverType -eq "SQLDeveloper") {
+                    $databaseServerInstance = "localhost"
+                }
+                else {
+                    $databaseServerInstance = $params.databaseServer
+                }
+                if ($params.databaseInstance) {
+                    $databaseServerInstance += "\$($params.databaseInstance)"
+                }
+                Invoke-Sqlcmd -ServerInstance $databaseServerInstance -Database $params.databaseName -Credential $params.databaseCredential -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('e6328152-bb29-4664-9dae-3bc7eaae1fd8', 1)"
+                Invoke-Sqlcmd -ServerInstance $databaseServerInstance -Database $params.databaseName -Credential $params.databaseCredential -Query "UPDATE [dbo].[Isolated Storage] SET [App Id] = 'e6328152-bb29-4664-9dae-3bc7eaae1fd8' WHERE [App Id] = '4C06EAFF-C198-4764-94A4-B695861CE379'"
+            }
+        }
 
         UnPublish-NavContainerApp -containerName $containerName -appName AzureAdAppSetup -unInstall -doNotSaveData
     }
@@ -497,7 +538,7 @@ if ("$bingmapskey" -ne "") {
             if ($sqlServerType -eq "SQLExpress") {
                 Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
                     $config = Get-NAVServerConfiguration -serverinstance $serverinstance -asxml
-                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value) {
+                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value -eq 'True') {
                         $databaseName = "default"
                     }
                     else {
