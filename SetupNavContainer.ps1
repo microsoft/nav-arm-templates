@@ -109,13 +109,24 @@ else {
 "@ | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
         try {
-            $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $appIdUri -publicWebBaseUrl $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp -IncludeEMailAadApp
+            $AdProperties = Create-AadAppsForNav `
+                -AadAdminCredential $Office365Credential `
+                -appIdUri $appIdUri `
+                -publicWebBaseUrl $publicWebBaseUrl `
+                -IncludeExcelAadApp `
+                -IncludePowerBiAadApp `
+                -IncludeEMailAadApp `
+                -IncludeApiAccess `
+                -preAuthorizePowerShell
 
             $SsoAdAppId = $AdProperties.SsoAdAppId
             $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
             $ExcelAdAppId = $AdProperties.ExcelAdAppId
+            $ExcelAdAppKeyValue = $AdProperties.ExcelAdAppKeyValue
             $PowerBiAdAppId = $AdProperties.PowerBiAdAppId
             $PowerBiAdAppKeyValue = $AdProperties.PowerBiAdAppKeyValue
+            $ApiAdAppId = $AdProperties.ApiAdAppId
+            $ApiAdAppKeyValue = $AdProperties.ApiAdAppKeyValue
             $EMailAdAppId = $AdProperties.EMailAdAppId
             $EMailAdAppKeyValue = $AdProperties.EMailAdAppKeyValue
 
@@ -131,8 +142,11 @@ Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ValidAudie
             $settings += "`$SsoAdAppId = '$SsoAdAppId'"
             $settings += "`$SsoAdAppKeyValue = '$SsoAdAppKeyValue'"
             $settings += "`$ExcelAdAppId = '$ExcelAdAppId'"
+            $settings += "`$ExcelAdAppKeyValue = '$ExcelAdAppKeyValue'"
             $settings += "`$PowerBiAdAppId = '$PowerBiAdAppId'"
             $settings += "`$PowerBiAdAppKeyValue = '$PowerBiAdAppKeyValue'"
+            $settings += "`$ApiAdAppId = '$ApiAdAppId'"
+            $settings += "`$ApiAdAppKeyValue = '$ApiAdAppKeyValue'"
             $settings += "`$EMailAdAppId = '$EMailAdAppId'"
             $settings += "`$EMailAdAppKeyValue = '$EMailAdAppKeyValue'"
 
@@ -403,6 +417,12 @@ if ($auth -eq "AAD") {
         $parameters = @{ 
             "name" = "SetupAzureAdApp"
             "value" = "$PowerBiAdAppId,$PowerBiAdAppKeyValue"
+        }
+        Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
+
+        $parameters = @{ 
+            "name" = "SetupAzureAdApp"
+            "value" = "$ApiAdAppId,$ApiAppKeyValue"
         }
         Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
 
