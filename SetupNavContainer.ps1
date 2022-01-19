@@ -397,7 +397,10 @@ if ($auth -eq "AAD") {
     } 
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
-        if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
+        if (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
+            Download-File -sourceUrl "https://businesscentralapps.azureedge.net/azureadappsetup/18.0.67361.0/apps.zip" -destinationFile $appfile
+        }
+        elseif (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
             Download-File -sourceUrl "https://businesscentralapps.azureedge.net/azureadappsetup/17.1.11329.0/apps.zip" -destinationFile $appfile
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"16.4.14693.15445")) {
@@ -420,11 +423,13 @@ if ($auth -eq "AAD") {
         }
         Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
 
-        $parameters = @{ 
-            "name" = "SetupAzureAdApp"
-            "value" = "$ApiAdAppId,$ApiAppKeyValue"
+        if (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
+            $parameters = @{ 
+                "name" = "SetupAadApplication"
+                "value" = "$ApiAdAppId,API,D365 ADMINISTRATOR:D365 FULL ACCESS"
+            }
+            Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
         }
-        Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
 
         if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
             $parameters = @{ 
