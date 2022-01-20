@@ -134,7 +134,9 @@ else {
 Write-Host 'Changing Server config to NavUserPassword to enable basic web services'
 Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ClientServicesCredentialType' -KeyValue 'NavUserPassword' -WarningAction Ignore
 Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddInAzureActiveDirectoryClientId' -KeyValue '$ExcelAdAppId' -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ValidAudiences' -KeyValue '$SsoAdAppId' -WarningAction Ignore -ErrorAction Ignore
+Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ValidAudiences' -KeyValue '$SsoAdAppId;https://api.businesscentral.dynamics.com' -WarningAction Ignore -ErrorAction Ignore
+Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'DisableTokenSigningCertificateValidation' -KeyValue 'True' -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExtendedSecurityTokenLifetime' -KeyValue '24' -WarningAction Ignore
 "@ | Add-Content "c:\myfolder\SetupConfiguration.ps1"
 
             $settings = Get-Content -path $settingsScript | Where-Object { $_ -notlike '$SsoAdAppId = *' -and $_ -notlike '$SsoAdAppKeyValue = *' -and $_ -notlike '$ExcelAdAppId = *' -and $_ -notlike '$PowerBiAdAppId = *' -and $_ -notlike '$PowerBiAdAppKeyValue = *' -and $_ -notlike '$EMailAdAppId = *' -and $_ -notlike '$EMailAdAppKeyValue = *' }
