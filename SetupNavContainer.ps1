@@ -109,13 +109,24 @@ else {
 "@ | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
         try {
-            $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $appIdUri -publicWebBaseUrl $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp -IncludeEMailAadApp
+            $AdProperties = Create-AadAppsForNav `
+                -AadAdminCredential $Office365Credential `
+                -appIdUri $appIdUri `
+                -publicWebBaseUrl $publicWebBaseUrl `
+                -IncludeExcelAadApp `
+                -IncludePowerBiAadApp `
+                -IncludeEMailAadApp `
+                -IncludeApiAccess `
+                -preAuthorizePowerShell
 
             $SsoAdAppId = $AdProperties.SsoAdAppId
             $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
             $ExcelAdAppId = $AdProperties.ExcelAdAppId
+            $ExcelAdAppKeyValue = $AdProperties.ExcelAdAppKeyValue
             $PowerBiAdAppId = $AdProperties.PowerBiAdAppId
             $PowerBiAdAppKeyValue = $AdProperties.PowerBiAdAppKeyValue
+            $ApiAdAppId = $AdProperties.ApiAdAppId
+            $ApiAdAppKeyValue = $AdProperties.ApiAdAppKeyValue
             $EMailAdAppId = $AdProperties.EMailAdAppId
             $EMailAdAppKeyValue = $AdProperties.EMailAdAppKeyValue
 
@@ -123,7 +134,9 @@ else {
 Write-Host 'Changing Server config to NavUserPassword to enable basic web services'
 Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ClientServicesCredentialType' -KeyValue 'NavUserPassword' -WarningAction Ignore
 Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddInAzureActiveDirectoryClientId' -KeyValue '$ExcelAdAppId' -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ValidAudiences' -KeyValue '$SsoAdAppId' -WarningAction Ignore -ErrorAction Ignore
+Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ValidAudiences' -KeyValue '$SsoAdAppId;https://api.businesscentral.dynamics.com' -WarningAction Ignore -ErrorAction Ignore
+Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'DisableTokenSigningCertificateValidation' -KeyValue 'True' -WarningAction Ignore
+Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExtendedSecurityTokenLifetime' -KeyValue '24' -WarningAction Ignore
 "@ | Add-Content "c:\myfolder\SetupConfiguration.ps1"
 
             $settings = Get-Content -path $settingsScript | Where-Object { $_ -notlike '$SsoAdAppId = *' -and $_ -notlike '$SsoAdAppKeyValue = *' -and $_ -notlike '$ExcelAdAppId = *' -and $_ -notlike '$PowerBiAdAppId = *' -and $_ -notlike '$PowerBiAdAppKeyValue = *' -and $_ -notlike '$EMailAdAppId = *' -and $_ -notlike '$EMailAdAppKeyValue = *' }
@@ -131,8 +144,11 @@ Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ValidAudie
             $settings += "`$SsoAdAppId = '$SsoAdAppId'"
             $settings += "`$SsoAdAppKeyValue = '$SsoAdAppKeyValue'"
             $settings += "`$ExcelAdAppId = '$ExcelAdAppId'"
+            $settings += "`$ExcelAdAppKeyValue = '$ExcelAdAppKeyValue'"
             $settings += "`$PowerBiAdAppId = '$PowerBiAdAppId'"
             $settings += "`$PowerBiAdAppKeyValue = '$PowerBiAdAppKeyValue'"
+            $settings += "`$ApiAdAppId = '$ApiAdAppId'"
+            $settings += "`$ApiAdAppKeyValue = '$ApiAdAppKeyValue'"
             $settings += "`$EMailAdAppId = '$EMailAdAppId'"
             $settings += "`$EMailAdAppKeyValue = '$EMailAdAppKeyValue'"
 
@@ -383,7 +399,10 @@ if ($auth -eq "AAD") {
     } 
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
-        if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
+        if (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
+            Download-File -sourceUrl "https://businesscentralapps.azureedge.net/azureadappsetup/18.0.67361.0/apps.zip" -destinationFile $appfile
+        }
+        elseif (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
             Download-File -sourceUrl "https://businesscentralapps.azureedge.net/azureadappsetup/17.1.11329.0/apps.zip" -destinationFile $appfile
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"16.4.14693.15445")) {
@@ -405,6 +424,14 @@ if ($auth -eq "AAD") {
             "value" = "$PowerBiAdAppId,$PowerBiAdAppKeyValue"
         }
         Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
+
+        if (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
+            $parameters = @{ 
+                "name" = "SetupAadApplication"
+                "value" = "$ApiAdAppId,API,D365 ADMINISTRATOR:D365 FULL ACCESS"
+            }
+            Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
+        }
 
         if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
             $parameters = @{ 
