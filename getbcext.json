@@ -45,7 +45,7 @@
 		},
         "OperatingSystem": {
             "type": "string",
-            "defaultValue": "Windows Server 2019 with Containers",
+            "defaultValue": "Windows Server 2019",
             "allowedValues": [
                 "Windows Server 2019",
                 "Windows Server 2019 with Containers",
