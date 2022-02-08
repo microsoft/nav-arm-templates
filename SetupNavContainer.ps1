@@ -342,7 +342,6 @@ try {
                      -useSSL `
                      -updateHosts `
                      -auth $Auth `
-                     -memoryLimit '25G' `
                      -authenticationEMail $Office365UserName `
                      -credential $credential `
                      -additionalParameters $additionalParameters `
