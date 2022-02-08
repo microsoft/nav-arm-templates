@@ -16,16 +16,16 @@
 			"defaultValue": "",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify * (star) to allow all remote desktop access, specify - (minus) to deny all remote desktop access or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
+                "Description": "Specify * (star) to allow all remote desktop access, specify - (minus) to deny all remote desktop access (use JIT) or provide an address range using CIDR notation, e.g. 10.0.0.0/24; an IP address; or a list of address ranges or IP addresses"
             }
 		},
         "OperatingSystem": {
             "type": "string",
-            "defaultValue": "Windows Server 2019 with Containers",
+            "defaultValue": "Windows Server 2019",
             "allowedValues": [
-                "Windows Server 2016",
                 "Windows Server 2019",
-                "Windows Server 2019 with Containers"
+                "Windows Server 2019 with Containers",
+                "Windows Server 2022"
             ],
             "metadata": {
                 "Description": "Select the Operating System of the VM"
@@ -39,18 +39,34 @@
                 "Standard_D3_v2",
                 "Standard_D4_v2",
                 "Standard_D5_v2",
-                "Standard_DS2_v2",
-                "Standard_DS3_v2",
-                "Standard_DS4_v2",
-                "Standard_DS5_v2",
                 "Standard_D2_v3",
                 "Standard_D4_v3",
                 "Standard_D8_v3",
                 "Standard_D16_v3",
+                "Standard_D32_v3",
+                "Standard_D48_v3",
+                "Standard_D64_v3",
                 "Standard_D2s_v3",
                 "Standard_D4s_v3",
                 "Standard_D8s_v3",
-                "Standard_D16s_v3"
+                "Standard_D16s_v3",
+                "Standard_D32s_v3",
+                "Standard_D48s_v3",
+                "Standard_D64s_v3",
+                "Standard_D2_v4",
+                "Standard_D4_v4",
+                "Standard_D8_v4",
+                "Standard_D16_v4",
+                "Standard_D32_v4",
+                "Standard_D48_v4",
+                "Standard_D64_v4",
+                "Standard_D2s_v4",
+                "Standard_D4s_v4",
+                "Standard_D8s_v4",
+                "Standard_D16s_v4",
+                "Standard_D32s_v4",
+                "Standard_D48s_v4",
+                "Standard_D64s_v4"
             ],
             "metadata": {
                 "Description": "Select the VM size of the deployment"
@@ -64,7 +80,7 @@
                 "Premium_LRS"
             ],
             "metadata": {
-                "Description": "Select the preferred storage account type. Standard_LRS is HDD, Premium_LRS is SSD."
+                "Description": "Select the preferred storage account type. Standard_LRS is HDD, Premium_LRS is SSD. (Not all VM Sizes support SSD)"
             }
         },
         "vmAdminUsername": {
@@ -81,34 +97,41 @@
                 "Description": "Specify administrator password for VM, Business Central and SQL (if applicable)"
             }
         },
-        "DevOpsOrganization": {
-            "type": "string",
-            "minLength": 1,
+        "count": {
+            "type": "int",
+            "defaultValue": 2,
             "metadata": {
-                "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
+                "Description": "Select the number of agents you want to create on the VM"
             }
         },
-        "PersonalAccessToken": {
+        "Token": {
             "type": "securestring",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
+                "Description": "Specify a personal access token with permissions to add/remove agents from the agent pool for Azure DevOps or the token provided at https://github.com/{organization}/{repository}/settings/actions/runners/new for Github"
             }
         },
-        "Pool": {
+        "Organization": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "Description": "Specify the URL for your GitHub Project/Organization or your Azure DevOps Organization (ex. https://github.com/freddydk/BingMaps.AppSource or https://dev.azure.com/freddykristiansen)"
+            }
+        },
+        "LabelsOrPool": {
             "type": "string",
             "defaultValue": "default",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify the URL for your Azure DevOps Organization (ex. https://dev.azure.com/freddykristiansen)"
+                "Description": "Specify additional labels for GitHub runners or specify the pool in which your agent should live for Azure DevOps"
             }
         },
-        "VstsAgentUrl": {
+        "AgentUrl": {
             "type": "string",
-            "defaultValue": "https://vstsagentpackage.azureedge.net/agent/2.170.1/vsts-agent-win-x64-2.170.1.zip",
+            "defaultValue": "",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify the URL for downloading the x64 VSTS Agent for your Azure DevOps Organization (go to https://dev.azure.com/{your_organization}/_admin/_AgentPool and click Download agent and select x64 to get the URL)"
+                "Description": "Specify the URL for downloading the Agent. GitHub runner URL can be found at https://github.com/{organization}/{repository}/settings/actions/runners/new (ex. https://github.com/actions/runner/releases/download/v2.284.0/actions-runner-win-x64-2.284.0.zip). x64 Azure DevOps Agent can be found at https://dev.azure.com/{your_organization}/_admin/_AgentPool (click Download agent and select x64 ) (ex. https://vstsagentpackage.azureedge.net/agent/2.194.0/vsts-agent-win-x64-2.194.0.zip)"
             }
         },
         "FinalSetupScriptUrl": {
@@ -126,9 +149,9 @@
         "vmAdminUsername": "[trim(parameters('vmAdminUsername'))]",
         "adminPassword": "[parameters('adminPassword')]",
         "OperatingSystem": "[parameters('OperatingSystem')]",
-        "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
-        "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 10'),'Windows-10','WindowsServer')]",
-        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
+        "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 11'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
+        "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 11'),'Windows-11','WindowsServer')]",
+        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 11'),'win11-21h2-pro',if(equals(variables('OperatingSystem'),'Windows Server 2022'),'2022-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
         "storageAccountType": "[parameters('StorageAccountType')]",
         "OSDiskName": "[concat(variables('vmName'),'_osdisk')]",
         "publicIPAddressName": "[concat(variables('vmName'), '_pip')]",
@@ -371,7 +394,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initbuildagent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -DevOpsOrganization \"',parameters('devopsorganization'),'\" -PersonalAccessToken \"',parameters('personalaccesstoken'),'\" -VstsAgentUrl \"',parameters('VstsAgentUrl'),'\" -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('pool'),'\" -vmName \"',variables('vmName'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -Organization \"',parameters('organization'),'\" -token \"',parameters('token'),'\" -Count ',parameters('count'),' -agentUrl \"',parameters('agentUrl'),'\" -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('labelsorpool'),'\" -vmName \"',variables('vmName'),'\"')]"
                 },
                 "protectedSettings": {}
             }

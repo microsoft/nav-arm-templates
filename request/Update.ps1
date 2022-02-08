@@ -4,7 +4,9 @@
     [string[]] $apps = ""
 )
 
-$sessionParam = @{ "session" = (Get-NavContainerSession -containerName navserver -silent) }
+. "c:\demo\settings.ps1"
+
+$sessionParam = @{ "session" = (Get-NavContainerSession -containerName $containerName -silent) }
 $Path = "c:\ProgramData\BcContainerHelper"
 
 Write-Host "Downloading .fob"
@@ -17,6 +19,19 @@ $symbols | % {
     Get-AzureStorageBlobContent -Context $storageContext -Container $queuename -Blob $_ -Destination $symbolsFile -Force | Out-Null
 }
 
+Invoke-Command @sessionParam -ScriptBlock { Param($fobFile)
+    $serviceTierFolder = (Get-Item "C:\Program Files\Microsoft Dynamics NAV\*\Service").FullName
+    $customConfigFile = Join-Path $serviceTierFolder "CustomSettings.config"
+    [xml]$customConfig = [System.IO.File]::ReadAllText($customConfigFile)
+    $serverInstance = $customConfig.SelectSingleNode("//appSettings/add[@key='ServerInstance']").Value
+    $databaseServer = $customConfig.SelectSingleNode("//appSettings/add[@key='DatabaseServer']").Value
+    $databaseInstance = $customConfig.SelectSingleNode("//appSettings/add[@key='DatabaseInstance']").Value
+    $databaseName = $customConfig.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
+    $managementServicesPort = $customConfig.SelectSingleNode("//appSettings/add[@key='ManagementServicesPort']").Value
+    if ($databaseInstance) { $databaseServer += "\$databaseInstance" }
+    $enableSymbolLoadingKey = $customConfig.SelectSingleNode("//appSettings/add[@key='EnableSymbolLoadingAtServerStartup']")
+}
+
 Write-Host "Downloading and uninstalling apps"
 $installedApps = @()
 $apps | % {
@@ -25,11 +40,11 @@ $apps | % {
     $installedApps += Invoke-Command @sessionParam -ScriptBlock { Param($appFile)
         $installedApp = @()
         $appSpec = Get-NavAppInfo -Path $appFile 
-        Get-NAVAppInfo -ServerInstance NAV -Id $appSpec.AppId | % {
+        Get-NAVAppInfo -ServerInstance $serverInstance -Id $appSpec.AppId | % {
             $installedApp += @{ "Name" = $_.Name; "Publisher" = $_.Publisher; "Version" = $_.Version }
             Write-Host "Uninstalling app $($_.Name)"
-            Uninstall-NAVApp -ServerInstance NAV -Publisher $_.Publisher -Name $_.Name -Version $_.Version
-            Unpublish-NAVApp -ServerInstance NAV -Publisher $_.Publisher -Name $_.Name -Version $_.Version
+            Uninstall-NAVApp -ServerInstance $serverInstance -Publisher $_.Publisher -Name $_.Name -Version $_.Version
+            Unpublish-NAVApp -ServerInstance $serverInstance -Publisher $_.Publisher -Name $_.Name -Version $_.Version
         }
         $installedApp
     } -ArgumentList $appFile
@@ -38,16 +53,6 @@ $apps | % {
 
 Invoke-Command @sessionParam -ScriptBlock { Param($fobFile)
 
-    $serviceTierFolder = (Get-Item "C:\Program Files\Microsoft Dynamics NAV\*\Service").FullName
-    $customConfigFile = Join-Path $serviceTierFolder "CustomSettings.config"
-    [xml]$customConfig = [System.IO.File]::ReadAllText($customConfigFile)
-    $databaseServer = $customConfig.SelectSingleNode("//appSettings/add[@key='DatabaseServer']").Value
-    $databaseInstance = $customConfig.SelectSingleNode("//appSettings/add[@key='DatabaseInstance']").Value
-    $databaseName = $customConfig.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
-    $managementServicesPort = $customConfig.SelectSingleNode("//appSettings/add[@key='ManagementServicesPort']").Value
-    if ($databaseInstance) { $databaseServer += "\$databaseInstance" }
-    $enableSymbolLoadingKey = $customConfig.SelectSingleNode("//appSettings/add[@key='EnableSymbolLoadingAtServerStartup']")
-
     Write-Host "Importing .fob"
     Import-NAVApplicationObject -Path $fobFile `
                                 -DatabaseName $databaseName `
@@ -55,7 +60,7 @@ Invoke-Command @sessionParam -ScriptBlock { Param($fobFile)
                                 -ImportAction Overwrite `
                                 -SynchronizeSchemaChanges "Force" `
                                 -NavServerName localhost `
-                                -NavServerInstance NAV `
+                                -NavServerInstance $serverInstance `
                                 -NavServerManagementPort "$managementServicesPort" `
                                 -Confirm:$false
 
@@ -69,10 +74,10 @@ $symbols | % {
         $appSpec = Get-NavAppInfo -Path $symbolsFile
         if ($appSpec) {
             Write-Host "Unpublishing Symbols for $($appSpec.Name)"
-            Unpublish-NAVApp -ServerInstance NAV -Publisher $appSpec.Publisher -Name $appSpec.Name
+            Unpublish-NAVApp -ServerInstance $serverInstance -Publisher $appSpec.Publisher -Name $appSpec.Name
         }
         Write-Host "Publishing Symbols for $($appSpec.Name)"
-        Publish-NavApp -ServerInstance NAV -Path $symbolsFile -SkipVerification -PackageType SymbolsOnly
+        Publish-NavApp -ServerInstance $serverInstance -Path $symbolsFile -SkipVerification -PackageType SymbolsOnly
     } -ArgumentList $symbolsFile
 
 }
@@ -80,7 +85,7 @@ $symbols | % {
 Invoke-Command @sessionParam -ScriptBlock {
 
     Write-Host "Synchronizing Database"
-    Sync-NavTenant -ServerInstance NAV -Force
+    Sync-NavTenant -ServerInstance $serverInstance -Force
 
 }
 
@@ -91,20 +96,20 @@ $apps | % {
     Invoke-Command @sessionParam -ScriptBlock { Param($appFile, $installedApps)
         $appSpec = Get-NavAppInfo -Path $appFile
         Write-Host "Publishing $appFile"
-        Publish-NavApp -ServerInstance NAV -Path $appFile -SkipVerification
+        Publish-NavApp -ServerInstance $serverInstance -Path $appFile -SkipVerification
         Write-Host "Synchronizing App"
-        Sync-NavApp -ServerInstance NAV -Name $appSpec.Name -Publisher $appSpec.Publisher -Version $appSpec.Version -Mode Add -WarningAction SilentlyContinue
+        Sync-NavApp -ServerInstance $serverInstance -Name $appSpec.Name -Publisher $appSpec.Publisher -Version $appSpec.Version -Mode Add -WarningAction SilentlyContinue
         
         $installedApp = $installedApps | Where-Object { $appSpec.Name -eq $_.Name -and $appSpec.Publisher -eq $_.Publisher }
         if (!($installedApp)) {
             Write-Host "Installing App $($appSpec.Name)"
-            Install-NavApp -ServerInstance NAV -Name $appSpec.Name -Publisher $appSpec.Publisher -Version $appSpec.Version
+            Install-NavApp -ServerInstance $serverInstance -Name $appSpec.Name -Publisher $appSpec.Publisher -Version $appSpec.Version
         } elseif ($installedApp.version -eq $appSpec.Version) {
             Write-Host "Reinstalling App $($appSpec.Name)"
-            Install-NavApp -ServerInstance NAV -Name $appSpec.Name -Publisher $appSpec.Publisher -Version $appSpec.Version
+            Install-NavApp -ServerInstance $serverInstance -Name $appSpec.Name -Publisher $appSpec.Publisher -Version $appSpec.Version
         } else {
             Write-Host "Upgrading App $($appSpec.Name)"
-            Start-NAVAppDataUpgrade -ServerInstance NAV -Publisher $appSpec.Publisher -Name $appSpec.Name -Version $appSpec.Version
+            Start-NAVAppDataUpgrade -ServerInstance $serverInstance -Publisher $appSpec.Publisher -Name $appSpec.Name -Version $appSpec.Version
         }
     } -ArgumentList $appFile, $installedApps
 
