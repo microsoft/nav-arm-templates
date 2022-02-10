@@ -94,10 +94,10 @@ else {
     else {
         AddToStatus "Creating Aad Apps for Office 365 integration"
         if (([System.Version]$navVersion).Major -ge 15) {
-            $publicWebBaseUrl = "https://$publicDnsName/BC/"
+            $publicWebBaseUrl = "https://$publicDnsName/BC"
         }
         else {
-            $publicWebBaseUrl = "https://$publicDnsName/NAV/"
+            $publicWebBaseUrl = "https://$publicDnsName/NAV"
         }
         $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
         $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
