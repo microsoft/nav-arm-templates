@@ -232,7 +232,7 @@
         }
     },
     "variables": {
-        "containerName": "bcserver",
+        "containerName": "navserver",
         "vmName": "[trim(parameters('vmName'))]",
         "TimezoneId": "[parameters('TimezoneId')]",
         "AcceptEula": "[parameters('AcceptEula')]",
@@ -617,7 +617,7 @@
 					"outputs": {}
 				}
 			}
-		},       
+		},
 		{
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
@@ -788,7 +788,7 @@
                         },
                         "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',variables('server1Name'))]"
                     }
-                }                
+                }
             ]
         },
         {

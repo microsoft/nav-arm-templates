@@ -98,7 +98,7 @@
         },
         "ContainerName": {
 		    "type": "string",
-            "defaultValue": "bcserver",
+            "defaultValue": "navserver",
             "minLength": 2,
             "metadata": {
                 "Description": "Name of the default container to create in the VM"
@@ -821,7 +821,7 @@
 					"outputs": {}
 				}
 			}
-		},       
+		},
 		{
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
@@ -884,7 +884,7 @@
 					"outputs": {}
 				}
 			}
-		},       
+		},
 		{
 			"apiVersion": "2015-01-01",
 			"type": "Microsoft.Resources/deployments",
@@ -1055,7 +1055,7 @@
                         },
                         "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines',variables('server1Name'))]"
                     }
-                }                
+                }
             ]
         },
         {
