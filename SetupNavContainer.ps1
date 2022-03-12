@@ -518,14 +518,24 @@ if ("$bingmapskey" -ne "") {
     $codeunitId = 0
     $apiMethod = ""
     switch (([System.Version]$navVersion).Major) {
-          9 { $appFile = "" }
-         10 { $appFile = "" }
-         11 { $appFile = "http://aka.ms/bingmaps11.app"; $codeunitId = 50103 }
-         12 { $appFile = "http://aka.ms/bingmaps12.app"; $codeunitId = 50103 }
-         13 { $appFile = "http://aka.ms/bingmaps12.app"; $codeunitId = 50103 }
-         14 { $appFile = "http://aka.ms/bingmaps12.app" }
-         15 { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
-    default { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+               9 { $appFile = "" }
+              10 { $appFile = "" }
+              11 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_11.0.0.0.app"; $codeunitId = 50103 }
+              12 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app"; $codeunitId = 50103 }
+              13 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app"; $codeunitId = 50103 }
+              14 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app" }
+              15 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
+              16 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+              17 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+              18 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+         default { 
+             if ($nchBranch -eq "") {
+                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/latest/bingmaps-pte-apps.zip"; $apiMethod = "Settings" 
+            }
+            else {
+                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/preview/bingmaps-pte-apps.zip"; $apiMethod = "Settings" 
+            }
+        }
     }
 
     if ($appFile -eq "") {
