@@ -7,15 +7,17 @@ param
     [Parameter(Mandatory=$true)]
     [string] $adminPassword,
     [Parameter(Mandatory=$true)]
-    [string] $devopsorganization,
+    [string] $organization,
     [Parameter(Mandatory=$true)]
-    [string] $personalaccesstoken,
+    [string] $token,
     [Parameter(Mandatory=$true)]
     [string] $pool,
     [Parameter(Mandatory=$true)]
-    [string] $vstsAgentUrl,
+    [string] $agentUrl,
     [Parameter(Mandatory=$false)]
     [string] $finalSetupScriptUrl,
+    [Parameter(Mandatory=$true)]
+    [int] $count = 1,
     [Parameter(Mandatory=$true)]
     [string] $vmname
 )
@@ -37,31 +39,34 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
 
-Install-Module -Name bccontainerhelper -Force
-Import-Module -Name bccontainerhelper -DisableNameChecking
-
-$installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
-if ($installDocker) {
-    Install-module DockerMsftProvider -Force
-    Install-Package -Name docker -ProviderName DockerMsftProvider -Force
-}
-
 $DownloadFolder = "C:\Download"
 MkDir $DownloadFolder -ErrorAction Ignore | Out-Null
 
-$agentFilename = $vstsAgentUrl.Substring($vstsAgentUrl.LastIndexOf('/')+1)
-$agentFullname = Join-Path $DownloadFolder $agentFilename
-Download-File -sourceUrl $vstsAgentUrl -destinationFile $agentFullname
-$agentFolder = "C:\Agent"
-mkdir $agentFolder -ErrorAction Ignore | Out-Null
-cd $agentFolder
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-[System.IO.Compression.ZipFile]::ExtractToDirectory($agentFullname, $agentFolder)
-
-.\config.cmd --unattended --url "$devopsorganization" --auth PAT --token "$personalaccesstoken" --pool "$pool" --agent "$vmname" --runAsService --windowsLogonAccount $vmAdminUsername --windowsLogonPassword $adminPassword
-
+$installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
 if ($installDocker) {
-    Start-Service docker
+    $installDockerScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'InstallOrUpdateDockerEngine.ps1'
+    $installDockerScript = Join-Path $DownloadFolder "InstallOrUpdateDockerEngine.ps1"
+    Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
+    . $installDockerScript -Force -envScope "Machine"
+}
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$agentFilename = $agentUrl.Substring($agentUrl.LastIndexOf('/')+1)
+$agentFullname = Join-Path $DownloadFolder $agentFilename
+Download-File -sourceUrl $agentUrl -destinationFile $agentFullname
+1..$count | ForEach-Object {
+    $agentName = "$vmName-$_"
+    $agentFolder = "C:\$agentName"
+    mkdir $agentFolder -ErrorAction Ignore | Out-Null
+    Set-Location $agentFolder
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($agentFullname, $agentFolder)
+
+    if ($agentUrl -like 'https://github.com/actions/runner/releases/download/*') {
+        .\config.cmd --unattended --url "$organization" --token "$token" --name $agentName --labels "$pool" --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
+    }
+    else {
+        .\config.cmd --unattended --url "$organization" --auth PAT --token "$token" --pool "$pool" --agent $agentName --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
+    }
 }
 
 if ($finalSetupScriptUrl) {

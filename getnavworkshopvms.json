@@ -45,11 +45,12 @@
 		},
         "OperatingSystem": {
             "type": "string",
-            "defaultValue": "Windows Server 2019 with Containers",
+            "defaultValue": "Windows Server 2019",
             "allowedValues": [
-                "Windows Server 2016",
+                "Windows 11",
                 "Windows Server 2019",
-                "Windows Server 2019 with Containers"
+                "Windows Server 2019 with Containers",
+                "Windows Server 2022"
             ],
             "metadata": {
                 "Description": "Select the Operating System of the VM"
@@ -57,24 +58,40 @@
         },
         "vmSize": {
             "type": "string",
-            "defaultValue": "Standard_D2_v3",
+            "defaultValue": "Standard_D2s_v3",
             "allowedValues": [
                 "Standard_D2_v2",
                 "Standard_D3_v2",
                 "Standard_D4_v2",
                 "Standard_D5_v2",
-                "Standard_DS2_v2",
-                "Standard_DS3_v2",
-                "Standard_DS4_v2",
-                "Standard_DS5_v2",
                 "Standard_D2_v3",
                 "Standard_D4_v3",
                 "Standard_D8_v3",
                 "Standard_D16_v3",
+                "Standard_D32_v3",
+                "Standard_D48_v3",
+                "Standard_D64_v3",
                 "Standard_D2s_v3",
                 "Standard_D4s_v3",
                 "Standard_D8s_v3",
-                "Standard_D16s_v3"
+                "Standard_D16s_v3",
+                "Standard_D32s_v3",
+                "Standard_D48s_v3",
+                "Standard_D64s_v3",
+                "Standard_D2_v4",
+                "Standard_D4_v4",
+                "Standard_D8_v4",
+                "Standard_D16_v4",
+                "Standard_D32_v4",
+                "Standard_D48_v4",
+                "Standard_D64_v4",
+                "Standard_D2s_v4",
+                "Standard_D4s_v4",
+                "Standard_D8s_v4",
+                "Standard_D16s_v4",
+                "Standard_D32s_v4",
+                "Standard_D48s_v4",
+                "Standard_D64s_v4"
             ],
             "metadata": {
                 "Description": "Select the VM size of the deployment"
@@ -298,9 +315,9 @@
         "WinRmAccess": "[parameters('WinRmAccess')]",
         "Isolation": "[parameters('Isolation')]",
         "OperatingSystem": "[parameters('OperatingSystem')]",
-        "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 10'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
-        "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 10'),'Windows-10','WindowsServer')]",
-        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 10'),'rs5-pro',if(equals(variables('OperatingSystem'),'Windows Server 2016'),'2016-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
+        "imagePublisher": "[if(equals(variables('OperatingSystem'),'Windows 11'),'MicrosoftWindowsDesktop','MicrosoftWindowsServer')]",
+        "imageOffer": "[if(equals(variables('OperatingSystem'),'Windows 11'),'Windows-11','WindowsServer')]",
+        "imageSku": "[if(equals(variables('OperatingSystem'),'Windows 11'),'win11-21h2-pro',if(equals(variables('OperatingSystem'),'Windows Server 2022'),'2022-Datacenter',if(equals(variables('OperatingSystem'),'Windows Server 2019'),'2019-Datacenter','2019-Datacenter-with-containers')))]",
         "storageAccountType": "[parameters('StorageAccountType')]",
         "storageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
         "networkSecurityGroupName": "networksecuritygroup",
