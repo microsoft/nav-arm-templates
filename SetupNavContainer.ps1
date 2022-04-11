@@ -157,6 +157,7 @@ Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExtendedSe
         } catch {
             AddToStatus -color Red $_.Exception.Message
             AddToStatus -color Red "Reverting to NavUserPassword authentication"
+            $auth = "NavUserPassword"            
         }
     }
 }
