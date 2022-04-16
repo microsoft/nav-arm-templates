@@ -181,7 +181,7 @@ if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
 if (-not (Get-InstalledModule ACME-PS -ErrorAction SilentlyContinue)) {
 
     AddToStatus "Installing ACME-PS PowerShell Module"
-    Install-Module -Name ACME-PS -RequiredVersion "1.1.0-beta" -AllowPrerelease -Force
+    Install-Module -Name ACME-PS -RequiredVersion "1.5.2" -AllowPrerelease -Force
 
     AddToStatus "Using Lets Encrypt certificate"
     # Use Lets encrypt
