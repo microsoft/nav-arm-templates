@@ -101,7 +101,8 @@ else {
         }
         $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
         $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-        $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$($Office365UserName.split('@')[1])"
+        $aadTenant = $Office365UserName.split('@')[1]
+        $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$aadTenant"
 
 @"
 `$appIdUri = '$appIdUri'
@@ -132,11 +133,7 @@ else {
 
 @"
 Write-Host 'Changing Server config to NavUserPassword to enable basic web services'
-Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ClientServicesCredentialType' -KeyValue 'NavUserPassword' -WarningAction Ignore
 Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddInAzureActiveDirectoryClientId' -KeyValue '$ExcelAdAppId' -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ValidAudiences' -KeyValue '$SsoAdAppId;https://api.businesscentral.dynamics.com' -WarningAction Ignore -ErrorAction Ignore
-Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'DisableTokenSigningCertificateValidation' -KeyValue 'True' -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExtendedSecurityTokenLifetime' -KeyValue '24' -WarningAction Ignore
 "@ | Add-Content "c:\myfolder\SetupConfiguration.ps1"
 
             $settings = Get-Content -path $settingsScript | Where-Object { $_ -notlike '$SsoAdAppId = *' -and $_ -notlike '$SsoAdAppKeyValue = *' -and $_ -notlike '$ExcelAdAppId = *' -and $_ -notlike '$PowerBiAdAppId = *' -and $_ -notlike '$PowerBiAdAppKeyValue = *' -and $_ -notlike '$EMailAdAppId = *' -and $_ -notlike '$EMailAdAppKeyValue = *' }
@@ -153,10 +150,17 @@ Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExtendedSe
             $settings += "`$EMailAdAppKeyValue = '$EMailAdAppKeyValue'"
 
             Set-Content -Path $settingsScript -Value $settings
+
+            $params += @{
+                "AadTenant" = $aadTenant
+                "AadAppId" =  $SsoAdAppId
+                "AadAppIdUri" = $appIdUri
+            }
     
         } catch {
             AddToStatus -color Red $_.Exception.Message
             AddToStatus -color Red "Reverting to NavUserPassword authentication"
+            $auth = "NavUserPassword"            
         }
     }
 }
@@ -392,7 +396,7 @@ if ("$sqlServerType" -eq "SQLDeveloper") {
 if ($auth -eq "AAD") {
     if (([System.Version]$navVersion).Major -lt 13) {
         $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
-        Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
+        Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/AzureAdAppSetup.fob" -destinationFile $fobfile
         $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
         Import-ObjectsToNavContainer -containerName $containerName -objectsFile $fobfile -sqlCredential $sqlCredential
         Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName SetupAzureAdApp -Argument ($PowerBiAdAppId+','+$PowerBiAdAppKeyValue)
@@ -400,19 +404,19 @@ if ($auth -eq "AAD") {
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
         if (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
-            Download-File -sourceUrl "https://businesscentralapps.azureedge.net/azureadappsetup/18.0.67361.0/apps.zip" -destinationFile $appfile
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/18.0.12.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
-            Download-File -sourceUrl "https://businesscentralapps.azureedge.net/azureadappsetup/17.1.11329.0/apps.zip" -destinationFile $appfile
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/17.1.11.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
-        elseif (([System.Version]$navVersion) -ge ([System.Version]"16.4.14693.15445")) {
-            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_16.4.app" -destinationFile $appfile
+        elseif (([System.Version]$navVersion) -ge ([System.Version]"15.9.0.0")) {
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.9.10.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
         elseif (([System.Version]$navVersion).Major -ge 15) {
-            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_15.0.app" -destinationFile $appfile
+            Download-File -sourceUrl "hhttps://businesscentralapps.blob.core.windows.net/azureadappsetup/15.0.7.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
         else {
-            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
         }
 
         Publish-NavContainerApp -containerName $containerName -appFile $appFile -skipVerification -install -sync
@@ -518,14 +522,24 @@ if ("$bingmapskey" -ne "") {
     $codeunitId = 0
     $apiMethod = ""
     switch (([System.Version]$navVersion).Major) {
-          9 { $appFile = "" }
-         10 { $appFile = "" }
-         11 { $appFile = "http://aka.ms/bingmaps11.app"; $codeunitId = 50103 }
-         12 { $appFile = "http://aka.ms/bingmaps12.app"; $codeunitId = 50103 }
-         13 { $appFile = "http://aka.ms/bingmaps12.app"; $codeunitId = 50103 }
-         14 { $appFile = "http://aka.ms/bingmaps12.app" }
-         15 { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
-    default { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+               9 { $appFile = "" }
+              10 { $appFile = "" }
+              11 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_11.0.0.0.app"; $codeunitId = 50103 }
+              12 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app"; $codeunitId = 50103 }
+              13 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app"; $codeunitId = 50103 }
+              14 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app" }
+              15 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
+              16 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+              17 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+              18 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+         default { 
+             if ($nchBranch -eq "") {
+                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/latest/bingmaps-pte-apps.zip"; $apiMethod = "Settings" 
+            }
+            else {
+                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/preview/bingmaps-pte-apps.zip"; $apiMethod = "Settings" 
+            }
+        }
     }
 
     if ($appFile -eq "") {
