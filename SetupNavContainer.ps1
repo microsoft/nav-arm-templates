@@ -101,7 +101,8 @@ else {
         }
         $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
         $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-        $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$($Office365UserName.split('@')[1])"
+        $aadTenant = $Office365UserName.split('@')[1]
+        $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$aadTenant"
 
 @"
 `$appIdUri = '$appIdUri'
@@ -132,11 +133,7 @@ else {
 
 @"
 Write-Host 'Changing Server config to NavUserPassword to enable basic web services'
-Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ClientServicesCredentialType' -KeyValue 'NavUserPassword' -WarningAction Ignore
 Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddInAzureActiveDirectoryClientId' -KeyValue '$ExcelAdAppId' -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ValidAudiences' -KeyValue '$SsoAdAppId;https://api.businesscentral.dynamics.com' -WarningAction Ignore -ErrorAction Ignore
-Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'DisableTokenSigningCertificateValidation' -KeyValue 'True' -WarningAction Ignore
-Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExtendedSecurityTokenLifetime' -KeyValue '24' -WarningAction Ignore
 "@ | Add-Content "c:\myfolder\SetupConfiguration.ps1"
 
             $settings = Get-Content -path $settingsScript | Where-Object { $_ -notlike '$SsoAdAppId = *' -and $_ -notlike '$SsoAdAppKeyValue = *' -and $_ -notlike '$ExcelAdAppId = *' -and $_ -notlike '$PowerBiAdAppId = *' -and $_ -notlike '$PowerBiAdAppKeyValue = *' -and $_ -notlike '$EMailAdAppId = *' -and $_ -notlike '$EMailAdAppKeyValue = *' }
@@ -153,6 +150,12 @@ Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExtendedSe
             $settings += "`$EMailAdAppKeyValue = '$EMailAdAppKeyValue'"
 
             Set-Content -Path $settingsScript -Value $settings
+
+            $params += @{
+                "AadTenant" = $aadTenant
+                "AadAppId" =  $SsoAdAppId
+                "AadAppIdUri" = $appIdUri
+            }
     
         } catch {
             AddToStatus -color Red $_.Exception.Message
