@@ -157,7 +157,7 @@
             "type": "string",
             "minLength": 1,
             "metadata": {
-                "Description": "Specify the URL for your GitHub Project/Organization or your Azure DevOps Organization (ex. https://github.com/freddydk/BingMaps.AppSource or https://dev.azure.com/freddykristiansen)"
+                "Description": "Specify the URL for your GitHub Project/Organization or your Azure DevOps Organization (ex. https://github.com/BusinessCentralApps, https://github.com/freddydk/BingMaps.AppSource or https://dev.azure.com/freddykristiansen)"
             }
         },
         "LabelsOrPool": {
