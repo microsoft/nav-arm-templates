@@ -24,3 +24,5 @@ choco install vscode
 AddToStatus "7zip"
 choco install 7zip
 
+AddToStatus "GitHub CLI"
+choco install gh
