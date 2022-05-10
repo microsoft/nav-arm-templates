@@ -92,10 +92,10 @@ function DockerDo {
         $result = $false
         if (!$silent) {
             $err = $err.Trim()
-            if ("$error" -ne "") {
-                AddToStatus -color red $error
+            if ("$err" -ne "") {
+                AddToStatus -color red $err
             }
-            AddToStatus -color red "ExitCode: "+$p.ExitCode
+            AddToStatus -color red "ExitCode: $($p.ExitCode)"
             AddToStatus -color red "Commandline: docker $arguments"
         }
     }
