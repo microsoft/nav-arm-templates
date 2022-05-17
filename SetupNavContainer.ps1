@@ -150,6 +150,7 @@ Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddIn
             $settings += "`$EMailAdAppKeyValue = '$EMailAdAppKeyValue'"
 
             Set-Content -Path $settingsScript -Value $settings
+
             $params += @{
                 "AadTenant" = $aadTenant
                 "AadAppId" =  $SsoAdAppId
@@ -408,7 +409,7 @@ if ($auth -eq "AAD") {
         elseif (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
             Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/17.1.11.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
-        elseif (([System.Version]$navVersion) -ge ([System.Version]"16.4.14693.15445")) {
+        elseif (([System.Version]$navVersion) -ge ([System.Version]"15.9.0.0")) {
             Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.9.10.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
         elseif (([System.Version]$navVersion).Major -ge 15) {
