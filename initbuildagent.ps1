@@ -55,7 +55,7 @@ $agentFilename = $agentUrl.Substring($agentUrl.LastIndexOf('/')+1)
 $agentFullname = Join-Path $DownloadFolder $agentFilename
 Download-File -sourceUrl $agentUrl -destinationFile $agentFullname
 1..$count | ForEach-Object {
-    $agentName = "$vmName-$_"
+    $agentName = "$vmName-$([guid]::NewGuid().ToString())"
     $agentFolder = "C:\$agentName"
     mkdir $agentFolder -ErrorAction Ignore | Out-Null
     Set-Location $agentFolder
