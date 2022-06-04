@@ -125,6 +125,13 @@
                 "Description": "Select the preferred storage account type. Standard_LRS is HDD, Premium_LRS is SSD. (Not all VM Sizes support SSD)"
             }
         },
+        "osDiskSize": {
+            "type": "int",
+            "defaultValue": 128,
+            "metadata": {
+                "Description": "Select the size of the OS Disk"
+            }
+        },
         "vmAdminUsername": {
             "type": "string",
             "defaultValue": "vmadmin",
@@ -402,7 +409,7 @@
                         "managedDisk": {
                           "storageAccountType": "[variables('storageAccountType')]"
                         },
-                        "diskSizeGB": 128
+                        "diskSizeGB": "[parameters('OSDiskSize')]"
                     }
                 },
                 "networkProfile": {
