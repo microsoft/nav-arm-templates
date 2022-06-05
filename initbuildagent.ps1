@@ -50,6 +50,16 @@ if ($installDocker) {
     . $installDockerScript -Force -envScope "Machine"
 }
 
+if ($finalSetupScriptUrl) {
+    if ($finalSetupScriptUrl -notlike "https://*" -and $finalSetupScriptUrl -notlike "http://*") {
+        $finalSetupScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+$finalSetupScriptUrl    
+    }
+    Set-Content -Path (Join-Path $DownloadFolder "url.txt") -Value "$finalSetupScriptUrl"
+    $finalSetupScript = Join-Path $DownloadFolder "FinalSetupScript.ps1"
+    Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
+    . $finalSetupScript
+}
+
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $agentFilename = $agentUrl.Substring($agentUrl.LastIndexOf('/')+1)
 $agentFullname = Join-Path $DownloadFolder $agentFilename
@@ -67,16 +77,6 @@ Download-File -sourceUrl $agentUrl -destinationFile $agentFullname
     else {
         .\config.cmd --unattended --url "$organization" --auth PAT --token "$token" --pool "$pool" --agent $agentName --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
     }
-}
-
-if ($finalSetupScriptUrl) {
-    if ($finalSetupScriptUrl -notlike "https://*" -and $finalSetupScriptUrl -notlike "http://*") {
-        $finalSetupScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+$finalSetupScriptUrl    
-    }
-    Set-Content -Path (Join-Path $DownloadFolder "url.txt") -Value "$finalSetupScriptUrl"
-    $finalSetupScript = Join-Path $DownloadFolder "FinalSetupScript.ps1"
-    Download-File -sourceUrl $finalSetupScriptUrl -destinationFile $finalSetupScript
-    . $finalSetupScript
 }
 
 Shutdown -r -t 60
