@@ -183,6 +183,14 @@
                 "Description": "Specify the URL for downloading the Agent. GitHub runner URL can be found at https://github.com/{organization}/{repository}/settings/actions/runners/new (ex. https://github.com/actions/runner/releases/download/v2.284.0/actions-runner-win-x64-2.284.0.zip). x64 Azure DevOps Agent can be found at https://dev.azure.com/{your_organization}/_admin/_AgentPool (click Download agent and select x64 ) (ex. https://vstsagentpackage.azureedge.net/agent/2.194.0/vsts-agent-win-x64-2.194.0.zip)"
             }
         },
+        "RunInsideDocker": {
+            "type": "string",
+            "defaultValue": "No",
+            "minLength": 1,
+            "metadata": {
+                "Description": "Run agents inside Docker (Yes/No)"
+            }
+        },
         "FinalSetupScriptUrl": {
             "type": "string",
             "defaultValue": "additional-installforbuildagent.ps1",
@@ -443,7 +451,7 @@
                     "fileUris": [
                         "[uri(deployment().properties.templateLink.uri, 'initbuildagent.ps1')]"
                     ],
-                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -Organization \"',parameters('organization'),'\" -token \"',parameters('token'),'\" -Count ',parameters('count'),' -agentUrl \"',parameters('agentUrl'),'\" -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('labelsorpool'),'\" -vmName \"',variables('vmName'),'\"')]"
+                    "commandToExecute": "[concat(variables('ScriptCommandToExecute'),'initbuildagent.ps1',' -TemplateLink \"',deployment().properties.templateLink.uri,'\" -VMAdminUsername \"',variables('vmAdminUsername'),'\" -AdminPassword \"',replace(variables('adminPassword'),'\"','\\\"'),'\" -Organization \"',parameters('organization'),'\" -token \"',parameters('token'),'\" -Count ',parameters('count'),' -agentUrl \"',parameters('agentUrl'),'\" -runInsideDocker (\"',parameters('runInsideDocker'),'\" -eq \"Yes\") -FinalSetupScriptUrl \"',parameters('FinalSetupScriptUrl'),'\" -Pool \"',parameters('labelsorpool'),'\" -vmName \"',variables('vmName'),'\"')]"
                 },
                 "protectedSettings": {}
             }

@@ -20,7 +20,8 @@ param
     [int] $count = 1,
     [Parameter(Mandatory=$true)]
     [string] $vmname,
-    [bool] $runInsideDocker = $true
+    [Parameter(Mandatory=$true)]
+    [bool] $runInsideDocker
 )
 
 function Download-File([string]$sourceUrl, [string]$destinationFile)
