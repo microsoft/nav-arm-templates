@@ -21,7 +21,7 @@ param
     [Parameter(Mandatory=$true)]
     [string] $vmname,
     [Parameter(Mandatory=$true)]
-    [bool] $runInsideDocker
+    [string] $runInsideDocker
 )
 
 function Download-File([string]$sourceUrl, [string]$destinationFile)
@@ -62,7 +62,7 @@ if ($finalSetupScriptUrl) {
     . $finalSetupScript
 }
 
-if ($runInsideDocker) {
+if ($runInsideDocker -eq "Yes") {
     Set-Location $DownloadFolder
     New-Item -Path 'image' -ItemType Directory | Out-Null
     Set-Location 'image'
