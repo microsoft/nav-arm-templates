@@ -66,11 +66,12 @@ if ($runInsideDocker -eq "Yes") {
     Set-Location $DownloadFolder
     New-Item -Path 'image' -ItemType Directory | Out-Null
     Set-Location 'image'
+    $runnerImageFolder = Get-Location
 
     $startScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'AgentImage.start.ps1'
-    Download-File -sourceUrl $startScriptUrl -destinationFile 'start.ps1'
+    Download-File -sourceUrl $startScriptUrl -destinationFile (Join-Path $runnerImageFolder 'start.ps1')
     $dockerFileUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'AgentImage.DOCKERFILE'
-    Download-File -sourceUrl $dockerFileUrl -destinationFile 'DOCKERFILE'
+    Download-File -sourceUrl $dockerFileUrl -destinationFile (Join-Path $runnerImageFolder 'DOCKERFILE')
 
     $os = (Get-CimInstance Win32_OperatingSystem)
     $UBR = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name UBR).UBR
