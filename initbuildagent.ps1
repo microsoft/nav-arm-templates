@@ -30,6 +30,10 @@ function Download-File([string]$sourceUrl, [string]$destinationFile)
     (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
 }
 
+Start-Transcript -Path "c:\log.txt"
+
+$errorActionPreference = "Stop"
+
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
 
 Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
@@ -123,4 +127,4 @@ else {
     }
 }
 
-Shutdown -r -t 60
+#Shutdown -r -t 60
