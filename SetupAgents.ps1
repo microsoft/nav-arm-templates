@@ -17,7 +17,7 @@ function ConvertTo-HashTable() {
     $ht
 }
 
-Start-Transcript -Path "c:\log.txt"
+Start-Transcript -Path "c:\log2.txt"
 
 $errorActionPreference = "Stop"
 $DownloadFolder = 'c:\download'
