@@ -80,6 +80,7 @@ if ($token) {
 `$agentUrl = '$agentUrl'
 `$pool = '$pool'
 `$count = $count
+`$vmName = '$vmName'
 `$templateLink = '$templateLink'
 `$runInsideDocker = '$runInsideDocker'
 
