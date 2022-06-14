@@ -48,9 +48,9 @@ if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
 $DownloadFolder = "C:\Download"
 MkDir $DownloadFolder -ErrorAction Ignore | Out-Null
 
-$SetupAgentScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'SetupAgents.ps1'
+$SetupAgentsScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'SetupAgents.ps1'
 $SetupAgentsScript = "c:\Download\SetupAgents.ps1"
-Download-File -sourceUrl $SetupAgentScriptUrl -destinationFile $SetupAgentsScript
+Download-File -sourceUrl $SetupAgentsScriptUrl -destinationFile $SetupAgentsScript
 
 $installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
 if ($installDocker) {
@@ -71,9 +71,9 @@ if ($finalSetupScriptUrl) {
 }
 
 if ($token) {
-    $setupAgentScriptContent = Get-Content -Path $setupAgentScript -Encoding UTF8 -Raw
+    $setupAgentsScriptContent = Get-Content -Path $setupAgentsScript -Encoding UTF8 -Raw
 
-    Set-Content -Path $setupAgentScript -Value @"
+    Set-Content -Path $setupAgentsScript -Value @"
 `$organization = '$organization'
 `$token = '$token'
 `$agentName = '$agentName'
@@ -82,10 +82,10 @@ if ($token) {
 `$templateLink = '$templateLink'
 `$runInsideDocker = '$runInsideDocker'
 
-$setupAgentScriptContent
+$setupAgentsScriptContent
 "@
 
-    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $SetupAgentScript"
+    $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $SetupAgentsScript"
     $startupTrigger = New-ScheduledTaskTrigger -AtStartup
     $startupTrigger.Delay = "PT1M"
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
