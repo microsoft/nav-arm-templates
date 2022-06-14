@@ -70,6 +70,9 @@ if ($finalSetupScriptUrl) {
     . $finalSetupScript
 }
 
+$size = (Get-PartitionSupportedSize -DiskNumber 0 -PartitionNumber 2)
+Resize-Partition -DiskNumber 0 -PartitionNumber 2 -Size $size.SizeMax
+
 if ($token) {
     $setupAgentsScriptContent = Get-Content -Path $setupAgentsScript -Encoding UTF8 -Raw
 
