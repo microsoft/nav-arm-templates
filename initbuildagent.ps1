@@ -77,6 +77,7 @@ if ($token) {
 `$organization = '$organization'
 `$token = '$token'
 `$agentName = '$agentName'
+`$agentUrl = '$agentUrl'
 `$pool = '$pool'
 `$count = $count
 `$templateLink = '$templateLink'
