@@ -1,3 +1,26 @@
+function Download-File([string]$sourceUrl, [string]$destinationFile)
+{
+    Remove-Item -Path $destinationFile -Force -ErrorAction Ignore
+    (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
+}
+
+function ConvertTo-HashTable() {
+    [CmdletBinding()]
+    Param(
+        [parameter(ValueFromPipeline)]
+        [PSCustomObject] $object
+    )
+    $ht = @{}
+    if ($object) {
+        $object.PSObject.Properties | Foreach { $ht[$_.Name] = $_.Value }
+    }
+    $ht
+}
+
+Start-Transcript -Path "c:\log.txt"
+
+$errorActionPreference = "Stop"
+$DownloadFolder = 'c:\download'
 if ($runInsideDocker -eq "Yes") {
     Set-Location $DownloadFolder
     New-Item -Path 'image' -ItemType Directory | Out-Null
@@ -35,7 +58,7 @@ if ($runInsideDocker -eq "Yes") {
         $allVolumes = (docker volume ls --format "{ '{{.Name}}': '{{.Mountpoint}}' }").Replace('\','\\').Replace("'",'"') | ConvertFrom-Json | ConvertTo-HashTable
         @{ "useVolumes" = $true; "ContainerHelperFolder" = "c:\bcch"; "defaultNewContainerParameters" = @{ "isolation" = "hyperv" } } | ConvertTo-Json -Depth 99 | Set-Content (Join-Path $allVolumes.hosthelperfolder "BcContainerHelper.config.json") -Encoding UTF8
         
-        docker run -d --name $agentContainerName -v \\.\pipe\docker_engine:\\.\pipe\docker_engine -v C:\ProgramData\docker\volumes:C:\ProgramData\docker\volumes --mount source=$bcartifactsCacheVolumeName,target=c:\bcartifacts.cache --mount source=$bcContainerHelperVolumeName,target=C:\BCCH --mount source=$AgentWorkVolumeName,target=C:\Sources --env AGENTURL=$agentUrl --env ORGANIZATIOn=$organization --env AGENTNAME=$agentName --env POOL=$pool --env TOKEN=$token $imageName
+        docker run -d --name $agentContainerName -v \\.\pipe\docker_engine:\\.\pipe\docker_engine -v C:\d\volumes:C:\d\volumes --mount source=$bcartifactsCacheVolumeName,target=c:\bcartifacts.cache --mount source=$bcContainerHelperVolumeName,target=C:\BCCH --mount source=$AgentWorkVolumeName,target=C:\Sources --env AGENTURL=$agentUrl --env ORGANIZATIOn=$organization --env AGENTNAME=$agentName --env POOL=$pool --env TOKEN=$token $imageName
     }
 }
 else {
@@ -58,3 +81,4 @@ else {
         }
     }
 }
+
