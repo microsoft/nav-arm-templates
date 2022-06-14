@@ -56,7 +56,7 @@ if ($runInsideDocker -eq "Yes") {
             if (-not $allVolumes.ContainsKey($_)) { docker volume create $_ }
         }
         $allVolumes = (docker volume ls --format "{ '{{.Name}}': '{{.Mountpoint}}' }").Replace('\','\\').Replace("'",'"') | ConvertFrom-Json | ConvertTo-HashTable
-        @{ "useVolumes" = $true; "ContainerHelperFolder" = "c:\bcch"; "defaultNewContainerParameters" = @{ "isolation" = "hyperv" } } | ConvertTo-Json -Depth 99 | Set-Content (Join-Path $allVolumes.hosthelperfolder "BcContainerHelper.config.json") -Encoding UTF8
+        @{ "useVolumes" = $true; "ContainerHelperFolder" = "c:\bcch"; "defaultNewContainerParameters" = @{ "isolation" = "process" } } | ConvertTo-Json -Depth 99 | Set-Content (Join-Path $allVolumes.hosthelperfolder "BcContainerHelper.config.json") -Encoding UTF8
         
         docker run -d --name $agentContainerName -v \\.\pipe\docker_engine:\\.\pipe\docker_engine -v C:\d\volumes:C:\d\volumes --mount source=$bcartifactsCacheVolumeName,target=c:\bcartifacts.cache --mount source=$bcContainerHelperVolumeName,target=C:\BCCH --mount source=$AgentWorkVolumeName,target=C:\Sources --env AGENTURL=$agentUrl --env ORGANIZATIOn=$organization --env AGENTNAME=$agentName --env POOL=$pool --env TOKEN=$token $imageName
     }

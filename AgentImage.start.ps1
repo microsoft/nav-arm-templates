@@ -23,10 +23,10 @@ else {
     [System.IO.Compression.ZipFile]::ExtractToDirectory($agentZip, $agentFolder)
 
     if ($ENV:AGENTURL -like 'https://github.com/actions/runner/releases/download/*') {
-        .\config.cmd --unattended --url "$ENV:ORGANIZATION" --token "$ENV:TOKEN" --name $ENV:AGENTNAME --labels "$ENV:POOL" --windowslogonaccount "NT AUTHORITY\SYSTEM"
+        .\config.cmd --unattended --url "$ENV:ORGANIZATION" --token "$ENV:TOKEN" --name "$ENV:AGENTNAME" --labels "$ENV:POOL" --windowslogonaccount "NT AUTHORITY\SYSTEM"
     }
     else {
-        .\config.cmd --unattended --url "$ENV:ORGANIZATION" --auth PAT --token "$ENV:TOKEN" --agent $ENV:AGENTNAME --pool "$ENV:POOL" --windowslogonaccount "NT AUTHORITY\SYSTEM"
+        .\config.cmd --unattended --url "$ENV:ORGANIZATION" --auth PAT --token "$ENV:TOKEN" --agent "$ENV:AGENTNAME" --pool "$ENV:POOL" --windowslogonaccount "NT AUTHORITY\SYSTEM"
     }
     .\run.cmd
 }
