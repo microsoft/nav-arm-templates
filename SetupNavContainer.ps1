@@ -88,8 +88,20 @@ if ($Office365Password -eq "" -or (!$Office365UserName.contains('@'))) {
 }
 else {
     $auth = "AAD"
+
+    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
+    $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
+    $aadTenant = $Office365UserName.split('@')[1]
+    $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$aadTenant"
+
     if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
         AddToStatus "Reusing existing Aad Apps for Office 365 integration"
+
+        $params += @{
+            "AadTenant" = $aadTenant
+            "AadAppId" =  $SsoAdAppId
+            "AadAppIdUri" = $appIdUri
+        }
     }
     else {
         AddToStatus "Creating Aad Apps for Office 365 integration"
@@ -99,10 +111,6 @@ else {
         else {
             $publicWebBaseUrl = "https://$publicDnsName/NAV/"
         }
-        $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
-        $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-        $aadTenant = $Office365UserName.split('@')[1]
-        $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$aadTenant"
 
 @"
 `$appIdUri = '$appIdUri'
@@ -132,7 +140,6 @@ else {
             $EMailAdAppKeyValue = $AdProperties.EMailAdAppKeyValue
 
 @"
-Write-Host 'Changing Server config to NavUserPassword to enable basic web services'
 Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddInAzureActiveDirectoryClientId' -KeyValue '$ExcelAdAppId' -WarningAction Ignore
 "@ | Add-Content "c:\myfolder\SetupConfiguration.ps1"
 
