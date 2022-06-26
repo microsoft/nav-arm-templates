@@ -21,6 +21,7 @@ param
     [Parameter(Mandatory=$true)]
     [string] $vmname,
     [Parameter(Mandatory=$true)]
+    [string] $installHyperV,
     [string] $runInsideDocker
 )
 
@@ -101,7 +102,9 @@ $setupAgentsScriptContent
                            -RunLevel "Highest" `
                            -User "NT AUTHORITY\SYSTEM" | Out-Null
 
-    Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
-    
+    if ($installHyperV -eq "Yes") {
+        Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
+    }
+
     Shutdown -r -t 60
 }
