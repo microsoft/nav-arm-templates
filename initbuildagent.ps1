@@ -101,5 +101,7 @@ $setupAgentsScriptContent
                            -RunLevel "Highest" `
                            -User "NT AUTHORITY\SYSTEM" | Out-Null
 
+    Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
+    
     Shutdown -r -t 60
 }
