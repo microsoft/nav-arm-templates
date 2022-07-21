@@ -46,7 +46,6 @@ if ($artifactUrl) {
 
     $Params = @{ 
         "artifactUrl" = $artifactUrl
-        "imageName" = "mybc:$navVersion-$country".ToLowerInvariant()
     }
 }
 elseif ($navDockerImage) {
@@ -106,7 +105,12 @@ else {
     else {
         AddToStatus "Creating Aad Apps for Office 365 integration"
         if (([System.Version]$navVersion).Major -ge 15) {
-            $publicWebBaseUrl = "https://$publicDnsName/BC/"
+            if ($AddTraefik -eq "Yes") {
+                $publicWebBaseUrl = "https://$publicDnsName/$("$containerName".ToUpperInvariant())/"
+            }
+            else {
+                $publicWebBaseUrl = "https://$publicDnsName/BC/"
+            }
         }
         else {
             $publicWebBaseUrl = "https://$publicDnsName/NAV/"
@@ -200,15 +204,18 @@ if ($AddTraefik -eq "Yes") {
     $params += @{ "useTraefik" = $true }
 
     @"
-`$NavServiceName = 'MicrosoftDynamicsNavServer`$$($containerName)rest'
-`$WebServerInstance = "$containerName"
-`$ServerInstance = "$($containerName)rest"
+`$NavServiceName = 'MicrosoftDynamicsNavServer`$$("$containerName".ToUpperInvariant())REST'
+`$WebServerInstance = "$containerName".ToUpperInvariant()
+`$ServerInstance = "$("$containerName".ToUpperInvariant())REST"
 "@ | Set-Content 'c:\myfolder\ServiceSettings.ps1'
 }
 else {
     $params.Add("publishPorts", @(8080,443,7046,7047,7048,7049))
     if (Test-Path 'c:\myfolder\ServiceSettings.ps1') {
         Remove-Item 'c:\myfolder\ServiceSettings.ps1' -Force
+    }
+    $Params = @{ 
+        "imageName" = "mybc:$navVersion-$country".ToLowerInvariant()
     }
 }
 
