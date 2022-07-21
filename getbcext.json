@@ -403,12 +403,14 @@
         },
         "Token": {
             "type": "securestring",
+            "defaultValue": "",
             "metadata": {
                 "Description": "If you want to install a GitHub Runner/DevOps Agent - specify a personal access token with permissions to add/remove agents from the agent pool for Azure DevOps or the token provided at https://github.com/{organization}/{repository}/settings/actions/runners/new for Github"
             }
         },
         "Organization": {
             "type": "string",
+            "defaultValue": "",
             "metadata": {
                 "Description": "If you want to install a GitHub Runner/DevOps Agent - specify the URL for your GitHub Project/Organization or your Azure DevOps Organization (ex. https://github.com/BusinessCentralApps, https://github.com/freddydk/BingMaps.AppSource or https://dev.azure.com/freddykristiansen)"
             }
