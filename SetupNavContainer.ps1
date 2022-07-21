@@ -198,9 +198,18 @@ $params += @{ "licensefile" = "$licensefileuri"
 
 if ($AddTraefik -eq "Yes") {
     $params += @{ "useTraefik" = $true }
+
+    @"
+`$NavServiceName = 'MicrosoftDynamicsNavServer`$BC'
+`$WebServerInstance = "$containerName"
+`$ServerInstance = "$($containerName)rest"
+"@ | Set-Content 'c:\myfolder\ServiceSettings.ps1'
 }
 else {
     $params.Add("publishPorts", @(8080,443,7046,7047,7048,7049))
+    if (Test-Path 'c:\myfolder\ServiceSettings.ps1') {
+        Remove-Item 'c:\myfolder\ServiceSettings.ps1' -Force
+    }
 }
 
 $additionalParameters = @("--env RemovePasswordKeyFile=N",
