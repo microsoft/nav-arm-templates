@@ -200,7 +200,7 @@ if ($AddTraefik -eq "Yes") {
     $params += @{ "useTraefik" = $true }
 
     @"
-`$NavServiceName = 'MicrosoftDynamicsNavServer`$BC'
+`$NavServiceName = 'MicrosoftDynamicsNavServer`$$($containerName)rest'
 `$WebServerInstance = "$containerName"
 `$ServerInstance = "$($containerName)rest"
 "@ | Set-Content 'c:\myfolder\ServiceSettings.ps1'
