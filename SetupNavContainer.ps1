@@ -209,7 +209,7 @@ if ($AddTraefik -eq "Yes") {
 @"
 `$NavServiceName = 'MicrosoftDynamicsNavServer`$$("$containerName".ToUpperInvariant())REST'
 `$WebServerInstance = "$containerName".ToUpperInvariant()
-`$ServerInstance = "$("$containerName".ToUpperInvariant())rest"
+`$ServerInstance = "$("$containerName".ToLowerInvariant())rest"
 "@ | Set-Content 'c:\myfolder\ServiceSettings.ps1'
     }
     else {
