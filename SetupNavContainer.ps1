@@ -200,28 +200,14 @@ $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azur
 $params += @{
     "licensefile" = "$licensefileuri"
     "publicDnsName" = $publicDnsName
+    "imageName" = "mybc:$navVersion-$country".ToLowerInvariant()
 }
         
 if ($AddTraefik -eq "Yes") {
     $params += @{ "useTraefik" = $true }
-
-    if ($RenameServiceTier -eq "Yes") {
-@"
-`$NavServiceName = 'MicrosoftDynamicsNavServer`$$("$containerName".ToUpperInvariant())REST'
-`$WebServerInstance = "$containerName".ToUpperInvariant()
-`$ServerInstance = "$("$containerName".ToLowerInvariant())rest"
-"@ | Set-Content 'c:\myfolder\ServiceSettings.ps1'
-    }
-    else {
-        $Params.Add("imageName", "mybc:$navVersion-$country".ToLowerInvariant())
-    }
 }
 else {
     $params.Add("publishPorts", @(8080,443,7046,7047,7048,7049))
-    if (Test-Path 'c:\myfolder\ServiceSettings.ps1') {
-        Remove-Item 'c:\myfolder\ServiceSettings.ps1' -Force
-    }
-    $Params.Add("imageName", "mybc:$navVersion-$country".ToLowerInvariant())
 }
 
 $additionalParameters = @("--env RemovePasswordKeyFile=N",
