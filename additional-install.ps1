@@ -4,7 +4,6 @@
     Write-Host -ForegroundColor $color $line 
   }
 }
-
 #Install Choco
 AddToSTatus "Install Choco"
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
@@ -25,11 +24,8 @@ choco install firefox
 AddToStatus "7zip"
 choco install 7zip
 
-#AddToStatus "Install Office 365 Business"
-#choco install office365business
-
-#AddToStatus "Install PowerBI Desktop"
-#choco install powerbi
+AddToStatus "GitHub CLI"
+choco install gh
 
 #Add VSCode Extensions
 "eamodio.gitlens", "ms-vscode.PowerShell", "heaths.vscode-guid", "github.vscode-pull-request-github", "formulahendry.docker-explorer" | % {

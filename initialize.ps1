@@ -50,7 +50,11 @@ param
        [string] $requestToken              = "",
        [string] $createStorageQueue        = "",
        [string] $AddTraefik                = "No",
-       [string] $nchBranch                 = ""
+       [string] $nchBranch                 = "",
+       [string] $organization              = "",
+       [string] $token                     = "",
+       [string] $pool                      = "",
+       [string] $agentUrl                  = ""
 )
 
 $verbosePreference = "SilentlyContinue"
@@ -355,6 +359,25 @@ if ($installDocker) {
     $installDockerScript = "C:\DEMO\InstallOrUpdateDockerEngine.ps1"
     Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
     . $installDockerScript -Force -envScope "Machine"
+}
+
+if ($organization -ne "" -and $token -ne "" -and $pool -ne "" -and $agentUrl -ne "") {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $agentFilename = $agentUrl.Substring($agentUrl.LastIndexOf('/')+1)
+    $agentFullname = Join-Path $DownloadFolder $agentFilename
+    Download-File -sourceUrl $agentUrl -destinationFile $agentFullname
+    $agentName = "$vmName"
+    $agentFolder = "C:\Agent"
+    mkdir $agentFolder -ErrorAction Ignore | Out-Null
+    Set-Location $agentFolder
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($agentFullname, $agentFolder)
+    
+    if ($agentUrl -like 'https://github.com/actions/runner/releases/download/*') {
+        .\config.cmd --unattended --url "$organization" --token "$token" --name $agentName --labels "$pool" --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
+    }
+    else {
+        .\config.cmd --unattended --url "$organization" --auth PAT --token "$token" --pool "$pool" --agent $agentName --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
+    }
 }
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"

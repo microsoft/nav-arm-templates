@@ -46,7 +46,6 @@ if ($artifactUrl) {
 
     $Params = @{ 
         "artifactUrl" = $artifactUrl
-        "imageName" = "mybc:$navVersion-$country".ToLowerInvariant()
     }
 }
 elseif ($navDockerImage) {
@@ -88,21 +87,34 @@ if ($Office365Password -eq "" -or (!$Office365UserName.contains('@'))) {
 }
 else {
     $auth = "AAD"
+
+    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
+    $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
+    $aadTenant = $Office365UserName.split('@')[1]
+    $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$aadTenant"
+
     if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
         AddToStatus "Reusing existing Aad Apps for Office 365 integration"
+
+        $params += @{
+            "AadTenant" = $aadTenant
+            "AadAppId" =  $SsoAdAppId
+            "AadAppIdUri" = $appIdUri
+        }
     }
     else {
         AddToStatus "Creating Aad Apps for Office 365 integration"
         if (([System.Version]$navVersion).Major -ge 15) {
-            $publicWebBaseUrl = "https://$publicDnsName/BC/"
+            if ($AddTraefik -eq "Yes") {
+                $publicWebBaseUrl = "https://$publicDnsName/$("$containerName".ToUpperInvariant())/"
+            }
+            else {
+                $publicWebBaseUrl = "https://$publicDnsName/BC/"
+            }
         }
         else {
             $publicWebBaseUrl = "https://$publicDnsName/NAV/"
         }
-        $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
-        $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-        $aadTenant = $Office365UserName.split('@')[1]
-        $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$aadTenant"
 
 @"
 `$appIdUri = '$appIdUri'
@@ -132,7 +144,6 @@ else {
             $EMailAdAppKeyValue = $AdProperties.EMailAdAppKeyValue
 
 @"
-Write-Host 'Changing Server config to NavUserPassword to enable basic web services'
 Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddInAzureActiveDirectoryClientId' -KeyValue '$ExcelAdAppId' -WarningAction Ignore
 "@ | Add-Content "c:\myfolder\SetupConfiguration.ps1"
 
@@ -186,9 +197,12 @@ AddToStatus "Locale $locale"
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
-$params += @{ "licensefile" = "$licensefileuri"
-             "publicDnsName" = $publicDnsName }
-
+$params += @{
+    "licensefile" = "$licensefileuri"
+    "publicDnsName" = $publicDnsName
+    "imageName" = "mybc:$navVersion-$country".ToLowerInvariant()
+}
+        
 if ($AddTraefik -eq "Yes") {
     $params += @{ "useTraefik" = $true }
 }
@@ -339,17 +353,12 @@ if ($multitenant -eq "Yes") {
 }
 
 if ($testToolkit -ne "No") {
-    if ($licensefileuri -eq "") {
-        AddToStatus -color Red -Line "Ignoring TestToolkit setting as no licensefile has been specified."
+    $params += @{ "includeTestToolkit" = $true }
+    if ($testToolkit -eq "Framework") {
+        $params += @{ "includeTestFrameworkOnly" = $true }
     }
-    else {
-        $params += @{ "includeTestToolkit" = $true }
-        if ($testToolkit -eq "Framework") {
-            $params += @{ "includeTestFrameworkOnly" = $true }
-        }
-        elseif ($testToolkit -eq "Libraries") {
-            $params += @{ "includeTestLibrariesOnly" = $true }
-        }
+    elseif ($testToolkit -eq "Libraries") {
+        $params += @{ "includeTestLibrariesOnly" = $true }
     }
 }
 
@@ -413,7 +422,7 @@ if ($auth -eq "AAD") {
             Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.9.10.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
         elseif (([System.Version]$navVersion).Major -ge 15) {
-            Download-File -sourceUrl "hhttps://businesscentralapps.blob.core.windows.net/azureadappsetup/15.0.7.0/azureadappsetup-apps.zip" -destinationFile $appfile
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.0.7.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
         else {
             Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile

@@ -1,6 +1,7 @@
 ﻿Param(
     [switch] $force,
-    [string] $envScope = "User"
+    [string] $envScope = "User",
+    [string] $dataRoot = 'C:\ProgramData\Docker'
 )
 
 $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
@@ -76,12 +77,12 @@ if (";$path;" -notlike "*;$($env:ProgramFiles)\docker;*") {
 # Register service if necessary
 if (-not $dockerService) {
     $dockerdExe = 'C:\Program Files\docker\dockerd.exe'
-    & $dockerdExe --register-service
+    & $dockerdExe --register-service --data-root $dataRoot
 }
 
-New-Item 'c:\ProgramData\Docker' -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
-Remove-Item 'c:\ProgramData\Docker\panic.log' -Force -ErrorAction SilentlyContinue | Out-Null
-New-Item 'c:\ProgramData\Docker\panic.log' -ItemType File -ErrorAction SilentlyContinue | Out-Null
+New-Item $dataRoot -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+Remove-Item (Join-Path $dataRoot 'panic.log') -Force -ErrorAction SilentlyContinue | Out-Null
+New-Item (Join-Path $dataRoot 'panic.log') -ItemType File -ErrorAction SilentlyContinue | Out-Null
 
 try {
     Start-Service docker
