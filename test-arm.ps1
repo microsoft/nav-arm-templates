@@ -55,7 +55,7 @@ $licensefile = $licenseFileSecret.SecretValue | Get-PlainText
 
 $username = "student"
 $vmSize = "Standard_D4s_v3"
-$oss = @("Windows Server 2022","Windows Server 2019","Windows Server 2019 with Containers")
+$oss = @("Windows Server 2022","Windows Server 2019")
 $vmPrefix = "fk"
 $jsons = @('getbc','getbcext','getnav','getnavext')
 $traefiks = @('Yes','No')
