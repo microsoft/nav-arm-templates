@@ -26,3 +26,8 @@ choco install 7zip
 
 AddToStatus "GitHub CLI"
 choco install gh
+
+AddToStatus "PowerShell 7"
+choco install pwsh -y
+
+
