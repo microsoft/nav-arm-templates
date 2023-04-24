@@ -130,44 +130,9 @@ if ($AddTraefik -eq "Yes") {
 
     if ($AddTraefik -eq "Yes") {
 
-        if ([System.Environment]::OSVersion.Version.Build -gt 17763 -and $bcContainerHelperConfig.TraefikImage.EndsWith('-1809')) {
-            $bestGenericImage = Get-BestGenericImageName
-            $servercoreVersion = $bestGenericImage.Split(':')[1]
-            $serverCoreImage = "mcr.microsoft.com/windows/servercore:$serverCoreVersion"
-
-            AddToStatus "Pulling $serverCoreImage (this might take some time)"
-            if (!(DockerDo -imageName $serverCoreImage -command pull))  {
-                throw "Error pulling image"
-            }
-            $traefikVersion = "v1.7.33"
-
-            New-Item 'C:\DEMO\Traefik' -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
-            Set-Location 'C:\DEMO\Traefik'
-
-            @"
-FROM $serverCoreImage
-SHELL ["powershell", "-Command", "`$ErrorActionPreference = 'Stop'; `$ProgressPreference = 'SilentlyContinue';"]
-
-RUN Invoke-WebRequest \
-    -Uri "https://github.com/traefik/traefik/releases/download/$traefikVersion/traefik_windows-amd64.exe" \
-    -OutFile "/traefik.exe"
-
-EXPOSE 80
-ENTRYPOINT [ "/traefik" ]
-
-# Metadata
-LABEL org.opencontainers.image.vendor="Traefik Labs" \
-    org.opencontainers.image.url="https://traefik.io" \
-    org.opencontainers.image.title="Traefik" \
-    org.opencontainers.image.description="A modern reverse-proxy" \
-    org.opencontainers.image.version="$traefikVersion" \
-    org.opencontainers.image.documentation="https://docs.traefik.io"
-"@ | Set-Content 'DOCKERFILE'
-
-            docker build --tag mytraefik .
-
-            $bcContainerHelperConfig.TraefikImage = "mytraefik:latest"
-        }
+        AddToStatus "Creating custom Traefik image"
+        $traefikImage = Create-CustomTraefikImage
+        AddToStatue "Traefik Image $traefikImage created"
 
         AddToStatus "Setup Traefik container"
         Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
