@@ -122,7 +122,7 @@ else {
 "@ | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
         try {
-            $AdProperties = Create-AadAppsForNav `
+            $AdProperties = New-AadAppsForNav `
                 -AadAdminCredential $Office365Credential `
                 -appIdUri $appIdUri `
                 -publicWebBaseUrl $publicWebBaseUrl `
