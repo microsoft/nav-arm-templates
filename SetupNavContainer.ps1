@@ -122,8 +122,17 @@ else {
 "@ | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
         try {
+            $authContext = New-BcAuthContext -tenantID $aadTenant -credential $Office365Credential -scopes "https://graph.microsoft.com/.default"
+            if (-not $authContext) {
+                $authContext = New-BcAuthContext -includeDeviceLogin -scopes "https://graph.microsoft.com/.default" -deviceLoginTimeout ([TimeSpan]::FromSeconds(0))
+                AddToStatus $authContext.message
+                $authContext = New-BcAuthContext -deviceCode $authContext.deviceCode -deviceLoginTimeout ([TimeSpan]::FromMinutes(30))
+                if (-not $authContext) {
+                    throw "Failed to authenticate with Office 365"
+                }
+            }
             $AdProperties = New-AadAppsForNav `
-                -AadAdminCredential $Office365Credential `
+                -bcAuthContext $authContext `
                 -appIdUri $appIdUri `
                 -publicWebBaseUrl $publicWebBaseUrl `
                 -IncludeExcelAadApp `
