@@ -136,38 +136,33 @@ else {
                 -appIdUri $appIdUri `
                 -publicWebBaseUrl $publicWebBaseUrl `
                 -IncludeExcelAadApp `
-                -IncludePowerBiAadApp `
-                -IncludeEMailAadApp `
                 -IncludeApiAccess `
+                -IncludeOtherServicesAadApp `
                 -preAuthorizePowerShell
 
             $SsoAdAppId = $AdProperties.SsoAdAppId
             $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
             $ExcelAdAppId = $AdProperties.ExcelAdAppId
             $ExcelAdAppKeyValue = $AdProperties.ExcelAdAppKeyValue
-            $PowerBiAdAppId = $AdProperties.PowerBiAdAppId
-            $PowerBiAdAppKeyValue = $AdProperties.PowerBiAdAppKeyValue
+            $OtherServicesAdAppId = $AdProperties.OtherServicesAdAppId
+            $OtherServicesAdAppKeyValue = $AdProperties.OtherServicesAdAppKeyValue
             $ApiAdAppId = $AdProperties.ApiAdAppId
             $ApiAdAppKeyValue = $AdProperties.ApiAdAppKeyValue
-            $EMailAdAppId = $AdProperties.EMailAdAppId
-            $EMailAdAppKeyValue = $AdProperties.EMailAdAppKeyValue
 
 @"
 Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddInAzureActiveDirectoryClientId' -KeyValue '$ExcelAdAppId' -WarningAction Ignore
 "@ | Add-Content "c:\myfolder\SetupConfiguration.ps1"
 
-            $settings = Get-Content -path $settingsScript | Where-Object { $_ -notlike '$SsoAdAppId = *' -and $_ -notlike '$SsoAdAppKeyValue = *' -and $_ -notlike '$ExcelAdAppId = *' -and $_ -notlike '$PowerBiAdAppId = *' -and $_ -notlike '$PowerBiAdAppKeyValue = *' -and $_ -notlike '$EMailAdAppId = *' -and $_ -notlike '$EMailAdAppKeyValue = *' }
+            $settings = Get-Content -path $settingsScript | Where-Object { $_ -notlike '$SsoAdAppId = *' -and $_ -notlike '$SsoAdAppKeyValue = *' -and $_ -notlike '$ExcelAdAppId = *' -and $_ -notlike '$OtherServicesAdAppId = *' -and $_ -notlike '$OtherServicesAdAppKeyValue = *' }
 
             $settings += "`$SsoAdAppId = '$SsoAdAppId'"
             $settings += "`$SsoAdAppKeyValue = '$SsoAdAppKeyValue'"
             $settings += "`$ExcelAdAppId = '$ExcelAdAppId'"
             $settings += "`$ExcelAdAppKeyValue = '$ExcelAdAppKeyValue'"
-            $settings += "`$PowerBiAdAppId = '$PowerBiAdAppId'"
-            $settings += "`$PowerBiAdAppKeyValue = '$PowerBiAdAppKeyValue'"
+            $settings += "`$OtherServicesAdAppId = '$OtherServicesAdAppId'"
+            $settings += "`$OtherServicesAdAppKeyValue = '$OtherServicesAdAppKeyValue'"
             $settings += "`$ApiAdAppId = '$ApiAdAppId'"
             $settings += "`$ApiAdAppKeyValue = '$ApiAdAppKeyValue'"
-            $settings += "`$EMailAdAppId = '$EMailAdAppId'"
-            $settings += "`$EMailAdAppKeyValue = '$EMailAdAppKeyValue'"
 
             Set-Content -Path $settingsScript -Value $settings
 
@@ -413,11 +408,7 @@ if ("$sqlServerType" -eq "SQLDeveloper") {
 
 if ($auth -eq "AAD") {
     if (([System.Version]$navVersion).Major -lt 13) {
-        $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
-        Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/AzureAdAppSetup.fob" -destinationFile $fobfile
-        $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
-        Import-ObjectsToNavContainer -containerName $containerName -objectsFile $fobfile -sqlCredential $sqlCredential
-        Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName SetupAzureAdApp -Argument ($PowerBiAdAppId+','+$PowerBiAdAppKeyValue)
+        throw "AAD authentication no longer supported for NAV"
     } 
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
@@ -443,7 +434,7 @@ if ($auth -eq "AAD") {
 
         $parameters = @{ 
             "name" = "SetupAzureAdApp"
-            "value" = "$PowerBiAdAppId,$PowerBiAdAppKeyValue"
+            "value" = "$OtherServicesAdAppId,$OtherServicesAdAppKeyValue"
         }
         Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
 
@@ -456,9 +447,9 @@ if ($auth -eq "AAD") {
         }
 
         if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
-            $parameters = @{ 
+            $parameters = @{
                 "name" = "SetupEMailAdApp"
-                "value" = "$EMailAdAppId,$EMailAdAppKeyValue,$Office365UserName"
+                "value" = "$OtherServicesAdAppId,$OtherServicesAdAppKeyValue,$Office365UserName"
             }
             Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
     
