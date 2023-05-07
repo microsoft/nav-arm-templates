@@ -131,7 +131,7 @@ else {
                     throw "Failed to authenticate with Office 365"
                 }
             }
-            $AdProperties = New-AadAppsForNav `
+            $AdProperties = New-AadAppsForBC `
                 -bcAuthContext $authContext `
                 -appIdUri $appIdUri `
                 -publicWebBaseUrl $publicWebBaseUrl `
