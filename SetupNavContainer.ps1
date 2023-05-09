@@ -90,14 +90,14 @@ else {
 
     $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
     $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-    $aadTenant = $Office365UserName.split('@')[1]
-    $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$aadTenant"
+    $aadDomain = $Office365UserName.split('@')[1]
+    $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$aadDomain/BC"
 
     if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
         AddToStatus "Reusing existing Aad Apps for Office 365 integration"
 
         $params += @{
-            "AadTenant" = $aadTenant
+            "AadTenant" = $aadTenantId
             "AadAppId" =  $SsoAdAppId
             "AadAppIdUri" = $appIdUri
         }
@@ -122,7 +122,7 @@ else {
 "@ | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
         try {
-            $authContext = New-BcAuthContext -tenantID $aadTenant -credential $Office365Credential -scopes "https://graph.microsoft.com/.default"
+            $authContext = New-BcAuthContext -tenantID $aadDomain -credential $Office365Credential -scopes "https://graph.microsoft.com/.default"
             if (-not $authContext) {
                 $authContext = New-BcAuthContext -includeDeviceLogin -scopes "https://graph.microsoft.com/.default" -deviceLoginTimeout ([TimeSpan]::FromSeconds(0))
                 AddToStatus $authContext.message
@@ -140,6 +140,7 @@ else {
                 -IncludeOtherServicesAadApp `
                 -preAuthorizePowerShell
 
+            $aadTenantId = $authContext.tenantID
             $SsoAdAppId = $AdProperties.SsoAdAppId
             $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
             $ExcelAdAppId = $AdProperties.ExcelAdAppId
@@ -153,8 +154,18 @@ else {
 Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddInAzureActiveDirectoryClientId' -KeyValue '$ExcelAdAppId' -WarningAction Ignore
 "@ | Add-Content "c:\myfolder\SetupConfiguration.ps1"
 
-            $settings = Get-Content -path $settingsScript | Where-Object { $_ -notlike '$SsoAdAppId = *' -and $_ -notlike '$SsoAdAppKeyValue = *' -and $_ -notlike '$ExcelAdAppId = *' -and $_ -notlike '$OtherServicesAdAppId = *' -and $_ -notlike '$OtherServicesAdAppKeyValue = *' }
+            $settings = Get-Content -path $settingsScript | Where-Object { 
+                $_ -notlike '$SsoAdAppId = *' -and 
+                $_ -notlike '$SsoAdAppKeyValue = *' -and 
+                $_ -notlike '$ExcelAdAppId = *' -and 
+                $_ -notlike '$ExcelAdAppKeyValue = *' -and 
+                $_ -notlike '$ApiAdAppId = *' -and 
+                $_ -notlike '$ApiAdAppKeyValue = *' -and 
+                $_ -notlike '$OtherServicesAdAppId = *' -and 
+                $_ -notlike '$OtherServicesAdAppKeyValue = *' -and 
+                $_ -notlike '$aadTenantId = *' }
 
+            $settings += "`$aadTenantId = '$aadTenantId'"
             $settings += "`$SsoAdAppId = '$SsoAdAppId'"
             $settings += "`$SsoAdAppKeyValue = '$SsoAdAppKeyValue'"
             $settings += "`$ExcelAdAppId = '$ExcelAdAppId'"
@@ -167,7 +178,7 @@ Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddIn
             Set-Content -Path $settingsScript -Value $settings
 
             $params += @{
-                "AadTenant" = $aadTenant
+                "AadTenant" = $aadTenantId
                 "AadAppId" =  $SsoAdAppId
                 "AadAppIdUri" = $appIdUri
             }
