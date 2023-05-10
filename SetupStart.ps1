@@ -74,6 +74,11 @@ if (-not (Get-InstalledModule AzureAD -ErrorAction SilentlyContinue)) {
     Install-Module AzureAD -Force
 }
 
+if (-not (Get-InstalledModule "Microsoft.Graph" -ErrorAction SilentlyContinue)) {
+    AddToStatus "Installing Microsoft.Graph module"
+    Install-Module "Microsoft.Graph" -Force
+}
+
 if (-not (Get-InstalledModule SqlServer -ErrorAction SilentlyContinue)) {
     AddToStatus "Installing SqlServer module"
     Install-Module SqlServer -Force
