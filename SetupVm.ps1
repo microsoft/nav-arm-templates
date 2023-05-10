@@ -132,9 +132,7 @@ if ($AddTraefik -eq "Yes") {
 
         AddToStatus "Creating custom Traefik image"
         $traefikImage = Create-CustomTraefikImage
-        AddToStatus "Traefik Image $traefikImage created"
-
-        AddToStatus "Setup Traefik container"
+        AddToStatus "Traefik Image $traefikImage created, Setup Traefik container"
         Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
     }
     else {
