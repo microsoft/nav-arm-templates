@@ -92,10 +92,10 @@ function DockerDo {
         $result = $false
         if (!$silent) {
             $err = $err.Trim()
-            if ("$error" -ne "") {
-                AddToStatus -color red $error
+            if ("$err" -ne "") {
+                AddToStatus -color red $err
             }
-            AddToStatus -color red "ExitCode: "+$p.ExitCode
+            AddToStatus -color red "ExitCode: $($p.ExitCode)"
             AddToStatus -color red "Commandline: docker $arguments"
         }
     }
@@ -110,6 +110,92 @@ if (Test-Path -Path "C:\demo\*\BcContainerHelper.psm1") {
 }
 
 . (Join-Path $PSScriptRoot "settings.ps1")
+
+if ($AddTraefik -eq "Yes") {
+
+    if (Test-Path "c:\myfolder\certificate.pfx") {
+        AddToStatus -color Red "Certificate specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if (-not $ContactEMailForLetsEncrypt) {
+        AddToStatus -color Red "Contact EMail for LetsEncrypt not specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($clickonce -eq "Yes") {
+        AddToStatus -color Red "ClickOnce specified, cannot add Traefik"
+        $AddTraefik = "No"
+    }
+
+    if ($AddTraefik -eq "Yes") {
+
+        AddToStatus "Creating custom Traefik image"
+        $traefikImage = Create-CustomTraefikImage
+        AddToStatus "Traefik Image $traefikImage created, Setup Traefik container"
+        Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
+    }
+    else {
+        Get-VariableDeclaration -name "AddTraefik" | Add-Content $settingsScript
+    }
+}
+
+if ("$ContactEMailForLetsEncrypt" -ne "" -and $AddTraefik -ne "Yes") {
+if (-not (Get-InstalledModule ACME-PS -ErrorAction SilentlyContinue)) {
+
+    AddToStatus "Installing ACME-PS PowerShell Module"
+    Install-Module -Name ACME-PS -RequiredVersion "1.5.2" -AllowPrerelease -Force
+
+    AddToStatus "Using Lets Encrypt certificate"
+    # Use Lets encrypt
+    # If rate limits are hit, log an error and revert to Self Signed
+    try {
+        $plainPfxPassword = [GUID]::NewGuid().ToString()
+        $certificatePfxFilename = "c:\ProgramData\bccontainerhelper\certificate.pfx"
+        New-LetsEncryptCertificate -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt -publicDnsName $publicDnsName -CertificatePfxFilename $certificatePfxFilename -CertificatePfxPassword (ConvertTo-SecureString -String $plainPfxPassword -AsPlainText -Force)
+
+        # Override SetupCertificate.ps1 in container
+        ('if ([int](get-item "C:\Program Files\Microsoft Dynamics NAV\*").Name -le 100) {
+    Write-Host "WARNING: This version doesn''t support LetsEncrypt certificates, reverting to self-signed"
+    . "C:\run\SetupCertificate.ps1"
+}
+else {
+    . (Join-Path $PSScriptRoot "InstallCertificate.ps1")
+}
+') | Set-Content "c:\myfolder\SetupCertificate.ps1"
+
+
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($certificatePfxFile, $certificatePfxPassword)
+$certificateThumbprint = $cert.Thumbprint
+Write-Host "Certificate File Thumbprint $certificateThumbprint"
+if (!(Get-Item Cert:\LocalMachine\my\$certificateThumbprint -ErrorAction SilentlyContinue)) {
+    Write-Host "Import Certificate to LocalMachine\my"
+    Import-PfxCertificate -FilePath $certificatePfxFile -CertStoreLocation cert:\localMachine\my -Password $certificatePfxPassword | Out-Null
+}
+$dnsidentity = $cert.GetNameInfo("SimpleName",$false)
+if ($dnsidentity.StartsWith("*")) {
+    $dnsidentity = $dnsidentity.Substring($dnsidentity.IndexOf(".")+1)
+}
+') | Set-Content "c:\myfolder\InstallCertificate.ps1"
+
+        # Create RenewCertificate script
+        ('$CertificatePfxPassword = ConvertTo-SecureString -String "'+$plainPfxPassword+'" -AsPlainText -Force
+$certificatePfxFile = "'+$certificatePfxFilename+'"
+$publicDnsName = "'+$publicDnsName+'"
+Renew-LetsEncryptCertificate -publicDnsName $publicDnsName -certificatePfxFilename $certificatePfxFile -certificatePfxPassword $certificatePfxPassword
+Start-Sleep -seconds 30
+Restart-NavContainer -containerName "'+$containerName+'" -renewBindings
+') | Set-Content "c:\demo\RenewCertificate.ps1"
+
+    } catch {
+        AddToStatus -color Red $_.Exception.Message
+        AddToStatus -color Red "Reverting to Self Signed Certificate"
+    }
+
+}
+}
 
 if ("$WinRmAccess" -ne "") {
     if (Test-Path "c:\myfolder\InstallCertificate.ps1") {
@@ -164,43 +250,8 @@ if ($sqlServerType -eq "SQLDeveloper") {
 }
 
 
-if ($WindowsInstallationType -eq "Server") {
-    AddToStatus "Starting docker"
-    start-service docker
-} else {
-    if (!(Test-Path -Path "C:\Program Files\Docker\Docker\Docker Desktop.exe" -PathType Leaf)) {
-        AddToStatus "Install Docker"
-        $dockerexe = "C:\DOWNLOAD\DockerInstall.exe"
-        (New-Object System.Net.WebClient).DownloadFile("https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe", $dockerexe)
-        Start-Process -FilePath $dockerexe -ArgumentList "install --quiet" -Wait
-
-        AddToStatus "Restarting computer and start Docker"
-        shutdown -r -t 30
-
-        exit
-
-    } else {
-        AddToStatus "Waiting for docker to start... (this should only take a few minutes)"
-        Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe" -PassThru
-        $serverOsStr = "  OS/Arch:      "
-        do {
-            Start-Sleep -Seconds 10
-            $dockerver = docker version
-        } while ($LASTEXITCODE -ne 0)
-        $serverOs = ($dockerver | where-Object { $_.startsWith($serverOsStr) }).SubString($serverOsStr.Length)
-        if (!$serverOs.startsWith("windows")) {
-            AddToStatus "Switching to Windows Containers"
-            & "c:\program files\docker\docker\dockercli" -SwitchDaemon
-        }
-    }
-}
-
-AddToStatus "Enabling Docker API"
-New-item -Path "C:\ProgramData\docker\config" -ItemType Directory -Force -ErrorAction Ignore | Out-Null
-'{
-    "hosts": ["tcp://0.0.0.0:2375", "npipe://"]
-}' | Set-Content "C:\ProgramData\docker\config\daemon.json"
-netsh advfirewall firewall add rule name="Docker" dir=in action=allow protocol=TCP localport=2375 | Out-Null
+AddToStatus "Starting docker"
+start-service docker
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12
 

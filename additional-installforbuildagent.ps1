@@ -5,6 +5,8 @@
   }
 }
 
+Install-Module az -force
+
 #Install Choco
 AddToSTatus "Install Choco"
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
@@ -18,3 +20,14 @@ choco install microsoft-edge
 
 AddToStatus "VSCode"
 choco install vscode
+
+AddToStatus "7zip"
+choco install 7zip
+
+AddToStatus "GitHub CLI"
+choco install gh
+
+AddToStatus "PowerShell 7"
+choco install pwsh -y
+
+

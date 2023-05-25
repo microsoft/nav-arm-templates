@@ -52,7 +52,7 @@ stop-service docker
 Write-Host "Downloading Docker-Ci-Zap"
 $dockerCiZapExe = Join-Path $Env:TEMP "docker-ci-zap.exe"
 Remove-Item $dockerCiZapExe -Force -ErrorAction Ignore
-(New-Object System.Net.WebClient).DownloadFile("https://github.com/jhowardmsft/docker-ci-zap/raw/master/docker-ci-zap.exe", $dockerCiZapExe)
+(New-Object System.Net.WebClient).DownloadFile("https://github.com/moby/docker-ci-zap/raw/master/docker-ci-zap.exe", $dockerCiZapExe)
 Unblock-File -Path $dockerCiZapExe
 
 Write-Host "Running Docker-Ci-Zap on $dockerRootDir"

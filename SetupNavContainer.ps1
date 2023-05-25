@@ -46,7 +46,6 @@ if ($artifactUrl) {
 
     $Params = @{ 
         "artifactUrl" = $artifactUrl
-        "imageName" = "mybc:$navVersion-$country".ToLowerInvariant()
     }
 }
 elseif ($navDockerImage) {
@@ -80,7 +79,7 @@ else {
     exit
 }
 
-if ($Office365UserName -eq "" -or $Office365Password -eq "") {
+if ($Office365Password -eq "" -or (!$Office365UserName.contains('@'))) {
     $auth = "NavUserPassword"
     if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
         Remove-Item -Path "c:\myfolder\SetupConfiguration.ps1" -Force
@@ -88,54 +87,106 @@ if ($Office365UserName -eq "" -or $Office365Password -eq "") {
 }
 else {
     $auth = "AAD"
+
+    $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
+    $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
+    $aadDomain = $Office365UserName.split('@')[1]
+    $appIdUri = "https://$($publicDnsName.Split('.')[0]).$($publicDnsName.Split('.')[1]).$aadDomain/BC"
+
     if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
         AddToStatus "Reusing existing Aad Apps for Office 365 integration"
+
+        $params += @{
+            "AadTenant" = $aadTenantId
+            "AadAppId" =  $SsoAdAppId
+            "AadAppIdUri" = $appIdUri
+        }
     }
     else {
-        '. "c:\run\SetupConfiguration.ps1"
-        ' | Set-Content "c:\myfolder\SetupConfiguration.ps1"
-
         AddToStatus "Creating Aad Apps for Office 365 integration"
         if (([System.Version]$navVersion).Major -ge 15) {
-            $publicWebBaseUrl = "https://$publicDnsName/BC/"
+            if ($AddTraefik -eq "Yes") {
+                $publicWebBaseUrl = "https://$publicDnsName/$("$containerName".ToUpperInvariant())/"
+            }
+            else {
+                $publicWebBaseUrl = "https://$publicDnsName/BC/"
+            }
         }
         else {
             $publicWebBaseUrl = "https://$publicDnsName/NAV/"
         }
-        $secureOffice365Password = ConvertTo-SecureString -String $Office365Password -Key $passwordKey
-        $Office365Credential = New-Object System.Management.Automation.PSCredential($Office365UserName, $secureOffice365Password)
-        try {
-            $AdProperties = Create-AadAppsForNav -AadAdminCredential $Office365Credential -appIdUri $publicWebBaseUrl -IncludeExcelAadApp -IncludePowerBiAadApp -IncludeEMailAadApp
 
+@"
+`$appIdUri = '$appIdUri'
+. 'c:\run\SetupConfiguration.ps1'
+"@ | Set-Content "c:\myfolder\SetupConfiguration.ps1"
+
+        try {
+            $authContext = New-BcAuthContext -tenantID $aadDomain -credential $Office365Credential -scopes "https://graph.microsoft.com/.default"
+            if (-not $authContext) {
+                $authContext = New-BcAuthContext -includeDeviceLogin -scopes "https://graph.microsoft.com/.default" -deviceLoginTimeout ([TimeSpan]::FromSeconds(0))
+                AddToStatus $authContext.message
+                $authContext = New-BcAuthContext -deviceCode $authContext.deviceCode -deviceLoginTimeout ([TimeSpan]::FromMinutes(30))
+                if (-not $authContext) {
+                    throw "Failed to authenticate with Office 365"
+                }
+            }
+            $AdProperties = New-AadAppsForBC `
+                -bcAuthContext $authContext `
+                -appIdUri $appIdUri `
+                -publicWebBaseUrl $publicWebBaseUrl `
+                -IncludeExcelAadApp `
+                -IncludeApiAccess `
+                -IncludeOtherServicesAadApp `
+                -preAuthorizePowerShell
+
+            $aadTenantId = $authContext.tenantID
             $SsoAdAppId = $AdProperties.SsoAdAppId
             $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
             $ExcelAdAppId = $AdProperties.ExcelAdAppId
-            $PowerBiAdAppId = $AdProperties.PowerBiAdAppId
-            $PowerBiAdAppKeyValue = $AdProperties.PowerBiAdAppKeyValue
-            $EMailAdAppId = $AdProperties.EMailAdAppId
-            $EMailAdAppKeyValue = $AdProperties.EMailAdAppKeyValue
+            $ExcelAdAppKeyValue = $AdProperties.ExcelAdAppKeyValue
+            $OtherServicesAdAppId = $AdProperties.OtherServicesAdAppId
+            $OtherServicesAdAppKeyValue = $AdProperties.OtherServicesAdAppKeyValue
+            $ApiAdAppId = $AdProperties.ApiAdAppId
+            $ApiAdAppKeyValue = $AdProperties.ApiAdAppKeyValue
 
-    'Write-Host "Changing Server config to NavUserPassword to enable basic web services"
-    Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ClientServicesCredentialType" -KeyValue "NavUserPassword" -WarningAction Ignore
-    Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ExcelAddInAzureActiveDirectoryClientId" -KeyValue "'+$ExcelAdAppId+'" -WarningAction Ignore
-    Set-NAVServerConfiguration -ServerInstance $serverInstance -KeyName "ValidAudiences" -KeyValue "'+$SsoAdAppId+'" -WarningAction Ignore -ErrorAction Ignore
-    ' | Add-Content "c:\myfolder\SetupConfiguration.ps1"
-            
-            $settings = Get-Content -path $settingsScript | Where-Object { $_ -notlike '$SsoAdAppId = *' -and $_ -notlike '$SsoAdAppKeyValue = *' -and $_ -notlike '$ExcelAdAppId = *' -and $_ -notlike '$PowerBiAdAppId = *' -and $_ -notlike '$PowerBiAdAppKeyValue = *' -and $_ -notlike '$EMailAdAppId = *' -and $_ -notlike '$EMailAdAppKeyValue = *' }
+@"
+Set-NAVServerConfiguration -ServerInstance `$serverInstance -KeyName 'ExcelAddInAzureActiveDirectoryClientId' -KeyValue '$ExcelAdAppId' -WarningAction Ignore
+"@ | Add-Content "c:\myfolder\SetupConfiguration.ps1"
 
+            $settings = Get-Content -path $settingsScript | Where-Object { 
+                $_ -notlike '$SsoAdAppId = *' -and 
+                $_ -notlike '$SsoAdAppKeyValue = *' -and 
+                $_ -notlike '$ExcelAdAppId = *' -and 
+                $_ -notlike '$ExcelAdAppKeyValue = *' -and 
+                $_ -notlike '$ApiAdAppId = *' -and 
+                $_ -notlike '$ApiAdAppKeyValue = *' -and 
+                $_ -notlike '$OtherServicesAdAppId = *' -and 
+                $_ -notlike '$OtherServicesAdAppKeyValue = *' -and 
+                $_ -notlike '$aadTenantId = *' }
+
+            $settings += "`$aadTenantId = '$aadTenantId'"
             $settings += "`$SsoAdAppId = '$SsoAdAppId'"
             $settings += "`$SsoAdAppKeyValue = '$SsoAdAppKeyValue'"
             $settings += "`$ExcelAdAppId = '$ExcelAdAppId'"
-            $settings += "`$PowerBiAdAppId = '$PowerBiAdAppId'"
-            $settings += "`$PowerBiAdAppKeyValue = '$PowerBiAdAppKeyValue'"
-            $settings += "`$EMailAdAppId = '$EMailAdAppId'"
-            $settings += "`$EMailAdAppKeyValue = '$EMailAdAppKeyValue'"
+            $settings += "`$ExcelAdAppKeyValue = '$ExcelAdAppKeyValue'"
+            $settings += "`$OtherServicesAdAppId = '$OtherServicesAdAppId'"
+            $settings += "`$OtherServicesAdAppKeyValue = '$OtherServicesAdAppKeyValue'"
+            $settings += "`$ApiAdAppId = '$ApiAdAppId'"
+            $settings += "`$ApiAdAppKeyValue = '$ApiAdAppKeyValue'"
 
             Set-Content -Path $settingsScript -Value $settings
+
+            $params += @{
+                "AadTenant" = $aadTenantId
+                "AadAppId" =  $SsoAdAppId
+                "AadAppIdUri" = $appIdUri
+            }
     
         } catch {
             AddToStatus -color Red $_.Exception.Message
             AddToStatus -color Red "Reverting to NavUserPassword authentication"
+            $auth = "NavUserPassword"            
         }
     }
 }
@@ -161,9 +212,12 @@ AddToStatus "Locale $locale"
 $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
-$params += @{ "licensefile" = "$licensefileuri"
-             "publicDnsName" = $publicDnsName }
-
+$params += @{
+    "licensefile" = "$licensefileuri"
+    "publicDnsName" = $publicDnsName
+    "imageName" = "mybc:$navVersion-$country".ToLowerInvariant()
+}
+        
 if ($AddTraefik -eq "Yes") {
     $params += @{ "useTraefik" = $true }
 }
@@ -314,17 +368,12 @@ if ($multitenant -eq "Yes") {
 }
 
 if ($testToolkit -ne "No") {
-    if ($licensefileuri -eq "") {
-        AddToStatus -color Red -Line "Ignoring TestToolkit setting as no licensefile has been specified."
+    $params += @{ "includeTestToolkit" = $true }
+    if ($testToolkit -eq "Framework") {
+        $params += @{ "includeTestFrameworkOnly" = $true }
     }
-    else {
-        $params += @{ "includeTestToolkit" = $true }
-        if ($testToolkit -eq "Framework") {
-            $params += @{ "includeTestFrameworkOnly" = $true }
-        }
-        elseif ($testToolkit -eq "Libraries") {
-            $params += @{ "includeTestLibrariesOnly" = $true }
-        }
+    elseif ($testToolkit -eq "Libraries") {
+        $params += @{ "includeTestLibrariesOnly" = $true }
     }
 }
 
@@ -370,25 +419,24 @@ if ("$sqlServerType" -eq "SQLDeveloper") {
 
 if ($auth -eq "AAD") {
     if (([System.Version]$navVersion).Major -lt 13) {
-        $fobfile = Join-Path $env:TEMP "AzureAdAppSetup.fob"
-        Download-File -sourceUrl "http://aka.ms/azureadappsetupfob" -destinationFile $fobfile
-        $sqlCredential = New-Object System.Management.Automation.PSCredential ( "sa", $credential.Password )
-        Import-ObjectsToNavContainer -containerName $containerName -objectsFile $fobfile -sqlCredential $sqlCredential
-        Invoke-NavContainerCodeunit -containerName $containerName -tenant "default" -CodeunitId 50000 -MethodName SetupAzureAdApp -Argument ($PowerBiAdAppId+','+$PowerBiAdAppKeyValue)
+        throw "AAD authentication no longer supported for NAV"
     } 
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
-        if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
-            Download-File -sourceUrl "https://businesscentralapps.azureedge.net/azureadappsetup/17.1.11329.0/apps.zip" -destinationFile $appfile
+        if (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/18.0.12.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
-        elseif (([System.Version]$navVersion) -ge ([System.Version]"16.4.14693.15445")) {
-            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_16.4.app" -destinationFile $appfile
+        elseif (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/17.1.11.0/azureadappsetup-apps.zip" -destinationFile $appfile
+        }
+        elseif (([System.Version]$navVersion) -ge ([System.Version]"15.9.0.0")) {
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.9.10.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
         elseif (([System.Version]$navVersion).Major -ge 15) {
-            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_15.0.app" -destinationFile $appfile
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.0.7.0/azureadappsetup-apps.zip" -destinationFile $appfile
         }
         else {
-            Download-File -sourceUrl "http://aka.ms/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
         }
 
         Publish-NavContainerApp -containerName $containerName -appFile $appFile -skipVerification -install -sync
@@ -397,14 +445,22 @@ if ($auth -eq "AAD") {
 
         $parameters = @{ 
             "name" = "SetupAzureAdApp"
-            "value" = "$PowerBiAdAppId,$PowerBiAdAppKeyValue"
+            "value" = "$OtherServicesAdAppId,$OtherServicesAdAppKeyValue"
         }
         Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
 
-        if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
+        if (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
             $parameters = @{ 
+                "name" = "SetupAadApplication"
+                "value" = "$ApiAdAppId,API,D365 ADMINISTRATOR:D365 FULL ACCESS"
+            }
+            Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
+        }
+
+        if (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
+            $parameters = @{
                 "name" = "SetupEMailAdApp"
-                "value" = "$EMailAdAppId,$EMailAdAppKeyValue,$Office365UserName"
+                "value" = "$OtherServicesAdAppId,$OtherServicesAdAppKeyValue,$Office365UserName"
             }
             Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
     
@@ -486,14 +542,24 @@ if ("$bingmapskey" -ne "") {
     $codeunitId = 0
     $apiMethod = ""
     switch (([System.Version]$navVersion).Major) {
-          9 { $appFile = "" }
-         10 { $appFile = "" }
-         11 { $appFile = "http://aka.ms/bingmaps11.app"; $codeunitId = 50103 }
-         12 { $appFile = "http://aka.ms/bingmaps12.app"; $codeunitId = 50103 }
-         13 { $appFile = "http://aka.ms/bingmaps12.app"; $codeunitId = 50103 }
-         14 { $appFile = "http://aka.ms/bingmaps12.app" }
-         15 { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
-    default { $appFile = "http://aka.ms/FreddyKristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+               9 { $appFile = "" }
+              10 { $appFile = "" }
+              11 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_11.0.0.0.app"; $codeunitId = 50103 }
+              12 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app"; $codeunitId = 50103 }
+              13 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app"; $codeunitId = 50103 }
+              14 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app" }
+              15 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
+              16 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+              17 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+              18 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
+         default { 
+             if ($nchBranch -eq "") {
+                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/latest/bingmaps-pte-apps.zip"; $apiMethod = "Settings" 
+            }
+            else {
+                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/preview/bingmaps-pte-apps.zip"; $apiMethod = "Settings" 
+            }
+        }
     }
 
     if ($appFile -eq "") {

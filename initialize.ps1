@@ -50,7 +50,11 @@ param
        [string] $requestToken              = "",
        [string] $createStorageQueue        = "",
        [string] $AddTraefik                = "No",
-       [string] $nchBranch                 = ""
+       [string] $nchBranch                 = "",
+       [string] $organization              = "",
+       [string] $token                     = "",
+       [string] $pool                      = "",
+       [string] $agentUrl                  = ""
 )
 
 $verbosePreference = "SilentlyContinue"
@@ -89,6 +93,11 @@ if ($artifactUrl -ne "" -and $navDockerImage -ne "") {
     # Both artifact Url AND navDockerImage specified, navDockerImage wins
     # Reason: ArtifactUrl is defaulted, navDockerImage is not - hence user must have specified a navDockerImage
     $artifactUrl = ""
+}
+
+if ($nchBranch -eq 'dev') {
+    # No longer using dev branch on microsoft/navcontainerhelper
+    $nchBranch = 'https://github.com/freddydk/navcontainerhelper/archive/refs/heads/master.zip'
 }
 
 $ComputerInfo = Get-ComputerInfo
@@ -193,16 +202,17 @@ AddToStatus "Initialize, user: $env:USERNAME"
 AddToStatus "TemplateLink: $templateLink"
 $scriptPath = $templateLink.SubString(0,$templateLink.LastIndexOf('/')+1)
 
-New-Item -Path "C:\DOWNLOAD" -ItemType Directory -ErrorAction Ignore | Out-Null
+$downloadFolder = "C:\DOWNLOAD"
+New-Item -Path $downloadFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 
+if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
+    AddToStatus "Installing NuGet Package Provider"
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
+}
 if (!(Get-Module powershellget | Where-Object { $_.Version -ge [version]"2.2.5" })) {
     AddToStatus "Installing PowerShellGet 2.2.5"
     Install-Module powershellget -RequiredVersion 2.2.5 -force
     Import-Module powershellget -RequiredVersion 2.2.5
-}
-if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
-    AddToStatus "Installing NuGet Package Provider"
-    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
 
 AddToStatus "Installing Internet Information Server (this might take a few minutes)"
@@ -225,6 +235,7 @@ if ($requestToken) {
 $title = 'Dynamics Container Host'
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\title.txt", $title)
 [System.IO.File]::WriteAllText("C:\inetpub\wwwroot\hostname.txt", $publicDnsName)
+[System.IO.File]::WriteAllText("C:\inetpub\wwwroot\containerName.txt", $containerName)
 
 if ("$RemoteDesktopAccess" -ne "") {
 AddToStatus "Creating Connect.rdp"
@@ -306,7 +317,7 @@ if ($workshopFilesUrl -ne "") {
         $workshopFilesUrl = "$($scriptPath)$workshopFilesUrl"
     }
     $workshopFilesFolder = "c:\WorkshopFiles"
-    $workshopFilesFile = "C:\DOWNLOAD\WorkshopFiles.zip"
+    $workshopFilesFile = Join-Path $downloadFolder "WorkshopFiles.zip"
     New-Item -Path $workshopFilesFolder -ItemType Directory -ErrorAction Ignore | Out-Null
 	Download-File -sourceUrl $workshopFilesUrl -destinationFile $workshopFilesFile
     AddToStatus "Unpacking Workshop Files to $WorkshopFilesFolder"
@@ -341,14 +352,37 @@ Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settin
 
 }
 
-if ($WindowsInstallationType -eq "Server") {
-    if (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf)) {
-        AddToStatus "Installing Docker"
-        Install-module DockerMsftProvider -Force
-        Install-Package -Name docker -ProviderName DockerMsftProvider -Force
-    }
-} else {
+if ($AddTraefik -eq "yes" -and [environment]::OSVersion.Version.Build -ne 17763) {
+    # Traefik currently requires hyperv if not 1809
+    AddToStatus "Enable Hyper-V and containers (needed by Traefik)"
     Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V, Containers -All -NoRestart | Out-Null
+}
+
+$installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
+if ($installDocker) {
+    $installDockerScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'InstallOrUpdateDockerEngine.ps1'
+    $installDockerScript = "C:\DEMO\InstallOrUpdateDockerEngine.ps1"
+    Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
+    . $installDockerScript -Force -envScope "Machine"
+}
+
+if ($organization -ne "" -and $token -ne "" -and $pool -ne "" -and $agentUrl -ne "") {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $agentFilename = $agentUrl.Substring($agentUrl.LastIndexOf('/')+1)
+    $agentFullname = Join-Path $DownloadFolder $agentFilename
+    Download-File -sourceUrl $agentUrl -destinationFile $agentFullname
+    $agentName = "$vmName"
+    $agentFolder = "C:\Agent"
+    mkdir $agentFolder -ErrorAction Ignore | Out-Null
+    Set-Location $agentFolder
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($agentFullname, $agentFolder)
+    
+    if ($agentUrl -like 'https://github.com/actions/runner/releases/download/*') {
+        .\config.cmd --unattended --url "$organization" --token "$token" --name $agentName --labels "$pool" --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
+    }
+    else {
+        .\config.cmd --unattended --url "$organization" --auth PAT --token "$token" --pool "$pool" --agent $agentName --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
+    }
 }
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
