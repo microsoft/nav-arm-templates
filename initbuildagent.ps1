@@ -75,7 +75,11 @@ if ($finalSetupScriptUrl) {
 $size = (Get-PartitionSupportedSize -DiskNumber 0 -PartitionNumber 2)
 Resize-Partition -DiskNumber 0 -PartitionNumber 2 -Size $size.SizeMax
 
-$setupAgentsScriptContent = Get-Content -Path $setupAgentsScript -Encoding UTF8 -Raw
+$setupAgentsScriptContent = ''
+if ($token) {
+    $setupAgentsScriptContent = Get-Content -Path $setupAgentsScript -Encoding UTF8 -Raw
+}
+
 Set-Content -Path $setupAgentsScript -Value @"
 `$organization = '$organization'
 `$token = '$token'
@@ -87,10 +91,12 @@ Set-Content -Path $setupAgentsScript -Value @"
 `$templateLink = '$templateLink'
 `$runInsideDocker = '$runInsideDocker'
 
+Start-Transcript -Path "c:\log.txt" -Append
 $finalSetupScriptContent
-if ($token) {
+
 $setupAgentsScriptContent
-}
+
+Stop-Transcript
 "@
 
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $SetupAgentsScript"
