@@ -42,6 +42,9 @@ Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 -ErrorAction SilentlyContinue | Out-Null
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 -ErrorAction SilentlyContinue | Out-Null
 
+$DownloadFolder = "C:\Download"
+MkDir $DownloadFolder -ErrorAction Ignore | Out-Null
+
 try {
     $version = [System.Version](Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' -Name 'Version')
     if ($version -lt '4.8.0') {
@@ -74,9 +77,6 @@ catch {
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null
 }
-
-$DownloadFolder = "C:\Download"
-MkDir $DownloadFolder -ErrorAction Ignore | Out-Null
 
 $SetupAgentsScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'SetupAgents.ps1'
 $SetupAgentsScript = "c:\Download\SetupAgents.ps1"
