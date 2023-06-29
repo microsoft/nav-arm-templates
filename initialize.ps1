@@ -385,18 +385,6 @@ if ($organization -ne "" -and $token -ne "" -and $pool -ne "" -and $agentUrl -ne
     }
 }
 
-try {
-    $version = [System.Version](Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' -Name 'Version')
-    if ($version -lt '4.8.0') {
-        $ProgressPreference = "SilentlyContinue"
-        Invoke-WebRequest -UseBasicParsing -uri 'https://go.microsoft.com/fwlink/?linkid=2088631' -OutFile 'C:\DEMO\dotnet48.exe'
-        & 'C:\DEMO\dotnet48.exe' /q /norestart
-    }
-}
-catch {
-  throw ".NET Framework 4.7 or higher doesn't seem to be installed"
-}
-
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
 $startupTrigger.Delay = "PT1M"
@@ -408,5 +396,20 @@ Register-ScheduledTask -TaskName "SetupStart" `
                        -RunLevel "Highest" `
                        -User "NT AUTHORITY\SYSTEM" | Out-Null
 
+try {
+    $version = [System.Version](Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' -Name 'Version')
+    if ($version -lt '4.8.0') {
+        AddToStatus "Installing DotNet 4.8 and restarting computer to start Installation tasks"
+        $ProgressPreference = "SilentlyContinue"
+        Invoke-WebRequest -UseBasicParsing -uri 'https://go.microsoft.com/fwlink/?linkid=2088631' -OutFile 'c:\Download\dotnet48.exe'
+        & 'c:\Download\dotnet48.exe' /q
+        # Wait 30 minutes - machine should restart before this...
+        Start-Sleep -Seconds 1800
+    }
+}
+catch {
+    AddToStatus ".NET Framework 4.7 or higher doesn't seem to be installed"
+}
 AddToStatus "Restarting computer and start Installation tasks"
 Shutdown -r -t 60
+                
