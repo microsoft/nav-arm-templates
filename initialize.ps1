@@ -413,4 +413,3 @@ catch {
 }
 AddToStatus "Restarting computer and start Installation tasks"
 Shutdown -r -t 60
-                
