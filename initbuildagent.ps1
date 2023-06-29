@@ -31,7 +31,7 @@ function Download-File([string]$sourceUrl, [string]$destinationFile)
     (New-Object System.Net.WebClient).DownloadFile($sourceUrl, $destinationFile)
 }
 
-Start-Transcript -Path "c:\log.txt"
+Start-Transcript -Path "c:\log.txt" -Append
 
 $errorActionPreference = "Stop"
 
@@ -41,6 +41,35 @@ Set-ExecutionPolicy -ExecutionPolicy unrestricted -Force
 
 Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 -ErrorAction SilentlyContinue | Out-Null
 Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37EF-4b3f-8CFC-4F3A74704073}" -Name "IsInstalled" -Value 0 -ErrorAction SilentlyContinue | Out-Null
+
+try {
+    $version = [System.Version](Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' -Name 'Version')
+    if ($version -lt '4.8.0') {
+        $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File '$($MyInvocation.MyCommand.Definition)'"
+        $startupTrigger = New-ScheduledTaskTrigger -AtStartup
+        $startupTrigger.Delay = "PT1M"
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RunOnlyIfNetworkAvailable -DontStopOnIdleEnd
+        Register-ScheduledTask -TaskName "SetupStart" `
+                       -Action $startupAction `
+                       -Trigger $startupTrigger `
+                       -Settings $settings `
+                       -RunLevel "Highest" `
+                       -User "NT AUTHORITY\SYSTEM" | Out-Null
+
+        Write-Host "Installing DotNet 4.8 and restarting computer to start Installation tasks"
+        $ProgressPreference = "SilentlyContinue"
+        $dotnet48exe = Join-Path $downloadFolder "dotnet48.exe"
+        Invoke-WebRequest -UseBasicParsing -uri 'https://go.microsoft.com/fwlink/?linkid=2088631' -OutFile $dotnet48exe
+        & $dotnet48exe /q
+        # Wait 30 minutes - machine should restart before this...
+        Start-Sleep -Seconds 1800
+        Write-Host "Restarting computer and start Installation tasks"
+        Shutdown -r -t 60
+    }
+}
+catch {
+    throw ".NET Framework 4.7 or higher doesn't seem to be installed"
+}
 
 if (!(Get-PackageProvider -Name NuGet -ListAvailable -ErrorAction Ignore)) {
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.208 -Force -WarningAction Ignore | Out-Null

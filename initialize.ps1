@@ -401,8 +401,9 @@ try {
     if ($version -lt '4.8.0') {
         AddToStatus "Installing DotNet 4.8 and restarting computer to start Installation tasks"
         $ProgressPreference = "SilentlyContinue"
-        Invoke-WebRequest -UseBasicParsing -uri 'https://go.microsoft.com/fwlink/?linkid=2088631' -OutFile 'c:\Download\dotnet48.exe'
-        & 'c:\Download\dotnet48.exe' /q
+        $dotnet48exe = Join-Path $downloadFolder "dotnet48.exe"
+        Invoke-WebRequest -UseBasicParsing -uri 'https://go.microsoft.com/fwlink/?linkid=2088631' -OutFile $dotnet48exe
+        & $dotnet48exe /q
         # Wait 30 minutes - machine should restart before this...
         Start-Sleep -Seconds 1800
     }
