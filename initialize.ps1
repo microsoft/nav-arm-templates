@@ -385,6 +385,18 @@ if ($organization -ne "" -and $token -ne "" -and $pool -ne "" -and $agentUrl -ne
     }
 }
 
+try {
+    $version = [System.Version](Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' -Name 'Version')
+    if ($version -lt '4.8.0') {
+        $ProgressPreference = "SilentlyContinue"
+        Invoke-WebRequest -UseBasicParsing -uri 'https://go.microsoft.com/fwlink/?linkid=2088631' -OutFile 'C:\DEMO\dotnet48.exe'
+        & 'C:\DEMO\dotnet48.exe' /q /norestart
+    }
+}
+catch {
+  throw ".NET Framework 4.7 or higher doesn't seem to be installed"
+}
+
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
 $startupTrigger.Delay = "PT1M"
