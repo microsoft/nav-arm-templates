@@ -21,10 +21,10 @@
 		},
         "OperatingSystem": {
             "type": "string",
-            "defaultValue": "Windows Server 2019",
+            "defaultValue": "Windows Server 2022",
             "allowedValues": [
-                "Windows Server 2019",
-                "Windows Server 2022"
+                "Windows Server 2022",
+                "Windows Server 2019"
             ],
             "metadata": {
                 "Description": "Select the Operating System of the VM"
