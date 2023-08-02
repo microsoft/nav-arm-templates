@@ -1,7 +1,7 @@
 # Business Central/NAV ARM Templates
 
 In order to deploy ARM templates from your fork, use:
-`https://freddyk.azurewebsites.net/api/deploy?template=https://raw.githubusercontent.com/<username>/nav-arm-templates/<branch>/<template>.json`
+`https://freddyk.azurewebsites.net/api/deploy?template=https://raw.githubusercontent.com/<githubusername>/nav-arm-templates/<branch>/<template>.json`
 
 Where
 - `<githubusername>` is your GitHub user name (location of the fork)
