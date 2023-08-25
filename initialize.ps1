@@ -4,6 +4,7 @@ param
        [string] $templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
        [string] $containerName             = "navserver",
        [string] $hostName                  = "",
+       [string] $AcceptInsiderEula         = "No",
        [string] $storageConnectionString   = "",
        [string] $isolation                 = "Default",
        [string] $vmAdminUsername           = "vmadmin",
@@ -116,6 +117,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "templateLink"           | Set-Content $settingsScript
     Get-VariableDeclaration -name "hostName"               | Add-Content $settingsScript
     Get-VariableDeclaration -name "StorageConnectionString"| Add-Content $settingsScript
+    Get-VariableDeclaration -name "AcceptInsiderEula"      | Add-Content $settingsScript
     Get-VariableDeclaration -name "containerName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "isolation"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "vmAdminUsername"        | Add-Content $settingsScript
