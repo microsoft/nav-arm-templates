@@ -244,7 +244,7 @@ if ($sqlServerType -eq "SQLDeveloper") {
     start-service MSSQLSERVER
     
     $sqlcmd = "ALTER LOGIN sa with password='" + ([System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($dbcredential.Password)).Replace('"','""').Replace('''','''''')) + "',CHECK_POLICY = OFF;ALTER LOGIN sa ENABLE;"
-    Invoke-SqlCmd -ServerInstance "localhost" -QueryTimeout 0 -ErrorAction Stop -Query $sqlcmd
+    Invoke-SqlCmd -ServerInstance "localhost" -QueryTimeout 0 -ErrorAction Stop -Query $sqlcmd -Encrypt Optional
 
     New-NetFirewallRule -DisplayName "SQLDeveloper" -Direction Inbound -LocalPort 1433 -Protocol tcp -Action Allow
 }
