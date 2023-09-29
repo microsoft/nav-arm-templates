@@ -23,7 +23,7 @@ if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Ena
 }
 
 # Get Latest Stable version and URL
-$latestZipFile = (Invoke-WebRequest -UseBasicParsing -uri "https://download.docker.com/win/static/stable/x86_64/").Content.split("`r`n") | 
+$latestZipFile = (Invoke-WebRequest -UseBasicParsing -uri "https://download.docker.com/win/static/stable/x86_64/").Content.replace("`r",'').split("`n") | 
                  Where-Object { $_ -like "<a href=""docker-*"">docker-*" } | 
                  ForEach-Object { $zipName = $_.Split('"')[1]; [Version]($zipName.SubString(7,$zipName.Length-11).Split('-')[0]) } | 
                  Sort-Object | Select-Object -Last 1 | ForEach-Object { "docker-$_.zip" }
