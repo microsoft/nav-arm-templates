@@ -79,6 +79,10 @@ else {
     exit
 }
 
+if ($AcceptInsiderEula -eq "Yes") {
+    $params += @{ "accept_insiderEula" = $true }
+}
+
 if ($Office365Password -eq "" -or (!$Office365UserName.contains('@'))) {
     $auth = "NavUserPassword"
     if (Test-Path "c:\myfolder\SetupConfiguration.ps1") {
