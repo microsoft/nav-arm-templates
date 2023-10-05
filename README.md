@@ -1,3 +1,29 @@
+# Business Central/NAV ARM Templates
+
+In order to deploy ARM templates from your fork, use:
+`https://freddyk.azurewebsites.net/api/deploy?template=https://raw.githubusercontent.com/<githubusername>/nav-arm-templates/<branch>/<template>.json`
+
+Where
+- `<githubusername>` is your GitHub user name (location of the fork)
+- `<branch>` is the branch you want to deploy from
+- `<template>` is the name of the template to use
+
+## Available templates
+
+| Name | Description |
+|---|---|
+| getbc | Get Azure VM with Business Central on Docker with standard questionnaire |
+| getbcext | Get Azure VM with Business Central on Docker with extended questionnaire |
+| buildagent | Get Azure VM pre-configured as Build Agent for GitHub or Azure DevOps |
+| getnav | Get Azure VM with NAV on Docker with standard questionnaire |
+| getnavext | Get Azure VM with NAV on Docker with extended questionnaire |
+
+**Note:** You can add parameters for prepopulating fields in the ARM template.
+
+## Examples
+- getbc -> https://freddyk.azurewebsites.net/api/deploy?template=https://raw.githubusercontent.com/freddydk/nav-arm-templates/master/getbc.json&nchbranch=preview&vmname=myvm
+- buildagent -> https://freddyk.azurewebsites.net/api/deploy?template=https://raw.githubusercontent.com/freddydk/nav-arm-templates/master/buildagent.json&nchbranch=preview
+
 # Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
