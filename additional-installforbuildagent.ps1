@@ -30,4 +30,10 @@ choco install gh
 AddToStatus "PowerShell 7"
 choco install pwsh -y
 
+AddToStatus "Microsoft Visual C++ Redistributable for Visual Studio 2015-2022 14.36.32532"
+choco install vcredist140 -y
 
+$sources = dotnet nuget list source
+if (!($sources | where-Object { $_.Trim() -eq 'https://api.nuget.org/v3/index.json' })) {
+  dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org
+}
