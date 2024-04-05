@@ -480,7 +480,10 @@ if ($auth -eq "AAD") {
             Invoke-NavContainerApi -containerName $containerName -tenant "default" -credential $credential -APIPublisher "Microsoft" -APIGroup "Setup" -APIVersion "beta" -CompanyId $companyId -Method "POST" -Query "aadApps" -body $parameters | Out-Null
     
             if ($sqlServerType -eq "SQLExpress") {
-                Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
+                # temp fix (issue since BC24 - Invoke-Sqlcmd)
+                # Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
+                $session = Get-NavContainerSession -containerName $containerName
+                Invoke-Command -Session $session -ScriptBlock { 
                     $config = Get-NAVServerConfiguration -serverinstance $serverinstance -asxml
                     if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value -eq 'True') {
                         $databaseName = "default"
@@ -491,7 +494,7 @@ if ($auth -eq "AAD") {
                     Invoke-Sqlcmd -Database $databaseName -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('e6328152-bb29-4664-9dae-3bc7eaae1fd8', 1)"
                     Invoke-Sqlcmd -Database $databaseName -Query "UPDATE [dbo].[Isolated Storage] SET [App Id] = 'e6328152-bb29-4664-9dae-3bc7eaae1fd8' WHERE [App Id] = '4C06EAFF-C198-4764-94A4-B695861CE379'"
                 }
-            }
+            }            
             else {
                 if ($sqlserverType -eq "SQLDeveloper") {
                     $databaseServerInstance = "localhost"
