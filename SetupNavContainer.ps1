@@ -437,23 +437,24 @@ if ($auth -eq "AAD") {
         throw "AAD authentication no longer supported for NAV"
     } 
     else {
-        $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
         if (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
-            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/18.0.12.0/azureadappsetup-apps.zip" -destinationFile "$appfile.zip"
+            $sourceUrl = "https://businesscentralapps.blob.core.windows.net/azureadappsetup/18.0.12.0/azureadappsetup-apps.zip"
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
-            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/17.1.11.0/azureadappsetup-apps.zip" -destinationFile "$appfile.zip"
+            $sourceUrl = "https://businesscentralapps.blob.core.windows.net/azureadappsetup/17.1.11.0/azureadappsetup-apps.zip"
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"15.9.0.0")) {
-            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.9.10.0/azureadappsetup-apps.zip" -destinationFile "$appfile.zip"
+            $sourceUrl = "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.9.10.0/azureadappsetup-apps.zip"
         }
         elseif (([System.Version]$navVersion).Major -ge 15) {
-            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.0.7.0/azureadappsetup-apps.zip" -destinationFile "$appfile.zip"
+            $sourceUrl = "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.0.7.0/azureadappsetup-apps.zip"
         }
         else {
-            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
+            $sourceUrl = "https://businesscentralapps.blob.core.windows.net/azureadappsetup/Microsoft_AzureAdAppSetup_13.0.0.0.app"
         }
 
+        $appfile = Join-Path $env:TEMP ([System.IO.Path]::GetFileName($sourceUrl))
+        Download-File -sourceUrl $sourceUrl -destinationFile $appfile
         Publish-NavContainerApp -containerName $containerName -appFile $appFile -skipVerification -install -sync
 
         $companyId = Get-NavContainerApiCompanyId -containerName $containerName -tenant "default" -credential $credential
