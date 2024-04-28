@@ -419,7 +419,7 @@ if ($auth -eq "AAD") {
             Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
         }
 
-        Publish-NavContainerApp -containerName $containerName -appFile $appFile -skipVerification -install -sync
+        Publish-NavContainerApp -containerName $containerName -appFile "$appFile.zip" -skipVerification -install -sync
 
         $companyId = Get-NavContainerApiCompanyId -containerName $containerName -tenant "default" -credential $credential
 
