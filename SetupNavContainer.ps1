@@ -20,7 +20,18 @@ if ($artifactUrl) {
 
     if ($artifactUrl -notlike "https://*") {
         $segments = "$artifactUrl/////".Split('/')
-        $artifactUrl = Get-BCArtifactUrl -storageAccount $segments[0] -type $segments[1] -version $segments[2] -country $segments[3] -select $segments[4] -sasToken $segments[5] | Select-Object -First 1
+        $params = @{
+            "storageAccount" = $segments[0]
+            "type" = $segments[1]
+            "version" = $segments[2]
+            "country" = $segments[3]
+            "select" = $segments[4]
+            "sasToken" = $segments[5]
+        }
+        if ($AcceptInsiderEula -eq "Yes") {
+            $params += @{ "accept_insiderEula" = $true }
+        }
+        $artifactUrl = Get-BCArtifactUrl @Params | Select-Object -First 1
     }
 
     $artifactPaths = Download-Artifacts -artifactUrl $artifactUrl -includePlatform
@@ -77,6 +88,10 @@ elseif ($navDockerImage) {
 else {
     # no artifact, no container - exit
     exit
+}
+
+if ($AcceptInsiderEula -eq "Yes") {
+    $params += @{ "accept_insiderEula" = $true }
 }
 
 if ($Office365Password -eq "" -or (!$Office365UserName.contains('@'))) {
