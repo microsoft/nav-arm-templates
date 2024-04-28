@@ -439,16 +439,16 @@ if ($auth -eq "AAD") {
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
         if (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
-            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/18.0.12.0/azureadappsetup-apps.zip" -destinationFile $appfile
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/18.0.12.0/azureadappsetup-apps.zip" -destinationFile "$appfile.zip"
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
-            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/17.1.11.0/azureadappsetup-apps.zip" -destinationFile $appfile
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/17.1.11.0/azureadappsetup-apps.zip" -destinationFile "$appfile.zip"
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"15.9.0.0")) {
-            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.9.10.0/azureadappsetup-apps.zip" -destinationFile $appfile
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.9.10.0/azureadappsetup-apps.zip" -destinationFile "$appfile.zip"
         }
         elseif (([System.Version]$navVersion).Major -ge 15) {
-            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.0.7.0/azureadappsetup-apps.zip" -destinationFile $appfile
+            Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.0.7.0/azureadappsetup-apps.zip" -destinationFile "$appfile.zip"
         }
         else {
             Download-File -sourceUrl "https://businesscentralapps.blob.core.windows.net/azureadappsetup/Microsoft_AzureAdAppSetup_13.0.0.0.app" -destinationFile $appfile
