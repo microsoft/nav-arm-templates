@@ -222,7 +222,7 @@ if ("$WinRmAccess" -ne "") {
 }
 
 if ($sqlServerType -eq "SQLDeveloper") {
-    AddToStatus "Installing SQL Server Developer edition"
+    AddToStatus "Installing SQL Server 2019 Developer edition"
 
     $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
     $dbCredential = New-Object System.Management.Automation.PSCredential('sa', $securePassword)
