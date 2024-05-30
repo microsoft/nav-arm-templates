@@ -222,14 +222,14 @@ if ("$WinRmAccess" -ne "") {
 }
 
 if ($sqlServerType -eq "SQLDeveloper") {
-    AddToStatus "Installing SQL Server Developer edition"
+    AddToStatus "Installing SQL Server 2019 Developer edition"
 
     $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
     $dbCredential = New-Object System.Management.Automation.PSCredential('sa', $securePassword)
 
     cd c:\demo
-    $exeUrl = "https://go.microsoft.com/fwlink/?linkid=840945"
-    $boxUrl = "https://go.microsoft.com/fwlink/?linkid=840944"
+    $exeUrl = "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLServer2019-DEV-x64-ENU.exe"
+    $boxUrl = "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLServer2019-DEV-x64-ENU.box"
     $sqlExe = "c:\demo\SQL.exe"
     $sqlBox = "c:\demo\SQL.box"
     Download-File -sourceUrl $exeUrl -destinationFile $sqlExe
@@ -238,9 +238,9 @@ if ($sqlServerType -eq "SQLDeveloper") {
     .\setup\setup.exe /q /ACTION=Install /INSTANCENAME=MSSQLSERVER /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS
     Remove-Item -Recurse -Force $sqlExe, $sqlBox, setup
     stop-service MSSQLSERVER
-    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpdynamicports -value ''
-    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpport -value 1433
-    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.MSSQLSERVER\mssqlserver\' -name LoginMode -value 2
+    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql15.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpdynamicports -value ''
+    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql15.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpport -value 1433
+    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql15.MSSQLSERVER\mssqlserver\' -name LoginMode -value 2
     start-service MSSQLSERVER
     
     $sqlcmd = "ALTER LOGIN sa with password='" + ([System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($dbcredential.Password)).Replace('"','""').Replace('''','''''')) + "',CHECK_POLICY = OFF;ALTER LOGIN sa ENABLE;"

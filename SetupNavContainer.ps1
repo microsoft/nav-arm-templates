@@ -433,24 +433,21 @@ if ("$sqlServerType" -eq "SQLDeveloper") {
 }
 
 if ($auth -eq "AAD") {
-    if (([System.Version]$navVersion).Major -lt 13) {
-        throw "AAD authentication no longer supported for NAV"
+    if (([System.Version]$navVersion).Major -lt 15) {
+        throw "AAD authentication no longer supported for this version"
     } 
     else {
         if (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
-            $sourceUrl = "https://businesscentralapps.blob.core.windows.net/azureadappsetup/18.0.12.0/azureadappsetup-apps.zip"
+            $sourceUrl = "https://github.com/BusinessCentralApps/AzureAdAppSetup/releases/download/18.0.12/AzureAdAppSetup-Apps-18.0.12.0.zip"
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"17.1.0.0")) {
-            $sourceUrl = "https://businesscentralapps.blob.core.windows.net/azureadappsetup/17.1.11.0/azureadappsetup-apps.zip"
+            $sourceUrl = "https://github.com/BusinessCentralApps/AzureAdAppSetup/releases/download/17.1.11/AzureAdAppSetup-Apps-17.1.11.0.zip"
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"15.9.0.0")) {
-            $sourceUrl = "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.9.10.0/azureadappsetup-apps.zip"
-        }
-        elseif (([System.Version]$navVersion).Major -ge 15) {
-            $sourceUrl = "https://businesscentralapps.blob.core.windows.net/azureadappsetup/15.0.7.0/azureadappsetup-apps.zip"
+            $sourceUrl = "https://github.com/BusinessCentralApps/AzureAdAppSetup/releases/download/15.9.10/AzureAdAppSetup-Apps-15.9.10.0.zip"
         }
         else {
-            $sourceUrl = "https://businesscentralapps.blob.core.windows.net/azureadappsetup/Microsoft_AzureAdAppSetup_13.0.0.0.app"
+            $sourceUrl = "https://github.com/BusinessCentralApps/AzureAdAppSetup/releases/download/15.0.7/AzureAdAppSetup-Apps-15.0.7.0.zip"
         }
 
         $appfile = Join-Path $env:TEMP ([System.IO.Path]::GetFileName($sourceUrl))
@@ -561,24 +558,17 @@ if ("$bingmapskey" -ne "") {
     $codeunitId = 0
     $apiMethod = ""
     switch (([System.Version]$navVersion).Major) {
-               9 { $appFile = "" }
-              10 { $appFile = "" }
-              11 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_11.0.0.0.app"; $codeunitId = 50103 }
-              12 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app"; $codeunitId = 50103 }
-              13 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app"; $codeunitId = 50103 }
-              14 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/freddyk_BingMaps_12.0.0.0.app" }
-              15 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_15.0.app"; $codeunitId = 70103 }
-              16 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
-              17 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
-              18 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
-         default { 
-             if ($nchBranch -eq "") {
-                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/latest/bingmaps-pte-apps.zip"; $apiMethod = "Settings" 
-            }
-            else {
-                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/preview/bingmaps-pte-apps.zip"; $apiMethod = "Settings" 
-            }
-        }
+         9      { $appFile = "" }
+        10      { $appFile = "" }
+        11      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/11.0.0/freddyk_BingMaps_11.0.0.0.zip";                   $codeunitId = 50103 }
+        12      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/12.0.0/freddyk_BingMaps_12.0.0.0.zip";                   $codeunitId = 50103 }
+        13      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/12.0.0/freddyk_BingMaps_12.0.0.0.zip";                   $codeunitId = 50103 }
+        14      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/12.0.0/freddyk_BingMaps_12.0.0.0.zip";                   $codeunitId = 50103 }
+        15      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/15.0.0/Freddy.Kristiansen_BingMaps_15.0.zip";            $codeunitId = 70103 }
+        16      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/16.0.0/Freddy.Kristiansen_BingMaps_16.0.zip";            $apiMethod = "Settings" }
+        17      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/16.0.0/Freddy.Kristiansen_BingMaps_16.0.zip";            $apiMethod = "Settings" }
+        18      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/16.0.0/Freddy.Kristiansen_BingMaps_16.0.zip";            $apiMethod = "Settings" }
+        default { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/19.0.0/bcsamples-bingmaps.pte-main-Apps-19.0.168.0.zip"; $apiMethod = "Settings" }
     }
 
     if ($appFile -eq "") {
