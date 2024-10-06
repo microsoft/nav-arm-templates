@@ -432,7 +432,9 @@ if ("$sqlServerType" -eq "SQLDeveloper") {
     New-NavContainerNavUser -containerName $containerName -Credential $credential -ChangePasswordAtNextLogOn:$false -PermissionSetId SUPER
 }
 
-if ($auth -eq "AAD") {
+# temp fix (issue since BC25 - App: Azure Ad App Setup (User Group no longer exists))
+# if ($auth -eq "AAD") {
+if ($auth -eq "AAD" -and ([System.Version]$navVersion) -lt ([System.Version]"25.0.0.0")) {
     if (([System.Version]$navVersion).Major -lt 15) {
         throw "AAD authentication no longer supported for this version"
     } 
