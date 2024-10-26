@@ -438,7 +438,7 @@ if ($auth -eq "AAD") {
     } 
     else {
         if (([System.Version]$navVersion) -ge ([System.Version]"25.0.0.0")) {
-            Download-File -sourceUrl "https://github.com/cegeka-dsa/AzureAdAppSetup/releases/download/v25.0-beta/Microsoft_AzureAdAppSetup_25.0.0.0.zip" -destinationFile "$appfile.zip"
+            $sourceUrl = "https://github.com/BusinessCentralApps/AzureAdAppSetup/releases/download/25.0.0/AzureAdAppSetup-main-Apps-25.0.33.0.zip"
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
             $sourceUrl = "https://github.com/BusinessCentralApps/AzureAdAppSetup/releases/download/18.0.12/AzureAdAppSetup-Apps-18.0.12.0.zip"
