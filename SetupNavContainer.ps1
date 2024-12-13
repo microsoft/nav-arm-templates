@@ -402,7 +402,7 @@ Get-ChildItem -Path "c:\myfolder" | % { $myscripts += $_.FullName }
 
 try {
     AddToStatus "Running container (this might take some time)"
-    New-NavContainer -accept_eula -accept_outdated @Params `
+    New-NavContainer -accept_eula -accept_outdated -accept_insiderEula @Params `
                      -containerName $containerName `
                      -useSSL `
                      -updateHosts `
