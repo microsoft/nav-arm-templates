@@ -4,6 +4,7 @@ param
        [string] $templateLink              = "https://raw.githubusercontent.com/Microsoft/nav-arm-templates/master/navdeveloperpreview.json",
        [string] $containerName             = "navserver",
        [string] $hostName                  = "",
+       [string] $AcceptInsiderEula         = "No",
        [string] $storageConnectionString   = "",
        [string] $isolation                 = "Default",
        [string] $vmAdminUsername           = "vmadmin",
@@ -51,7 +52,11 @@ param
        [string] $requestToken              = "",
        [string] $createStorageQueue        = "",
        [string] $AddTraefik                = "No",
-       [string] $nchBranch                 = ""
+       [string] $nchBranch                 = "",
+       [string] $organization              = "",
+       [string] $token                     = "",
+       [string] $pool                      = "",
+       [string] $agentUrl                  = ""
 )
 
 $verbosePreference = "SilentlyContinue"
@@ -92,6 +97,11 @@ if ($artifactUrl -ne "" -and $navDockerImage -ne "") {
     $artifactUrl = ""
 }
 
+if ($nchBranch -eq 'dev') {
+    # No longer using dev branch on microsoft/navcontainerhelper
+    $nchBranch = 'https://github.com/freddydk/navcontainerhelper/archive/refs/heads/master.zip'
+}
+
 $ComputerInfo = Get-ComputerInfo
 $WindowsInstallationType = $ComputerInfo.WindowsInstallationType
 $WindowsProductName = $ComputerInfo.WindowsProductName
@@ -108,6 +118,7 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "templateLink"           | Set-Content $settingsScript
     Get-VariableDeclaration -name "hostName"               | Add-Content $settingsScript
     Get-VariableDeclaration -name "StorageConnectionString"| Add-Content $settingsScript
+    Get-VariableDeclaration -name "AcceptInsiderEula"      | Add-Content $settingsScript
     Get-VariableDeclaration -name "containerName"          | Add-Content $settingsScript
     Get-VariableDeclaration -name "isolation"              | Add-Content $settingsScript
     Get-VariableDeclaration -name "vmAdminUsername"        | Add-Content $settingsScript
@@ -363,6 +374,25 @@ if ($installDocker) {
     . $installDockerScript -Force -envScope "Machine"
 }
 
+if ($organization -ne "" -and $token -ne "" -and $pool -ne "" -and $agentUrl -ne "") {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $agentFilename = $agentUrl.Substring($agentUrl.LastIndexOf('/')+1)
+    $agentFullname = Join-Path $DownloadFolder $agentFilename
+    Download-File -sourceUrl $agentUrl -destinationFile $agentFullname
+    $agentName = "$vmName"
+    $agentFolder = "C:\Agent"
+    mkdir $agentFolder -ErrorAction Ignore | Out-Null
+    Set-Location $agentFolder
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($agentFullname, $agentFolder)
+    
+    if ($agentUrl -like 'https://github.com/actions/runner/releases/download/*') {
+        .\config.cmd --unattended --url "$organization" --token "$token" --name $agentName --labels "$pool" --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
+    }
+    else {
+        .\config.cmd --unattended --url "$organization" --auth PAT --token "$token" --pool "$pool" --agent $agentName --runAsService --windowslogonaccount "NT AUTHORITY\SYSTEM"
+    }
+}
+
 $startupAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy UnRestricted -File $setupStartScript"
 $startupTrigger = New-ScheduledTaskTrigger -AtStartup
 $startupTrigger.Delay = "PT1M"
@@ -374,5 +404,20 @@ Register-ScheduledTask -TaskName "SetupStart" `
                        -RunLevel "Highest" `
                        -User "NT AUTHORITY\SYSTEM" | Out-Null
 
+try {
+    $version = [System.Version](Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' -Name 'Version')
+    if ($version -lt '4.8.0') {
+        AddToStatus "Installing DotNet 4.8 and restarting computer to start Installation tasks"
+        $ProgressPreference = "SilentlyContinue"
+        $dotnet48exe = Join-Path $downloadFolder "dotnet48.exe"
+        Invoke-WebRequest -UseBasicParsing -uri 'https://go.microsoft.com/fwlink/?linkid=2088631' -OutFile $dotnet48exe
+        & $dotnet48exe /q
+        # Wait 30 minutes - machine should restart before this...
+        Start-Sleep -Seconds 1800
+    }
+}
+catch {
+    AddToStatus ".NET Framework 4.7 or higher doesn't seem to be installed"
+}
 AddToStatus "Restarting computer and start Installation tasks"
 Shutdown -r -t 60

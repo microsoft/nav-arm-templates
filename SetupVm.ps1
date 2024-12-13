@@ -130,46 +130,9 @@ if ($AddTraefik -eq "Yes") {
 
     if ($AddTraefik -eq "Yes") {
 
-        if ([System.Environment]::OSVersion.Version.Build -gt 17763 -and $bcContainerHelperConfig.TraefikImage.EndsWith('-1809')) {
-            $bestGenericImage = Get-BestGenericImageName
-            $servercoreVersion = $bestGenericImage.Split(':')[1]
-            $serverCoreImage = "mcr.microsoft.com/windows/servercore:$serverCoreVersion"
-
-            AddToStatus "Pulling $serverCoreImage (this might take some time)"
-            if (!(DockerDo -imageName $serverCoreImage -command pull))  {
-                throw "Error pulling image"
-            }
-            $traefikVersion = "v1.7.33"
-
-            New-Item 'C:\DEMO\Traefik' -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
-            Set-Location 'C:\DEMO\Traefik'
-
-            @"
-FROM $serverCoreImage
-SHELL ["powershell", "-Command", "`$ErrorActionPreference = 'Stop'; `$ProgressPreference = 'SilentlyContinue';"]
-
-RUN Invoke-WebRequest \
-    -Uri "https://github.com/traefik/traefik/releases/download/$traefikVersion/traefik_windows-amd64.exe" \
-    -OutFile "/traefik.exe"
-
-EXPOSE 80
-ENTRYPOINT [ "/traefik" ]
-
-# Metadata
-LABEL org.opencontainers.image.vendor="Traefik Labs" \
-    org.opencontainers.image.url="https://traefik.io" \
-    org.opencontainers.image.title="Traefik" \
-    org.opencontainers.image.description="A modern reverse-proxy" \
-    org.opencontainers.image.version="$traefikVersion" \
-    org.opencontainers.image.documentation="https://docs.traefik.io"
-"@ | Set-Content 'DOCKERFILE'
-
-            docker build --tag mytraefik .
-
-            $bcContainerHelperConfig.TraefikImage = "mytraefik:latest"
-        }
-
-        AddToStatus "Setup Traefik container"
+        AddToStatus "Creating custom Traefik image"
+        $traefikImage = Create-CustomTraefikImage
+        AddToStatus "Traefik Image $traefikImage created, Setup Traefik container"
         Setup-TraefikContainerForNavContainers -overrideDefaultBinding -PublicDnsName $publicDnsName -ContactEMailForLetsEncrypt $ContactEMailForLetsEncrypt
     }
     else {
@@ -259,14 +222,14 @@ if ("$WinRmAccess" -ne "") {
 }
 
 if ($sqlServerType -eq "SQLDeveloper") {
-    AddToStatus "Installing SQL Server Developer edition"
+    AddToStatus "Installing SQL Server 2019 Developer edition"
 
     $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKey
     $dbCredential = New-Object System.Management.Automation.PSCredential('sa', $securePassword)
 
     cd c:\demo
-    $exeUrl = "https://go.microsoft.com/fwlink/?linkid=840945"
-    $boxUrl = "https://go.microsoft.com/fwlink/?linkid=840944"
+    $exeUrl = "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLServer2019-DEV-x64-ENU.exe"
+    $boxUrl = "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SQLServer2019-DEV-x64-ENU.box"
     $sqlExe = "c:\demo\SQL.exe"
     $sqlBox = "c:\demo\SQL.box"
     Download-File -sourceUrl $exeUrl -destinationFile $sqlExe
@@ -275,13 +238,13 @@ if ($sqlServerType -eq "SQLDeveloper") {
     .\setup\setup.exe /q /ACTION=Install /INSTANCENAME=MSSQLSERVER /FEATURES=SQLEngine /UPDATEENABLED=0 /SQLSVCACCOUNT='NT AUTHORITY\NETWORK SERVICE' /SQLSYSADMINACCOUNTS='BUILTIN\ADMINISTRATORS' /TCPENABLED=1 /NPENABLED=0 /IACCEPTSQLSERVERLICENSETERMS
     Remove-Item -Recurse -Force $sqlExe, $sqlBox, setup
     stop-service MSSQLSERVER
-    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpdynamicports -value ''
-    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpport -value 1433
-    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql14.MSSQLSERVER\mssqlserver\' -name LoginMode -value 2
+    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql15.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpdynamicports -value ''
+    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql15.MSSQLSERVER\mssqlserver\supersocketnetlib\tcp\ipall' -name tcpport -value 1433
+    set-itemproperty -path 'HKLM:\software\microsoft\microsoft sql server\mssql15.MSSQLSERVER\mssqlserver\' -name LoginMode -value 2
     start-service MSSQLSERVER
     
     $sqlcmd = "ALTER LOGIN sa with password='" + ([System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($dbcredential.Password)).Replace('"','""').Replace('''','''''')) + "',CHECK_POLICY = OFF;ALTER LOGIN sa ENABLE;"
-    Invoke-SqlCmd -ServerInstance "localhost" -QueryTimeout 0 -ErrorAction Stop -Query $sqlcmd
+    Invoke-SqlCmd -ServerInstance "localhost" -QueryTimeout 0 -ErrorAction Stop -Query $sqlcmd -Encrypt Optional
 
     New-NetFirewallRule -DisplayName "SQLDeveloper" -Direction Inbound -LocalPort 1433 -Protocol tcp -Action Allow
 }
