@@ -34,6 +34,7 @@ AddToStatus "Microsoft Visual C++ Redistributable for Visual Studio 2015-2022 14
 choco install vcredist140 -y
 
 AddToStatus "Microsoft dotnet"
+choco install dotnet-8.0-runtime -y
 choco install dotnet -y
 
 AddToStatus "Microsoft dotnet SDK"
