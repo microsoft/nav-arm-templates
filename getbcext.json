@@ -692,7 +692,7 @@
 					{
                         "name": "HTTP",
                         "properties": {
-                            "description": "Http access",
+                            "description": "Allow HTTP access",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "80",
@@ -706,7 +706,7 @@
                     {
                         "name": "FILES",
                         "properties": {
-                            "description": "File access",
+                            "description": "Allow FILES access",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "8080",
@@ -720,7 +720,7 @@
                     {
                         "name": "HTTPS",
                         "properties": {
-                            "description": "Http access over Secure Socket Layer",
+                            "description": "Allow HTTPS access",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "443",
@@ -732,9 +732,9 @@
                         }
                     },
                     {
-                        "name": "Soap",
+                        "name": "ERPSoap",
                         "properties": {
-                            "description": "Access to Soap Web Services",
+                            "description": "Allow SOAP access",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "7047",
@@ -746,9 +746,9 @@
                         }
                     },
                     {
-                        "name": "OData",
+                        "name": "ERPOdata",
                         "properties": {
-                            "description": "Access to OData Services",
+                            "description": "Allow OData access",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "7048",
@@ -760,9 +760,9 @@
                         }
                     },
                     {
-                        "name": "Developer",
+                        "name": "ERPDeveloper",
                         "properties": {
-                            "description": "Access to Developer Services",
+                            "description": "Allow Developer access",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "7049",
@@ -787,7 +787,7 @@
 					{
                         "name": "HTTP",
                         "properties": {
-                            "description": "Http access",
+                            "description": "Allow HTTP access",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "80",
@@ -801,7 +801,7 @@
                     {
                         "name": "FILES",
                         "properties": {
-                            "description": "File access",
+                            "description": "Allow FILES access",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "8080",
@@ -815,7 +815,7 @@
                     {
                         "name": "HTTPS",
                         "properties": {
-                            "description": "Http access over Secure Socket Layer",
+                            "description": "Allow HTTPS access",
                             "protocol": "Tcp",
                             "sourcePortRange": "*",
                             "destinationPortRange": "443",
