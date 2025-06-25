@@ -262,6 +262,8 @@ Add-LocalGroupMember -Group administrators -Member $hostUsername -ErrorAction Ig
 }
 
 Download-File -sourceUrl "$($scriptPath)SetupWebClient.ps1"    -destinationFile "c:\myfolder\SetupWebClient.ps1"
+AddToStatus "WORKAROUND SQL 2022: Downloading custom HelperFunctions.ps1"
+Download-File -sourceUrl "$($scriptPath)HelperFunctions.ps1"   -destinationFile "c:\myfolder\HelperFunctions.ps1"
 
 Download-File -sourceUrl "$($scriptPath)SetupDesktop.ps1"      -destinationFile $setupDesktopScript
 Download-File -sourceUrl "$($scriptPath)SetupNavContainer.ps1" -destinationFile $setupNavContainerScript
