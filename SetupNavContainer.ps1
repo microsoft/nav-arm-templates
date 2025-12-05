@@ -111,6 +111,8 @@ else {
 "@ | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
         try {
+            Install-Module Microsoft.Graph -Repository PSGallery -Force -AllowClobber
+
             $bcAuthContext = New-BcAuthContext `
                 -tenantID  "4a4699e8-81d6-4b55-96a5-37d69964a799" `
                 -clientID  "9cf6be20-dccb-410a-9b57-3190d0d0d662" `
