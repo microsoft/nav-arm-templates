@@ -437,6 +437,13 @@ if ($auth -eq "AAD") {
 
         Publish-NavContainerApp -containerName $containerName -appFile "$appFile.zip" -skipVerification -install -sync
 
+        $ScriptBlock = {
+            Set-NAVServerConfiguration -ServerInstance 'BC' -KeyName 'ClientServicesCredentialType' -KeyValue 'NavUserPassword' -WarningAction Ignore
+        }
+        Invoke-ScriptInNavContainer -containerName $ContainerName -scriptblock $ScriptBlock
+        Restart-NavContainer -ContainerName $containerName
+        Start-Sleep -Seconds 120
+
         $companyId = Get-NavContainerApiCompanyId -containerName $containerName -tenant "default" -credential $credential
 
         $parameters = @{
