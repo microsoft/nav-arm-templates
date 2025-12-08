@@ -125,6 +125,7 @@ else {
                 -IncludeExcelAadApp `
                 -IncludeOtherServicesAadApp `
                 -IncludeEmailAadApp `
+                -IncludePowerBiAadApp `
                 -IncludeApiAccess `
                 -preAuthorizePowerShell `
                 -bcAuthContext $bcAuthContext
