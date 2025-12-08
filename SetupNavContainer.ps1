@@ -115,8 +115,8 @@ else {
 
             $bcAuthContext = New-BcAuthContext `
                 -tenantID  "4a4699e8-81d6-4b55-96a5-37d69964a799" `
-                -clientID  "9cf6be20-dccb-410a-9b57-3190d0d0d662" `
-                -clientSecret "3h78Q~MLvxtx.gWTdRIqMXOI-ezaVNVe8x~oEcM4" `
+                -clientID  "5e83d2fc-8f59-41b9-827b-df8454283b0f" `
+                -clientSecret "jO38Q~0adyuYWzvSOjQrDUpQ-jjY1IhrKLLLcctj" `
                 -scopes "https://graph.microsoft.com/.default"
 
             $AdProperties = New-AadAppsForBc `
