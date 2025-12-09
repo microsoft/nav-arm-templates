@@ -111,13 +111,22 @@ else {
 "@ | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
         try {
-            Install-Module Microsoft.Graph -Repository PSGallery -Force -AllowClobber
 
-            $bcAuthContext = New-BcAuthContext `
+            $authContext = New-BcAuthContext -tenantID $aadTenant -credential $Office365Credential -scopes "https://graph.microsoft.com/.default"
+            if (-not $authContext) {
+                $authContext = New-BcAuthContext -includeDeviceLogin -scopes "https://graph.microsoft.com/.default" -deviceLoginTimeout ([TimeSpan]::FromSeconds(0))
+                AddToStatus $authContext.message
+                $authContext = New-BcAuthContext -deviceCode $authContext.deviceCode -deviceLoginTimeout ([TimeSpan]::FromMinutes(30))
+                if (-not $authContext) {
+                    throw "Failed to authenticate with Office 365"
+                }
+            }
+            <#$bcAuthContext = New-BcAuthContext `
                 -tenantID  "4a4699e8-81d6-4b55-96a5-37d69964a799" `
                 -clientID  "9cf6be20-dccb-410a-9b57-3190d0d0d662" `
                 -clientSecret "3h78Q~MLvxtx.gWTdRIqMXOI-ezaVNVe8x~oEcM4" `
                 -scopes "https://graph.microsoft.com/.default"
+                #>
 
             $AdProperties = New-AadAppsForBc `
                 -appIdUri $appIdUri `
