@@ -112,21 +112,12 @@ else {
 
         try {
 
-            $authContext = New-BcAuthContext -tenantID $aadTenant -credential $Office365Credential -scopes "https://graph.microsoft.com/.default"
-            if (-not $authContext) {
-                $authContext = New-BcAuthContext -includeDeviceLogin -scopes "https://graph.microsoft.com/.default" -deviceLoginTimeout ([TimeSpan]::FromSeconds(0))
-                AddToStatus $authContext.message
-                $authContext = New-BcAuthContext -deviceCode $authContext.deviceCode -deviceLoginTimeout ([TimeSpan]::FromMinutes(30))
-                if (-not $authContext) {
-                    throw "Failed to authenticate with Office 365"
-                }
-            }
-            <#$bcAuthContext = New-BcAuthContext `
+            $bcAuthContext = New-BcAuthContext `
                 -tenantID  "4a4699e8-81d6-4b55-96a5-37d69964a799" `
                 -clientID  "9cf6be20-dccb-410a-9b57-3190d0d0d662" `
                 -clientSecret "3h78Q~MLvxtx.gWTdRIqMXOI-ezaVNVe8x~oEcM4" `
                 -scopes "https://graph.microsoft.com/.default"
-                #>
+
 
             $AdProperties = New-AadAppsForBc `
                 -appIdUri $appIdUri `
@@ -209,7 +200,7 @@ $securePassword = ConvertTo-SecureString -String $adminPassword -Key $passwordKe
 $credential = New-Object System.Management.Automation.PSCredential($navAdminUsername, $securePassword)
 $azureSqlCredential = New-Object System.Management.Automation.PSCredential($azureSqlAdminUsername, $securePassword)
 $params += @{ "licensefile" = "$licensefileuri"
-    "publicDnsName"         = $publicDnsName 
+    "publicDnsName"         = $publicDnsName
 }
 
 if ($AddTraefik -eq "Yes") {
@@ -236,7 +227,7 @@ if ("$appBacpacUri" -ne "") {
         $params += @{ "databaseServer" = "$azureSqlServer"
             "databaseInstance"         = ""
             "databaseName"             = "App"
-            "databaseCredential"       = $azureSqlCredential 
+            "databaseCredential"       = $azureSqlCredential
         }
         if ($tenantBacpacUri -ne "") {
             $multitenant = "Yes"
@@ -430,7 +421,7 @@ if ($auth -eq "AAD") {
     else {
         $appfile = Join-Path $env:TEMP "AzureAdAppSetup.app"
         if (([System.Version]$navVersion) -ge ([System.Version]"25.0.0.0")) {
-            Download-File -sourceUrl "https://github.com/BusinessCentralApps/AzureAdAppSetup/releases/download/25.0.0/AzureAdAppSetup-main-Apps-25.0.33.0.zip" -destinationFile "$appfile.zip"    
+            Download-File -sourceUrl "https://github.com/BusinessCentralApps/AzureAdAppSetup/releases/download/25.0.0/AzureAdAppSetup-main-Apps-25.0.33.0.zip" -destinationFile "$appfile.zip"
         }
         elseif (([System.Version]$navVersion) -ge ([System.Version]"18.0.0.0")) {
             Download-File -sourceUrl "https://github.com/BusinessCentralApps/AzureAdAppSetup/releases/download/18.0.12/AzureAdAppSetup-Apps-18.0.12.0.zip" -destinationFile "$appfile.zip"
@@ -566,12 +557,12 @@ if ("$bingmapskey" -ne "") {
         16 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
         17 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
         18 { $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/Freddy%20Kristiansen_BingMaps_16.0.app"; $apiMethod = "Settings" }
-        default { 
+        default {
             if ($nchBranch -eq "") {
-                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/latest/bingmaps-pte-apps.zip"; $apiMethod = "Settings" 
+                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/latest/bingmaps-pte-apps.zip"; $apiMethod = "Settings"
             }
             else {
-                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/preview/bingmaps-pte-apps.zip"; $apiMethod = "Settings" 
+                $appFile = "https://businesscentralapps.blob.core.windows.net/bingmaps-pte/preview/bingmaps-pte-apps.zip"; $apiMethod = "Settings"
             }
         }
     }
