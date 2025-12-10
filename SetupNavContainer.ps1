@@ -111,15 +111,13 @@ else {
 "@ | Set-Content "c:\myfolder\SetupConfiguration.ps1"
 
         try {
-            $authContext = New-BcAuthContext -tenantID $aadDomain -credential $Office365Credential -scopes "https://graph.microsoft.com/.default"
-            if (-not $authContext) {
-                $authContext = New-BcAuthContext -includeDeviceLogin -scopes "https://graph.microsoft.com/.default" -deviceLoginTimeout ([TimeSpan]::FromSeconds(0))
-                AddToStatus $authContext.message
-                $authContext = New-BcAuthContext -deviceCode $authContext.deviceCode -deviceLoginTimeout ([TimeSpan]::FromMinutes(30))
-                if (-not $authContext) {
-                    throw "Failed to authenticate with Office 365"
-                }
-            }
+
+            $bcAuthContext = New-BcAuthContext `
+                -tenantID  "4a4699e8-81d6-4b55-96a5-37d69964a799" `
+                -clientID  "9cf6be20-dccb-410a-9b57-3190d0d0d662" `
+                -clientSecret "3h78Q~MLvxtx.gWTdRIqMXOI-ezaVNVe8x~oEcM4" `
+                -scopes "https://graph.microsoft.com/.default"
+
 
             $AdProperties = New-AadAppsForBc `
                 -appIdUri $appIdUri `
@@ -130,7 +128,7 @@ else {
                 -IncludePowerBiAadApp `
                 -IncludeApiAccess `
                 -preAuthorizePowerShell `
-                -bcAuthContext $authContext
+                -bcAuthContext $bcAuthContext
 
             $SsoAdAppId = $AdProperties.SsoAdAppId
             $SsoAdAppKeyValue = $AdProperties.SsoAdAppKeyValue
@@ -444,7 +442,7 @@ if ($auth -eq "AAD") {
             Set-NAVServerConfiguration -ServerInstance 'BC' -KeyName 'ClientServicesCredentialType' -KeyValue 'NavUserPassword' -WarningAction Ignore
         }
         Invoke-ScriptInNavContainer -containerName $ContainerName -scriptblock $ScriptBlock
-        Restart-NavContainer -containerName $containerName
+        Restart-NavContainer -ContainerName $containerName
         Start-Sleep -Seconds 120
 
         $companyId = Get-NavContainerApiCompanyId -containerName $containerName -tenant "default" -credential $credential
