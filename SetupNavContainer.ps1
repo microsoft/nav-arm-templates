@@ -118,7 +118,7 @@ else {
                 -clientSecret "3h78Q~MLvxtx.gWTdRIqMXOI-ezaVNVe8x~oEcM4" `
                 -scopes "https://graph.microsoft.com/.default" #>
 
-            $authContext = New-BcAuthContext -tenantID $aadDomain -credential $Office365Credential -scopes "https://graph.microsoft.com/.default"
+            $authContext = New-BcAuthContext -tenantID $aadTenant -credential $Office365Credential -scopes "https://graph.microsoft.com/.default"
             if (-not $authContext) {
                 $authContext = New-BcAuthContext -includeDeviceLogin -scopes "https://graph.microsoft.com/.default" -deviceLoginTimeout ([TimeSpan]::FromSeconds(0))
                 AddToStatus $authContext.message
