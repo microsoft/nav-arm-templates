@@ -36,9 +36,14 @@ AddToStatus "SetupStart, User: $env:USERNAME"
 
 . (Join-Path $PSScriptRoot "settings.ps1")
 
+$installDockerScript = 'C:\DEMO\InstallOrUpdateDockerEngine.ps1'
+if (Test-Path -Path $installDockerScript) {
+    AddToStatus 'Installing Docker Engine'
+    . $installDockerScript -Force -envScope 'Machine'
+}
+
 $ComputerInfo = Get-ComputerInfo
 $WindowsInstallationType = $ComputerInfo.WindowsInstallationType
-$WindowsProductName = $ComputerInfo.WindowsProductName
 
 if ($nchBranch -eq "preview") {
     AddToStatus "Installing Latest BcContainerHelper preview from PowerShell Gallery"

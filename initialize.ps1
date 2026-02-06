@@ -362,10 +362,16 @@ if ($AddTraefik -eq "yes" -and [environment]::OSVersion.Version.Build -ne 17763)
 
 $installDocker = (!(Test-Path -Path "C:\Program Files\Docker\docker.exe" -PathType Leaf))
 if ($installDocker) {
+    if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Enabled') {
+        # Docker Engine requires Windows feature containers to be enabled
+        # Windows needs a restart between containers feature and Docker Engine installation
+        # The Docker installation is moved to the *SetupStart.ps1* script which runs after a restart
+        AddToStatus 'Enable Windows feature: containers'
+        Enable-WindowsOptionalFeature -FeatureName containers -Online -NoRestart
+    }
     $installDockerScriptUrl = $templateLink.Substring(0,$templateLink.LastIndexOf('/')+1)+'InstallOrUpdateDockerEngine.ps1'
     $installDockerScript = "C:\DEMO\InstallOrUpdateDockerEngine.ps1"
     Download-File -sourceUrl $installDockerScriptUrl -destinationFile $installDockerScript
-    . $installDockerScript -Force -envScope "Machine"
 }
 
 if ($organization -ne "" -and $token -ne "" -and $pool -ne "" -and $agentUrl -ne "") {

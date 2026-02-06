@@ -13,15 +13,6 @@ if ((Test-Path (Join-Path $env:ProgramFiles "Docker Desktop")) -or (Test-Path (J
     throw "Docker Desktop is installed on this Computer, cannot run this script"
 }
 
-# Install Windows feature containers
-$restartNeeded = $false
-if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Enabled') {
-    $restartNeeded = (Enable-WindowsOptionalFeature -FeatureName containers -Online -NoRestart).RestartNeeded
-    if ($restartNeeded) {
-        Write-Host "A restart is needed before you can start the docker service after installation"
-    }
-}
-
 # Get Latest Stable version and URL
 $latestZipFile = (Invoke-WebRequest -UseBasicParsing -uri "https://download.docker.com/win/static/stable/x86_64/").Content.replace("`r",'').split("`n") | 
                  Where-Object { $_ -like "<a href=""docker-*"">docker-*" } | 
@@ -90,4 +81,3 @@ try {
 catch {
     Write-Host -ForegroundColor Red "Could not start docker service, you might need to reboot your computer."
 }
-
