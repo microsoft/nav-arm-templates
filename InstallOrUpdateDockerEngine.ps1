@@ -13,6 +13,10 @@ if ((Test-Path (Join-Path $env:ProgramFiles "Docker Desktop")) -or (Test-Path (J
     throw "Docker Desktop is installed on this Computer, cannot run this script"
 }
 
+if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Enabled') {
+    throw 'Windows Containers feature is not enabled, please enable it and reboot before running this script'
+}
+
 # Get Latest Stable version and URL
 $latestZipFile = (Invoke-WebRequest -UseBasicParsing -uri "https://download.docker.com/win/static/stable/x86_64/").Content.replace("`r",'').split("`n") | 
                  Where-Object { $_ -like "<a href=""docker-*"">docker-*" } | 
