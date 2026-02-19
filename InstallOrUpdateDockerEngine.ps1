@@ -13,13 +13,8 @@ if ((Test-Path (Join-Path $env:ProgramFiles "Docker Desktop")) -or (Test-Path (J
     throw "Docker Desktop is installed on this Computer, cannot run this script"
 }
 
-# Install Windows feature containers
-$restartNeeded = $false
 if (!(Get-WindowsOptionalFeature -FeatureName containers -Online).State -eq 'Enabled') {
-    $restartNeeded = (Enable-WindowsOptionalFeature -FeatureName containers -Online -NoRestart).RestartNeeded
-    if ($restartNeeded) {
-        Write-Host "A restart is needed before you can start the docker service after installation"
-    }
+    throw 'Windows Containers feature is not enabled, please enable it and reboot before running this script'
 }
 
 # Get Latest Stable version and URL
@@ -90,4 +85,3 @@ try {
 catch {
     Write-Host -ForegroundColor Red "Could not start docker service, you might need to reboot your computer."
 }
-
