@@ -219,9 +219,9 @@ if (!(Get-Module powershellget | Where-Object { $_.Version -ge [version]"2.2.5" 
 
 AddToStatus "Installing Internet Information Server (this might take a few minutes)"
 if ($WindowsInstallationType -eq "Server") {
-    Add-WindowsFeature Web-Server,web-Asp-Net45
+    Add-WindowsFeature Web-Server,web-Asp-Net45,Web-Basic-Auth
 } else {
-    Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServer,IIS-ASPNET45 -All -NoRestart | Out-Null
+    Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServer,IIS-ASPNET45,IIS-BasicAuthentication -All -NoRestart | Out-Null
 }
 
 Remove-Item -Path "C:\inetpub\wwwroot\iisstart.*" -Force
