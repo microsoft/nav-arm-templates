@@ -223,10 +223,6 @@ if ($WindowsInstallationType -eq "Server") {
 } else {
     Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServer,IIS-ASPNET45,IIS-BasicAuthentication -All -NoRestart | Out-Null
 }
-AddToStatus "Installing IIS URL Rewrite module"
-$urlRewriteInstaller = "c:\myfolder\rewrite_amd64.msi"
-Download-File -sourceUrl "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi" -destinationFile $urlRewriteInstaller
-Start-Process -FilePath msiexec.exe -ArgumentList "/i `"$urlRewriteInstaller`" /quiet /norestart" -Wait
 
 Remove-Item -Path "C:\inetpub\wwwroot\iisstart.*" -Force
 Download-File -sourceUrl "$($scriptPath)Default.aspx"            -destinationFile "C:\inetpub\wwwroot\default.aspx"
