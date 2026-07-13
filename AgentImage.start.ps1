@@ -2,7 +2,7 @@ $agentFolder = "c:\agent"
 if ("$ENV:AGENTURL" -eq "" -or "$ENV:ORGANIZATION" -eq "" -or "$ENV:AGENTNAME" -eq "" -or "$ENV:TOKEN" -eq "" -or "$ENV:POOL" -eq "") {
     Write-Host "You need to specify the following Environment variables in order to run the agent image`n"
     Write-Host "AGENTURL - the URL for downloading the Agent. GitHub runner URL can be found at https://github.com/{organization}/{repository}/settings/actions/runners/new (ex. https://github.com/actions/runner/releases/download/v2.284.0/actions-runner-win-x64-2.284.0.zip). x64 Azure DevOps Agent can be found at https://dev.azure.com/{your_organization}/_admin/_AgentPool (click Download agent and select x64 ) (ex. https://vstsagentpackage.azureedge.net/agent/2.194.0/vsts-agent-win-x64-2.194.0.zip)"
-    Write-Host "ORGANIZATION - the URL for your GitHub Project/Organization or your Azure DevOps Organization (ex. https://github.com/BusinessCentralApps, https://github.com/freddydk/BingMaps.AppSource or https://dev.azure.com/freddykristiansen)"
+    Write-Host "ORGANIZATION - the URL for your GitHub Project/Organization or your Azure DevOps Organization (ex. https://github.com/microsoft or https://dev.azure.com/your-organization)"
     Write-Host "AGENTNAME - the name of the Agent"
     Write-Host "TOKEN - a personal access token with permissions to add/remove agents from the agent pool for Azure DevOps or the token provided at https://github.com/{organization}/{repository}/settings/actions/runners/new for Github"
     Write-Host "POOL - additional labels for GitHub runners or specify the pool in which your agent should live for Azure DevOps"

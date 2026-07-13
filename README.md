@@ -1,10 +1,13 @@
 # Business Central/NAV ARM Templates
 
-In order to deploy ARM templates from your fork, use:
-`https://freddyk.azurewebsites.net/api/deploy?template=https://raw.githubusercontent.com/<githubusername>/nav-arm-templates/<branch>/<template>.json`
+In order to deploy ARM templates from this repository (or your fork), use the standard Azure portal deployment URL:
+`https://portal.azure.com/#create/Microsoft.Template/uri/<url-encoded-template-url>`
+
+Where `<url-encoded-template-url>` is the URL-encoded raw URL of the template, e.g. the URL-encoded form of
+`https://raw.githubusercontent.com/<githubusername>/nav-arm-templates/<branch>/<template>.json`
 
 Where
-- `<githubusername>` is your GitHub user name (location of the fork)
+- `<githubusername>` is the GitHub user name (use `microsoft` for the original templates, or your own user name for a fork)
 - `<branch>` is the branch you want to deploy from
 - `<template>` is the name of the template to use
 
@@ -18,11 +21,11 @@ Where
 | getnav | Get Azure VM with NAV on Docker with standard questionnaire |
 | getnavext | Get Azure VM with NAV on Docker with extended questionnaire |
 
-**Note:** You can add parameters for prepopulating fields in the ARM template.
+**Note:** After opening the deployment URL, the Azure portal will prompt you for the values of the fields in the ARM template.
 
 ## Examples
-- getbc -> https://freddyk.azurewebsites.net/api/deploy?template=https://raw.githubusercontent.com/freddydk/nav-arm-templates/master/getbc.json&nchbranch=preview&vmname=myvm
-- buildagent -> https://freddyk.azurewebsites.net/api/deploy?template=https://raw.githubusercontent.com/freddydk/nav-arm-templates/master/buildagent.json&nchbranch=preview
+- getbc -> https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fnav-arm-templates%2Fmaster%2Fgetbc.json
+- buildagent -> https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fnav-arm-templates%2Fmaster%2Fbuildagent.json
 
 # Contributing
 

@@ -419,7 +419,7 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "Description": "If you want to install a GitHub Runner/DevOps Agent - specify the URL for your GitHub Project/Organization or your Azure DevOps Organization (ex. https://github.com/BusinessCentralApps, https://github.com/freddydk/BingMaps.AppSource or https://dev.azure.com/freddykristiansen)"
+                "Description": "If you want to install a GitHub Runner/DevOps Agent - specify the URL for your GitHub Project/Organization or your Azure DevOps Organization (ex. https://github.com/microsoft or https://dev.azure.com/your-organization)"
             }
         },
         "LabelsOrPool": {
