@@ -493,6 +493,11 @@ If connections to RDP fails, you might need to add an incoming rule to the netwo
       <tr><td colspan="4"><h3>Installation NOT complete</h3></td></tr>
 <%
     }
+%>
+      <tr>
+        <td colspan="4">To review the installation log, connect to the virtual machine using Remote Desktop and open <i>c:\demo\status.txt</i>.</td>
+      </tr>
+<%
   }
   if (GetCustomSettings()) {
 %>
