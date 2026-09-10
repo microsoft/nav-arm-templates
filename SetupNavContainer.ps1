@@ -1,4 +1,4 @@
-﻿if (!(Test-Path function:AddToStatus)) {
+if (!(Test-Path function:AddToStatus)) {
     function AddToStatus([string]$line, [string]$color = "Gray") {
         ("<font color=""$color"">" + [DateTime]::Now.ToString([System.Globalization.DateTimeFormatInfo]::CurrentInfo.ShortTimePattern.replace(":mm",":mm:ss")) + " $line</font>") | Add-Content -Path "c:\demo\status.txt" -Force -ErrorAction SilentlyContinue
         Write-Host -ForegroundColor $color $line 
@@ -550,108 +550,6 @@ if ($sqlServerType -eq "AzureSQL") {
 if ("$includeappUris".Trim() -ne "") {
     foreach($includeApp in "$includeAppUris".Split(',;')) {
         Publish-NavContainerApp -containerName $containerName -appFile $includeApp -sync -install -skipVerification
-    }
-}
-
-if ("$bingmapskey" -ne "") {
-
-    $codeunitId = 0
-    $apiMethod = ""
-    switch (([System.Version]$navVersion).Major) {
-         9      { $appFile = "" }
-        10      { $appFile = "" }
-        11      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/11.0.0/freddyk_BingMaps_11.0.0.0.zip";                   $codeunitId = 50103 }
-        12      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/12.0.0/freddyk_BingMaps_12.0.0.0.zip";                   $codeunitId = 50103 }
-        13      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/12.0.0/freddyk_BingMaps_12.0.0.0.zip";                   $codeunitId = 50103 }
-        14      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/12.0.0/freddyk_BingMaps_12.0.0.0.zip";                   $codeunitId = 50103 }
-        15      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/15.0.0/Freddy.Kristiansen_BingMaps_15.0.zip";            $codeunitId = 70103 }
-        16      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/16.0.0/Freddy.Kristiansen_BingMaps_16.0.zip";            $apiMethod = "Settings" }
-        17      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/16.0.0/Freddy.Kristiansen_BingMaps_16.0.zip";            $apiMethod = "Settings" }
-        18      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/16.0.0/Freddy.Kristiansen_BingMaps_16.0.zip";            $apiMethod = "Settings" }
-        default { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/19.0.0/bcsamples-bingmaps.pte-main-Apps-19.0.168.0.zip"; $apiMethod = "Settings" }
-    }
-
-    if ($appFile -eq "") {
-        AddToStatus "BingMaps app is not supported for this version of NAV"
-    }
-    else {
-        AddToStatus "Create Web Services Key for admin user"
-        $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
-        if ("$webServicesKey" -eq "") {
-            $session = Get-NavContainerSession -containerName $containerName
-            Invoke-Command -Session $session -ScriptBlock { Param($navAdminUsername)
-                Set-NAVServerUser -ServerInstance $serverInstance -Tenant "default" -UserName $navAdminUsername -CreateWebServicesKey 
-            } -ArgumentList $navAdminUsername
-            $webServicesKey = (Get-NavContainerNavUser -containerName $containerName -tenant "default" | Where-Object { $_.Username -eq $navAdminUsername }).WebServicesKey
-        }
-        
-        AddToStatus "Installing BingMaps app from $appFile"
-        Publish-NavContainerApp -containerName $containerName `
-                                -tenant "default" `
-                                -packageType Extension `
-                                -appFile $appFile `
-                                -skipVerification `
-                                -sync `
-                                -install
-    
-        if ($codeunitId) {
-            AddToStatus "Geocode customers, by invoking codeunit $codeunitId"
-            Get-CompanyInNavContainer -containerName $containerName | % {
-                Invoke-NavContainerCodeunit -containerName $containerName `
-                                            -tenant "default" `
-                                            -CompanyName $_.CompanyName `
-                                            -Codeunitid $codeunitId `
-                                            -MethodName "SetBingMapsSettings" `
-                                            -Argument ('{ "BingMapsKey":"' + $bingMapsKey + '","WebServicesUsername": "' + $navAdminUsername + '","WebServicesKey": "' + $webServicesKey + '"}')
-            }
-        }
-        elseif ($apiMethod) {
-            AddToStatus "Geocode customers, by invoking api method $apiMethod"
-
-            if ($sqlServerType -eq "SQLExpress") {
-                Invoke-ScriptInBCContainer -containerName $containerName -scriptblock {
-                    $config = Get-NAVServerConfiguration -serverinstance $serverinstance -asxml
-                    if ($config.SelectSingleNode("//appSettings/add[@key='Multitenant']").Value -eq 'True') {
-                        $databaseName = "default"
-                    }
-                    else {
-                        $databaseName = $config.SelectSingleNode("//appSettings/add[@key='DatabaseName']").Value
-                    }
-                    Invoke-Sqlcmd -Database $databaseName -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('a949d4bf-5f3c-49d8-b4be-5359d609683b', 1)"
-                }
-            }
-            else {
-                if ($sqlserverType -eq "SQLDeveloper") {
-                    $databaseServerInstance = "localhost"
-                }
-                else {
-                    $databaseServerInstance = $params.databaseServer
-                }
-                if ($params.databaseInstance) {
-                    $databaseServerInstance += "\$($params.databaseInstance)"
-                }
-                Invoke-Sqlcmd -ServerInstance $databaseServerInstance -Database $params.databaseName -Credential $params.databaseCredential -Query "INSERT INTO [dbo].[NAV App Setting] ([App ID],[Allow HttpClient Requests]) VALUES ('a949d4bf-5f3c-49d8-b4be-5359d609683b', 1)"
-            }
-           
-            $tenant = "default"
-            $companyId = Get-NavContainerApiCompanyId -containerName $containerName -tenant $tenant -credential $credential
-
-            $parameters = @{ 
-                "name" = "BingMapsKey"
-                "value" = $bingMapsKey
-            }
-            Invoke-NavContainerApi `
-                -containerName $containerName `
-                -tenant $tenant `
-                -credential $credential `
-                -APIPublisher "Microsoft" `
-                -APIGroup "BingMaps" `
-                -APIVersion "v1.0" `
-                -CompanyId $companyId `
-                -Method "POST" `
-                -Query $apiMethod `
-                -body $parameters | Out-Null
-        }
     }
 }
 
