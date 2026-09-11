@@ -98,7 +98,7 @@ if ($artifactUrl -ne "" -and $navDockerImage -ne "") {
 
 if ($nchBranch -eq 'dev') {
     # No longer using dev branch on microsoft/navcontainerhelper
-    $nchBranch = 'https://github.com/freddydk/navcontainerhelper/archive/refs/heads/master.zip'
+    $nchBranch = 'https://github.com/microsoft/navcontainerhelper/archive/refs/heads/main.zip'
 }
 
 $ComputerInfo = Get-ComputerInfo
