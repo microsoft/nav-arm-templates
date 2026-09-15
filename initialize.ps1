@@ -44,7 +44,6 @@ param
        [string] $ContactEMailForLetsEncrypt= "",
        [string] $RemoteDesktopAccess       = "*",
        [string] $WinRmAccess               = "-",
-       [string] $BingMapsKey               = "",
        [string] $Office365UserName         = "",
        [string] $Office365Password         = "",
        [string] $Office365CreatePortal     = "No",
@@ -155,7 +154,6 @@ if (Test-Path $settingsScript) {
     Get-VariableDeclaration -name "ContactEMailForLetsEncrypt" | Add-Content $settingsScript
     Get-VariableDeclaration -name "RemoteDesktopAccess"    | Add-Content $settingsScript
     Get-VariableDeclaration -name "WinRmAccess"            | Add-Content $settingsScript
-    Get-VariableDeclaration -name "BingMapsKey"            | Add-Content $settingsScript
     Get-VariableDeclaration -name "RequestToken"           | Add-Content $settingsScript
     Get-VariableDeclaration -name "CreateStorageQueue"     | Add-Content $settingsScript
     Get-VariableDeclaration -name "AddTraefik"             | Add-Content $settingsScript
