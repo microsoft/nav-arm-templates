@@ -557,18 +557,27 @@ if ("$bingmapskey" -ne "") {
 
     $codeunitId = 0
     $apiMethod = ""
+    $bingMapsReleaseTag = ""
+    $bingMapsAssetPattern = "*.zip"
     switch (([System.Version]$navVersion).Major) {
-         9      { $appFile = "" }
-        10      { $appFile = "" }
-        11      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/11.0.0/freddyk_BingMaps_11.0.0.0.zip";                   $codeunitId = 50103 }
-        12      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/12.0.0/freddyk_BingMaps_12.0.0.0.zip";                   $codeunitId = 50103 }
-        13      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/12.0.0/freddyk_BingMaps_12.0.0.0.zip";                   $codeunitId = 50103 }
-        14      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/12.0.0/freddyk_BingMaps_12.0.0.0.zip";                   $codeunitId = 50103 }
-        15      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/15.0.0/Freddy.Kristiansen_BingMaps_15.0.zip";            $codeunitId = 70103 }
-        16      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/16.0.0/Freddy.Kristiansen_BingMaps_16.0.zip";            $apiMethod = "Settings" }
-        17      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/16.0.0/Freddy.Kristiansen_BingMaps_16.0.zip";            $apiMethod = "Settings" }
-        18      { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/16.0.0/Freddy.Kristiansen_BingMaps_16.0.zip";            $apiMethod = "Settings" }
-        default { $appFile = "https://github.com/microsoft/bcsamples-bingmaps.pte/releases/download/19.0.0/bcsamples-bingmaps.pte-main-Apps-19.0.168.0.zip"; $apiMethod = "Settings" }
+         9      { $bingMapsReleaseTag = "" }
+        10      { $bingMapsReleaseTag = "" }
+        11      { $bingMapsReleaseTag = "11.0.0"; $codeunitId = 50103 }
+        12      { $bingMapsReleaseTag = "12.0.0"; $codeunitId = 50103 }
+        13      { $bingMapsReleaseTag = "12.0.0"; $codeunitId = 50103 }
+        14      { $bingMapsReleaseTag = "12.0.0"; $codeunitId = 50103 }
+        15      { $bingMapsReleaseTag = "15.0.0"; $codeunitId = 70103 }
+        16      { $bingMapsReleaseTag = "16.0.0"; $apiMethod = "Settings" }
+        17      { $bingMapsReleaseTag = "16.0.0"; $apiMethod = "Settings" }
+        18      { $bingMapsReleaseTag = "16.0.0"; $apiMethod = "Settings" }
+        default { $bingMapsReleaseTag = "19.0.0"; $bingMapsAssetPattern = "*-Apps-*.zip"; $apiMethod = "Settings" }
+    }
+
+    $appFile = ""
+    if ($bingMapsReleaseTag -ne "") {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        $bingMapsRelease = Invoke-RestMethod -UseBasicParsing -Uri "https://api.github.com/repos/microsoft/bcsamples-bingmaps.pte/releases/tags/$bingMapsReleaseTag" -Headers @{ "User-Agent" = "nav-arm-templates" }
+        $appFile = ($bingMapsRelease.assets | Where-Object { $_.name -like $bingMapsAssetPattern } | Select-Object -First 1).browser_download_url
     }
 
     if ($appFile -eq "") {
