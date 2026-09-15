@@ -11,9 +11,9 @@ if (!($licenseFileSecret)) {
     }
 }
 
-# My subscriptions
-$FreddysSubscription = "97d6b765-89fc-40e9-b253-baee2b19d6db"
-$subscriptionId = $FreddysSubscription
+# Azure subscription to deploy the test to
+$mySubscription = "<your-azure-subscription-id>"
+$subscriptionId = $mySubscription
 
 try {
     Set-AzContext -Subscription $subscriptionId
@@ -117,7 +117,7 @@ $oss | ForEach-Object {
                 $Parameters.Add($_.Name, $_.Value)
             }
     
-            $Parameters.Add("contactemailforletsencrypt", "fk@freddy.dk")
+            $Parameters.Add("contactemailforletsencrypt", "you@example.com")
             $Parameters.Add("RunWindowsUpdate", "No")
             $Parameters.Add("AddTraefik", $AddTraefik)
             
